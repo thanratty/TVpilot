@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{690CE880-8B15-4576-8A69-957A55DC083D}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>TVpilot</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>TVpilot</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(ProjectDir)external\curl-8.6.0_4-win32-mingw\bin;$(ProjectDir)external\libxml2-2.7.8.win32\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)res;F:\Boost-Library\boost_1_78_0;$(ProjectDir)external\curl-8.6.0_4-win32-mingw\include;$(ProjectDir)external\libxml2-2.7.8.win32\include;$(ProjectDir)external\iconv-1.9.2.win32\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(ProjectDir)external\curl-8.6.0_4-win32-mingw\bin;$(ProjectDir)external\libxml2-2.7.8.win32\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)res;F:\Boost-Library\boost_1_78_0;$(ProjectDir)external\curl-8.6.0_4-win32-mingw\include;$(ProjectDir)external\libxml2-2.7.8.win32\include;$(ProjectDir)external\iconv-1.9.2.win32\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;CURL_STATICLIB;_CRTDBG_MAP_ALLOC;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(ProjectDir)\curl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl.lib;libxml2.lib;Pathcch.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
+      <MapExports>true</MapExports>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(ProjectDir)\curl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl.lib;libxml2.lib;Pathcch.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\CDArchive.h" />
+    <ClInclude Include="include\CDEpisodes.h" />
+    <ClInclude Include="include\CDInputBox.h" />
+    <ClInclude Include="include\CDMessages.h" />
+    <ClInclude Include="include\CDNewShow.h" />
+    <ClInclude Include="include\CDSchedule.h" />
+    <ClInclude Include="include\CDShows.h" />
+    <ClInclude Include="include\CcurlJob.hpp" />
+    <ClInclude Include="include\CdataFile.hpp" />
+    <ClInclude Include="include\CdownloadManager.h" />
+    <ClInclude Include="include\CepcheckDlg.h" />
+    <ClInclude Include="include\Cepisode.h" />
+    <ClInclude Include="include\Cshow.h" />
+    <ClInclude Include="include\CslotData.hpp" />
+    <ClInclude Include="include\CsortContext.h" />
+    <ClInclude Include="include\CsyncObjects.hpp" />
+    <ClInclude Include="include\common.hpp" />
+    <ClInclude Include="include\config.h" />
+    <ClInclude Include="include\debugConsole.h" />
+    <ClInclude Include="include\TVpilot.h" />
+    <ClInclude Include="include\framework.h" />
+    <ClInclude Include="include\model.hpp" />
+    <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\targetver.h" />
+    <ClInclude Include="include\threadData.hpp" />
+    <ClInclude Include="include\threadFuncs.hpp" />
+    <ClInclude Include="include\utils.hpp" />
+    <ClInclude Include="include\xmlParse.hpp" />
+    <ClInclude Include="res\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CDArchive.cpp" />
+    <ClCompile Include="src\CDEpisodes.cpp" />
+    <ClCompile Include="src\CDInputBox.cpp" />
+    <ClCompile Include="src\CDMessages.cpp" />
+    <ClCompile Include="src\CDNewShow.cpp" />
+    <ClCompile Include="src\CDSchedule.cpp" />
+    <ClCompile Include="src\CDShows.cpp" />
+    <ClCompile Include="src\CcurlJob.cpp" />
+    <ClCompile Include="src\CdataFile.cpp" />
+    <ClCompile Include="src\CdownloadManager.cpp" />
+    <ClCompile Include="src\CepcheckDlg.cpp" />
+    <ClCompile Include="src\Cepisode.cpp" />
+    <ClCompile Include="src\Cshow.cpp" />
+    <ClCompile Include="src\CsyncObjects.cpp" />
+    <ClCompile Include="src\debugConsole.cpp" />
+    <ClCompile Include="src\TVpilot.cpp" />
+    <ClCompile Include="src\model.cpp" />
+    <ClCompile Include="src\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\threadData.cpp" />
+    <ClCompile Include="src\threadFuncs.cpp" />
+    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\xmlParse.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\epcheck.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\epcheck.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\TVpilot.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
