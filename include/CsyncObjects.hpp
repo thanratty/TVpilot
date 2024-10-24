@@ -18,8 +18,8 @@ public:
     CslotsSem();
     ~CslotsSem();
 
-    bool SemLock();
-    bool SemUnlock();
+    bool Lock();
+    bool Unlock();
 
 private:
     DWORD       m_last_error{ 0 };

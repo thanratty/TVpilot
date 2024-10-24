@@ -5,6 +5,7 @@
 #include <queue>
 #include <string>
 
+#include "debugConsole.h"
 #include "CslotData.hpp"
 
 
@@ -22,14 +23,14 @@ public:
         return ::SetEvent(handles[0]);
     }
 
-    bool SemLock() const
+    bool Lock() const
     {
         ASSERT(sem_request_data != nullptr);
         DWORD result = WaitForSingleObject(sem_request_data, INFINITE);
         return CheckWaitResult(1, result);
     }
 
-    bool SemUnlock() const
+    bool Unlock() const
     {
         LONG last_value;
         BOOL result = ReleaseSemaphore(sem_request_data, 1, &last_value);
@@ -72,7 +73,7 @@ public:
     {
         std::string str;
         if (url_queue.empty()) {
-            AfxDebugBreak();
+            WriteDebugConsole(L"cReguestData Pop() on empty queue!");
         }
         else {
             str = url_queue.front();
@@ -123,14 +124,14 @@ public:
     }
 
     // Returns true if locked OK
-    bool SemLock() const
+    bool Lock() const
     {
         DWORD result = WaitForSingleObject(sem_results_data, INFINITE);
         return CheckWaitResult(1, result);
     }
 
     // Returns true if unlocked OK
-    bool SemUnlock() const
+    bool Unlock() const
     {
         LONG last_value;
         BOOL result = ReleaseSemaphore(sem_results_data, 1, &last_value);
@@ -190,13 +191,13 @@ public:
         pslots[index].ResetAndFree();
     }
 
-    bool SemLock()
+    bool Lock()
     {
         DWORD result = WaitForSingleObject(sem_release_data, INFINITE);
         return CheckWaitResult(1, result);
     }
 
-    bool SemUnlock()
+    bool Unlock()
     {
         [[ maybe_unused]] LONG last_value;
         BOOL result = ReleaseSemaphore(sem_release_data, 1, &last_value);

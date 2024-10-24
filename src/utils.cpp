@@ -21,7 +21,7 @@
 #include "CDInputBox.h"
 #include "CsortContext.h"
 #include "CslotData.hpp"
-
+#include "debugConsole.h"
 #include "utils.hpp"
 
 
@@ -44,7 +44,7 @@ bool CheckWaitResult(unsigned numevents, DWORD result)
 
 	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only)
 
-	AfxDebugBreak();
+	WriteDebugConsole(L"CheckWaitResult() failed!\n");
 	return false;
 }
 

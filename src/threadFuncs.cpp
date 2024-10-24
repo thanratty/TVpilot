@@ -49,64 +49,64 @@ int		index;
 	while (true)
 	{
 		// Wait for a new request
-		if ((index=request.Wait()) != E_WAIT_FAIL)
+		if ((index = request.Wait()) == E_WAIT_FAIL)
 		{
-			// Terminate flag set? Exit the thread.
-			if (slot.TerminateRequested())
-				return E_THREAD_OK;
+			// If the Wait fails - just loop & try again.
+			WriteDebugConsole(L"thrWorkerThread WAIT_FAIL!");
+			continue;
+		}
 
-			// Download the webpage from the show URL
-			cCurlJob  curljob(slot.m_show.epguides_url);
-			bool curl_ok = curljob.downloadShow();
+		// Terminate flag set? Exit the thread.
+		if (slot.TerminateRequested())
+			return E_THREAD_OK;
 
-			// Handy status/error codes for debugging.
-			slot.m_curl_status = curljob.m_curl_result;
-			slot.m_http_status = curljob.m_http_response;
+		// Download the webpage from the show URL
+		cCurlJob  curljob(slot.m_show.epguides_url);
+		bool curl_ok = curljob.downloadShow();
 
-			if (curl_ok == false)
+		// Handy status/error codes for debugging.
+		slot.m_curl_status = curljob.m_curl_result;
+		slot.m_http_status = curljob.m_http_response;
+
+		if (curl_ok == false)
+		{
+			// In debug mode, optionally save a local copy of the faulting page (see config flag).
+			SaveWebPage(curljob);
+
+			std::ostringstream os;
+			os << "CURL code " << curljob.m_curl_result << ", HTTP response " << curljob.m_http_response;
+			slot.m_error_string = os.str();
+			status = E_THREAD_CURL;
+		}
+		else
+		{
+			// No download errors. Parse the HTML & extract the show info.
+			sXmlErrorInfo xml_error_info;
+			slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
+			if (slot.m_xml_status != E_XPARSE_OK)
 			{
 				// In debug mode, optionally save a local copy of the faulting page (see config flag).
 				SaveWebPage(curljob);
 
-				std::ostringstream os;
-				os << "CURL code " << curljob.m_curl_result << ", HTTP response " << curljob.m_http_response;
-				slot.m_error_string = os.str();
-				status = E_THREAD_CURL;
-			}
-			else
-			{
-				// No download errors. Parse the HTML & extract the show info.
-				sXmlErrorInfo xml_error_info;
-				slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
-				if (slot.m_xml_status != E_XPARSE_OK)
-				{
-					// In debug mode, optionally save a local copy of the faulting page (see config flag).
-					SaveWebPage(curljob);
-
-					if (slot.m_xml_status == E_XPARSE_DOC_ERROR) {
-						slot.m_error_string = "xmlParse doc error";
-						status = E_THREAD_DOC_ERR;
-					}
-					else if (slot.m_xml_status == E_XPARSE_PAGE_ERROR) {
-						slot.m_error_string = "xmlParse page format error";
-						status = E_THREAD_PARSE;
-					}
-					else {
-						slot.m_error_string = "xmlParse unknown error";
-						status = E_THREAD_XML;
-					}
+				if (slot.m_xml_status == E_XPARSE_DOC_ERROR) {
+					slot.m_error_string = "xmlParse doc error";
+					status = E_THREAD_DOC_ERR;
+				}
+				else if (slot.m_xml_status == E_XPARSE_PAGE_ERROR) {
+					slot.m_error_string = "xmlParse page format error";
+					status = E_THREAD_PARSE;
+				}
+				else {
+					slot.m_error_string = "xmlParse unknown error";
+					status = E_THREAD_XML;
 				}
 			}
+		}
 
-			// Save the status & Signal that we're all done
-			slot.SetThreadStatus(status);
-			if (!SetEvent(slot.evResults))
-				WriteDebugConsole(L"Can't set worker evResults event");
-		}
-		else
-		{
-			AfxDebugBreak();
-		}
+		// Save the status & Signal that we're all done
+		slot.SetThreadStatus(status);
+		if (!SetEvent(slot.evResults))
+			WriteDebugConsole(L"Can't set worker evResults event");
 
 		VERIFY(request.Reset(index) == 0);
 	}
@@ -146,9 +146,9 @@ int slotnum;
 		// If there's no free download slot, loop for the next timeout 
 		// Keep popping requests off the queue till all slots are full or there's no more requests
 
-		if (!request_data.SemLock())
+		if (!request_data.Lock())
 			WriteDebugConsole(L"Can't acquire request_data semaphore");
-		if (!slotslock.SemLock())
+		if (!slotslock.Lock())
 			WriteDebugConsole(L"Can't acquire thrRequert slots semaphore");
 
 		while (request_data.Pending())
@@ -163,10 +163,10 @@ int slotnum;
 				WriteDebugConsole(L"Can't set thrRequest slot event");
 		}
 
-		if (!slotslock.SemUnlock())
+		if (!slotslock.Unlock())
 			WriteDebugConsole(L"Can't release thrRequest slots semaphore");
 
-		if (!request_data.SemUnlock())
+		if (!request_data.Unlock())
 			WriteDebugConsole(L"Can't release request_data semaphore");
 
 		if (!events.Reset(index)==0)
@@ -195,7 +195,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 		if (wait_result == WAIT_OBJECT_0)
 			return E_THREAD_OK;
 
-		if(!pData->SemLock())
+		if(!pData->Lock())
 			WriteDebugConsole(L"Can't acquire cResultsData semaphore");
 
 		// Check every slot event before unlocking. slot # 0 = event index 1
@@ -208,7 +208,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 			}
 		}
 
-		if (!pData->SemUnlock())
+		if (!pData->Unlock())
 			WriteDebugConsole(L"Can't acquire cResultsData semaphore");
 	}
 }
@@ -237,12 +237,12 @@ UINT __cdecl thrRelease( LPVOID pParam )
 
 		DWORD slot = (wait_result - WAIT_OBJECT_0 - 1);
 
-		if (!slotslock.SemLock())
+		if (!slotslock.Lock())
 			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore");
 
 		pData->ResetAndFree( slot );
 
-		if (!slotslock.SemUnlock())
+		if (!slotslock.Unlock())
 			WriteDebugConsole(L"Can't release thrRelease slots semaphore");
 
 		VERIFY(events.Reset(wait_result)==0);

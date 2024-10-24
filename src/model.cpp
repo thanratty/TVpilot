@@ -639,9 +639,10 @@ void model::DownloadPing(DWORD slotnum)
 
     if (slot.IsFree())
     {
-        WriteMessageLog(L"ERROR! Empty slot signalled.");
+        const wchar_t* msg = L"ERROR! Empty slot signalled.";
+        WriteMessageLog(msg);
+        WriteDebugConsole(msg);
         MessageBeep(MB_ICONASTERISK);
-        AfxDebugBreak();
         CheckDownloadComplete();
         return;
     }

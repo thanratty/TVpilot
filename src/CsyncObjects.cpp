@@ -94,7 +94,7 @@ CslotsSem::~CslotsSem()
 }
 
 
-bool CslotsSem::SemLock()
+bool CslotsSem::Lock()
 {
     ASSERT(m_hSem != nullptr);
 
@@ -103,12 +103,12 @@ bool CslotsSem::SemLock()
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::SemLock() wait fail");
+    SyncDebugMessage(L"CslotsSem::Lock() wait fail");
     return false;
 }
 
 
-bool CslotsSem::SemUnlock()
+bool CslotsSem::Unlock()
 {
     static LONG last_count = -1;
 
@@ -116,7 +116,7 @@ bool CslotsSem::SemUnlock()
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::SemUnlock() release fail");
+    SyncDebugMessage(L"CslotsSem::Unlock() release fail");
     return false;
 }
 

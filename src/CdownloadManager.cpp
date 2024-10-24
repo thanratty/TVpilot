@@ -80,9 +80,9 @@ CdownloadManager::CdownloadManager() :
  */
 void CdownloadManager::DownloadShow(const std::string& url)
 {
-	request_data.SemLock();
+	request_data.Lock();
 	request_data.Push(url);
-	request_data.SemUnlock();
+	request_data.Unlock();
 
 	request_data.Trigger();
 }
@@ -105,19 +105,19 @@ bool retval = true;
 
 	CslotsSem		slotslock;
 	
-	request_data.SemLock();
+	request_data.Lock();
 
 	if (request_data.Pending()) {
 		retval = false;
 	}
 	else
 	{
-		slotslock.SemLock();
+		slotslock.Lock();
 		retval = (FindBusySlot(m_slots) == -1);
-		slotslock.SemUnlock();
+		slotslock.Unlock();
 	}
 
-	request_data.SemUnlock();
+	request_data.Unlock();
 
 	return !retval;
 }
@@ -130,8 +130,8 @@ void CdownloadManager::AbortDownload()
 	// Clear all queued URLs then wait in the
 	// ping handler till all slots are free.
 
-	request_data.SemLock();
+	request_data.Lock();
 	request_data.ClearQueue();
-	request_data.SemUnlock();
+	request_data.Unlock();
 }
 
