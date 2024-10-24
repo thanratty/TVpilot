@@ -106,6 +106,7 @@ BEGIN_MESSAGE_MAP(CDSchedule, CDialog)
 	ON_NOTIFY(NM_DBLCLK,	   IDC_SCHED_LIST,  &CDSchedule::OnDblclkSchedList)
 	ON_NOTIFY(NM_CUSTOMDRAW,   IDC_SCHED_LIST,  &CDSchedule::OnCustomdrawSchedList)
 	ON_WM_CONTEXTMENU()
+	ON_WM_CHAR()
 END_MESSAGE_MAP()
 
 #pragma warning( pop )
@@ -384,3 +385,24 @@ BOOL CDSchedule::PreTranslateMessage(MSG* pMsg)
 	return CDialog::PreTranslateMessage(pMsg);
 }
 
+
+
+
+/**
+ * Pressing 'z' on a highlighted list entry 'zooms' the show
+ */
+void CDSchedule::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	UNREFERENCED_PARAMETER(nRepCnt);
+	UNREFERENCED_PARAMETER(nFlags);
+
+	if (toupper(nChar) == 'Z')
+	{
+		int index = GetSelectedListItem(m_schedlist);
+		if (index != -1)
+		{
+			DWORD hash = m_schedlist.GetItemData(index);
+			GetParent()->PostMessageW(WM_ZOOM_EPISODES, hash);
+		}
+	}
+}
