@@ -83,9 +83,6 @@ private:
 private:
 	CListCtrl				 m_schedlist;
 	static const tSortMap	 m_sort_map;
-
-public:
-	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
 

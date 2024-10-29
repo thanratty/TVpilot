@@ -88,7 +88,7 @@ public:
 
     // To step through episodes within the date filter & return info
     void        SetDateInterval(int lower, int upper);
-    void        ResetToday();
+    void        SetToday();
     bool        GetFirstFilteredEpisode(sScheduleListEntry* sle);
     bool        GetNextFilteredEpisode(sScheduleListEntry* sle);
 

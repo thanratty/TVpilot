@@ -768,7 +768,7 @@ bool model::DownloadComplete()
 
 
 
-void model::ResetToday()
+void model::SetToday()
 {
     m_today = gregorian::day_clock::local_day();
     EvalScheduleDateWindow();

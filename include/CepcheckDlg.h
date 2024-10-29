@@ -68,7 +68,6 @@ public:
 	afx_msg void	OnBtnClickedBreak();
 	afx_msg void    OnBtnClickedChkMissedOnly();
 	afx_msg void	OnBtnClickedResetDays();
-	afx_msg void	OnBtnClickedToday();
 	afx_msg void	OnBtnClickedExplorer();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);

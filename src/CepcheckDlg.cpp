@@ -74,7 +74,6 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED( IDC_BTN_MESSAGES,				&CepcheckDlg::OnBtnClickedMsgLog)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClickedBreak)
 	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CepcheckDlg::OnBtnClickedChkMissedOnly)
-	ON_BN_CLICKED( IDC_BTN_TODAY,					&CepcheckDlg::OnBtnClickedToday)
 	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClickedExplorer)
 	ON_MESSAGE( WM_DOWNLOAD_COMPLETE,				&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_DOWNLOAD_PING,					&CepcheckDlg::OnDownloadPing)
@@ -905,20 +904,6 @@ void CepcheckDlg::OnBtnClickedResetDays()
 
 
 /**
- * If the app has been open a while, this resets what 'today' is
- * for the schedule listing.
- *
- */
-void CepcheckDlg::OnBtnClickedToday()
-{
-	m_data.ResetToday();
-	UpdateScheduleList();
-}
-
-
-
-
-/**
  * Handle a WM_SIGNAL_APP_EVENT message
  * 
  */
@@ -1195,8 +1180,9 @@ static int day = 0;
 			int nSelectedItem = m_dlgSchedule.GetSelectedItem();
 			int nTopIndex     = m_dlgSchedule.GetTopIndex();
 
-			// The 'Today' button handler already has the date update functionality
-			OnBtnClickedToday();
+			// Set the new date filter in the model & re-do the schedule list
+			m_data.SetToday();
+			UpdateScheduleList();
 
 			// Restore any selection and scroll position
 			if (nSelectedItem != -1)

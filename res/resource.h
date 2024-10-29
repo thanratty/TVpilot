@@ -11,10 +11,8 @@
 #define IDR_MAINFRAME                   150
 #define IDD_EPISODES                    151
 #define IDR_MNU_URL                     153
-
 #define IDD_INPUT_BOX                   154
 #define IDC_TAB1                        1000
-
 #define IDC_BTN_LOAD                    1003
 #define IDC_BTN_SAVE                    1004
 #define IDC_BTN_DOWNLOAD                1005
@@ -24,28 +22,23 @@
 #define IDC_BTN_BREAK                   1009
 #define IDC_BTN_ABORT_DOWNLOAD          1010
 #define IDC_BTN_RESET_DAYS              1011
-#define IDC_BTN_TODAY                   1012
 #define IDC_BTN_EXPLORER                1013
 #define IDC_BTN_CLEAR                   1014
-
 #define IDC_EDT_INPUT                   1020
 #define IDC_INPUT_PROMPT                1021
 #define IDC_NEW_URL                     1022
 #define IDC_CHK_MISSED_ONLY             1023
 #define IDC_SPIN_DAYS_POST              1024
 #define IDC_SPIN_DAYS_PRE               1025
-
 #define IDC_LIST_ARCHIVE                1030
 #define IDC_SCHED_LIST                  1031
 #define IDC_SHOW_LIST                   1032
 #define IDC_EPISODES_LIST               1033
-
 #define IDC_MESSAGES                    1040
 #define IDC_STATIC_DAYS_PRE             1041
 #define IDC_STATIC_DAYS_POST            1042
 #define IDC_ERR_COUNT                   1043
 #define IDC_PING_COUNT                  1044
-
 #define ID_MNU_EPGUIDES_GO              32780
 #define ID_MNU_EPGUIDES_EDIT            32781
 #define ID_MNU_TVMAZE_GO                32782
