@@ -19,7 +19,7 @@ using namespace boost;
 
 
 STATIC constexpr int COL_EPISODES_TITLE		= 0;
-STATIC constexpr int COL_EPISODES_EPISODE	= 1;
+STATIC constexpr int COL_EPISODES_NUMBER	= 1;
 STATIC constexpr int COL_EPISODES_DATE		= 2;
 STATIC constexpr int COL_EPISODES_DATE_SORT	= 3;
 //
@@ -35,7 +35,7 @@ const tSortMap CDepisodes::m_sort_map = {
 	// 1st entry is used as the default sort order
 	{ COL_EPISODES_DATE, {
 			{COL_EPISODES_DATE_SORT,  NumberCompareFunc  },
-			{COL_EPISODES_EPISODE,	  EpisodeCompareFunc }
+			{COL_EPISODES_NUMBER,	  EpisodeCompareFunc }
 		}},
 
 	{ COL_EPISODES_TITLE, {
@@ -43,8 +43,8 @@ const tSortMap CDepisodes::m_sort_map = {
 			{COL_EPISODES_DATE_SORT,  NumberCompareFunc }
 		}},
 
-	{ COL_EPISODES_EPISODE, {
-			{COL_EPISODES_EPISODE,	  EpisodeCompareFunc }
+	{ COL_EPISODES_NUMBER, {
+			{COL_EPISODES_NUMBER,	  EpisodeCompareFunc }
 		}}
 };
 
@@ -115,7 +115,7 @@ BOOL CDepisodes::OnInitDialog()
 	col.pszText = L"Title";
 	m_eplist.InsertColumn(COL_EPISODES_TITLE, &col);
 	col.pszText = L"Episode";
-	m_eplist.InsertColumn(COL_EPISODES_EPISODE, &col);
+	m_eplist.InsertColumn(COL_EPISODES_NUMBER, &col);
 	col.pszText = L"Air Date";
 	m_eplist.InsertColumn(COL_EPISODES_DATE, &col);
 	col.pszText = L"D-Date";
@@ -128,7 +128,7 @@ BOOL CDepisodes::OnInitDialog()
 	int listWidth = rc.Width();
 
 	m_eplist.SetColumnWidth(COL_EPISODES_TITLE,   55 * listWidth / 100);
-	m_eplist.SetColumnWidth(COL_EPISODES_EPISODE, 20 * listWidth / 100);
+	m_eplist.SetColumnWidth(COL_EPISODES_NUMBER,  20 * listWidth / 100);
 	m_eplist.SetColumnWidth(COL_EPISODES_DATE,    20 * listWidth / 100);
 	// Zero width (ie hide) the date sort column
 	m_eplist.SetColumnWidth(COL_EPISODES_DATE_SORT, 0);
@@ -142,7 +142,7 @@ BOOL CDepisodes::OnInitDialog()
 		ui_airdate_string = ui_airdate_string.Right(2) + ui_airdate_string.Mid(4, 5) + ui_airdate_string.Left(4);
 
 		CString ui_episode_number(ep.ep_num.c_str());
-		CString ui_episode_title(ep.ep_title.c_str());
+		CString ui_episode_title = CA2W(ep.ep_title.c_str(), CP_UTF8);
 
 		std::string str = std::to_string(ep.ep_date.julian_day());
 		CString ui_airdate_sort(str.c_str());
@@ -152,7 +152,7 @@ BOOL CDepisodes::OnInitDialog()
 
 		// Add a row of data
 		int index = m_eplist.InsertItem(count, ui_episode_title);
-		m_eplist.SetItemText(index, COL_EPISODES_EPISODE,   ui_episode_number);
+		m_eplist.SetItemText(index, COL_EPISODES_NUMBER,    ui_episode_number);
 		m_eplist.SetItemText(index, COL_EPISODES_DATE,      ui_airdate_string);
 		m_eplist.SetItemText(index, COL_EPISODES_DATE_SORT, ui_airdate_sort);
 	}

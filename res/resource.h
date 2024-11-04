@@ -22,8 +22,8 @@
 #define IDC_BTN_BREAK                   1009
 #define IDC_BTN_ABORT_DOWNLOAD          1010
 #define IDC_BTN_RESET_DAYS              1011
-#define IDC_BTN_EXPLORER                1013
-#define IDC_BTN_CLEAR                   1014
+#define IDC_BTN_EXPLORER                1012
+#define IDC_BTN_CLEAR                   1013
 #define IDC_EDT_INPUT                   1020
 #define IDC_INPUT_PROMPT                1021
 #define IDC_NEW_URL                     1022
@@ -64,8 +64,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        162
-#define _APS_NEXT_COMMAND_VALUE         32793
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_COMMAND_VALUE         32800
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

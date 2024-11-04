@@ -64,7 +64,7 @@ void OpenDebugConsole()
 		return;
 	}
 
-	SetConsoleTitle(L"Epcheck Debug Output");
+	SetConsoleTitle(L"TV Pilot Debug Output");
 	WriteDebugConsole(L"Console Ready\n\n");
 
 	pBuffer = new wchar_t[ PRINTF_BUFFER_SIZE ];
