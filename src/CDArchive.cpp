@@ -140,16 +140,6 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 
 	// Add a row of data
 	int index = m_archivelist.InsertItem(count, sle->ui_title);
-
-	if (index == -1)
-	{
-		CString str;
-		str.Format(L"Can't add '%s' to archive list", (LPCTSTR)sle->ui_title);
-		AfxMessageBox(str, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		WriteMessageLog(str);
-		return;
-	}
-
 	m_archivelist.SetItemText(index, COL_ARCHIVE_NUMBER, ui_numeps);
 	m_archivelist.SetItemText(index, COL_ARCHIVE_LAST_DATE_STR, sle->ui_last_airdate_string);
 	m_archivelist.SetItemText(index, COL_ARCHIVE_LAST_DATE_SORT, sle->ui_last_airdate_sort);
@@ -214,7 +204,7 @@ void CDArchive::OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult)
 	if (row != -1)
 	{
 		DWORD hash = m_archivelist.GetItemData(row);
-		GetParent()->PostMessageW(WM_ZOOM_EPISODES, static_cast<WPARAM>(hash), 0);
+		GetParent()->PostMessage(WM_ZOOM_EPISODES, static_cast<WPARAM>(hash), 0);
 	}
 
 	*pResult = 0;
