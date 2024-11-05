@@ -75,9 +75,7 @@ DWORD SimpleHash(const std::string& str)
  */
 DWORD SimpleHash(const CString& url)
 {
-	CW2A pszAnsiString(url, CP_UTF8);
-	std::string new_url = pszAnsiString;
-
+	std::string new_url = CW2A(url, CP_UTF8);
 	return SimpleHash(new_url);
 }
 
@@ -103,7 +101,7 @@ static unsigned EpisodeToNumber(const CString& epstring)
 
 
 /**
- * Compare two episode-number strings SS-EE
+ * Compare/Order two episode-number strings SS-EE
  */
 int EpisodeCompareFunc(const CString& episode1, const CString& episode2, bool ascending)
 {

@@ -61,6 +61,5 @@ void CDInputBox::OnOK()
 
 	// Also build the std::string copy of the input
 	m_input.MakeLower();
-	CW2A psz(m_input, CP_UTF8);
-	m_input_str = psz;
+	m_input_str = CW2A(m_input, CP_UTF8);
 }

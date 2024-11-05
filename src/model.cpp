@@ -57,8 +57,7 @@ struct fnoMatchEpisodeNumber
     fnoMatchEpisodeNumber() = delete;
     explicit fnoMatchEpisodeNumber(const CString& epnum)
     {
-        CW2A psz(epnum, CP_UTF8);
-        ep_num = psz;
+        ep_num = CW2A(epnum, CP_UTF8);
     }
 
     bool operator()(const episode& test_ep) const
@@ -518,8 +517,7 @@ bool model::DownloadNewShow(CString& url)
 
     // Prepare a new Show object
     show	new_show;
-    CW2A pszAnsiString(url, CP_UTF8);
-    new_show.epguides_url = pszAnsiString;
+    new_show.epguides_url = CW2A(url, CP_UTF8);
     new_show.hash         = SimpleHash(new_show.epguides_url);
     new_show.title        = "--NEW SHOW--";
     new_show.state        = showstate::SH_ST_NEW_SHOW | showstate::SH_ST_WAITING;
