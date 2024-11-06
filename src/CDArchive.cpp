@@ -31,6 +31,29 @@ STATIC constexpr int COL_ARCHIVE_NUM_COLS = 4;
 
 
 
+/**
+ * Initialises the static const class member variable m_sort_map
+ */
+const tSortMap CDArchive::m_sort_map = {
+	// 1st entry is used as the default sort order
+	{ COL_ARCHIVE_TITLE, {
+			{COL_ARCHIVE_TITLE,				AlphaCompareFunc  },
+			{COL_ARCHIVE_LAST_DATE_SORT,	NumberCompareFunc }
+		}},
+
+	{ COL_ARCHIVE_NUMBER, {
+			{COL_ARCHIVE_NUMBER,			NumberCompareFunc  },
+			{COL_ARCHIVE_LAST_DATE_SORT,    NumberCompareFunc }
+		}},
+
+	{ COL_ARCHIVE_LAST_DATE_STR, {
+			{COL_ARCHIVE_LAST_DATE_SORT,	NumberCompareFunc },
+			{COL_ARCHIVE_TITLE,				AlphaCompareFunc  }
+		}}
+};
+
+
+
 
 
 
@@ -40,7 +63,8 @@ STATIC constexpr int COL_ARCHIVE_NUM_COLS = 4;
 IMPLEMENT_DYNAMIC(CDArchive, CDialog)
 
 CDArchive::CDArchive(CWnd* pParent /*=nullptr*/)
-	: CDialog(IDD_ARCHIVE, pParent)
+	: CDialog(IDD_ARCHIVE, pParent),
+	cSortContext(&m_sort_map, &m_archivelist)
 {
 }
 
@@ -61,7 +85,8 @@ void CDArchive::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDArchive, CDialog)
 	ON_WM_CONTEXTMENU()
-	ON_NOTIFY(NM_DBLCLK, IDC_LIST_ARCHIVE, &CDArchive::OnDblclkListArchive)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_LIST_ARCHIVE, &CDArchive::OnColumnClick)
+	ON_NOTIFY(NM_DBLCLK,       IDC_LIST_ARCHIVE, &CDArchive::OnDblclkListArchive)
 END_MESSAGE_MAP()
 
 #pragma warning( pop )
@@ -210,4 +235,18 @@ void CDArchive::OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 0;
 }
 
+
+
+void CDArchive::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// This msg is always 'handled'
+	*pResult = 0;
+
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	int new_sort_col   = pNMLV->iSubItem;
+
+	// Set the new sort column - if needed re-sort the list control
+	if (SetSortColumn(new_sort_col) == true)
+		SortList();
+}
 

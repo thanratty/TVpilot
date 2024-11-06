@@ -102,7 +102,7 @@ void CDSchedule::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDSchedule, CDialog)
 	ON_MESSAGE(WM_SCHED_EP_FLAGS_CHANGED,		&CDSchedule::OnSchedEpFlagsChanged)
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_SCHED_LIST,  &CDSchedule::OnColumnClickSchedList)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_SCHED_LIST,  &CDSchedule::OnColumnClick)
 	ON_NOTIFY(NM_DBLCLK,	   IDC_SCHED_LIST,  &CDSchedule::OnDblclkSchedList)
 	ON_NOTIFY(NM_CUSTOMDRAW,   IDC_SCHED_LIST,  &CDSchedule::OnCustomdrawSchedList)
 	ON_WM_CONTEXTMENU()
@@ -175,7 +175,7 @@ BOOL CDSchedule::OnInitDialog()
  * Click on a column header to sort the list control entries on that column, alternate ascending/descending
  *
  */
-void CDSchedule::OnColumnClickSchedList(NMHDR* pNMHDR, LRESULT* pResult)
+void CDSchedule::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	// We always 'handle' this message
 	*pResult = 0;

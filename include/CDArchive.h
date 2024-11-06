@@ -1,9 +1,11 @@
 #pragma once
 
+#include "CsortContext.h"
 
-// CDArchive dialog - NO SORTABLE COLUMNS IN THE LIST CONTROL!!!
 
-class CDArchive : public CDialog
+// CDArchive dialog - List of archived (ie inactive) shows
+
+class CDArchive : public CDialog, public cSortContext
 {
 	DECLARE_DYNAMIC(CDArchive)
 
@@ -29,6 +31,7 @@ public:
 	virtual void OnCancel();
 	virtual void OnOK();
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+	afx_msg void OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult);
 
 public:
@@ -36,5 +39,5 @@ public:
 
 private:
 	CPoint		m_click_point;
-
+	static	const tSortMap			m_sort_map;
 };

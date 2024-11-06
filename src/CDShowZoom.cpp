@@ -79,8 +79,8 @@ void CDShowZoom::DoDataExchange(CDataExchange* pDX)
 #pragma warning( disable : 26454 )
 
 BEGIN_MESSAGE_MAP(CDShowZoom, CDialogEx)
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST, &CDShowZoom::OnColumnClick)
 	ON_WM_CONTEXTMENU()
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST, &CDShowZoom::OnColumnClick)
 END_MESSAGE_MAP()
 
 #pragma warning( pop )

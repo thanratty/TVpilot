@@ -55,10 +55,10 @@ public:
     friend std::ostream& operator<< (std::ostream& wstream, const show& s);
     friend std::istream& operator>> (std::istream& wstream, show& s);
 
-    // Show comparison is on the title
+    // Show comparison is on the title for std::sort
     bool operator<(const show& rhs)
     {
-        return this->title.compare(rhs.title);
+        return this->title < rhs.title;
     }
 
     void Reset()
