@@ -60,7 +60,7 @@
     <ClInclude Include="include\CDMessages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDEpisodes.h">
+    <ClInclude Include="include\CDShowZoom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\CDInputBox.h">
@@ -143,7 +143,7 @@
     <ClCompile Include="src\CDMessages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CDEpisodes.cpp">
+    <ClCompile Include="src\CDShowZoom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CDInputBox.cpp">

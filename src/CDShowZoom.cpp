@@ -10,7 +10,7 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "CDEpisodes.h" 
+#include "CDShowZoom.h" 
 #include "CepcheckDlg.h"
 
 #include "utils.hpp"
@@ -29,9 +29,9 @@ STATIC constexpr int COL_EPISODES_NUM_COLS  = 4;
 
 
 /**
- * Initialises the static const class member variable m_sort_list
+ * Initialises the static const class member variable m_sort_map
  */
-const tSortMap CDepisodes::m_sort_map = {
+const tSortMap CDShowZoom::m_sort_map = {
 	// 1st entry is used as the default sort order
 	{ COL_EPISODES_DATE, {
 			{COL_EPISODES_DATE_SORT,  NumberCompareFunc  },
@@ -52,22 +52,22 @@ const tSortMap CDepisodes::m_sort_map = {
 
 
 
-// CDepisodes zoomed dialog
+// CDShowZoom zoomed dialog
 
-IMPLEMENT_DYNAMIC(CDepisodes, CDialogEx)
+IMPLEMENT_DYNAMIC(CDShowZoom, CDialogEx)
 
-CDepisodes::CDepisodes(CWnd* pParent, const show* pshow)
-	: CDialogEx(IDD_EPISODES, pParent),
+CDShowZoom::CDShowZoom(CWnd* pParent, const show* pshow)
+	: CDialogEx(IDD_SHOW_ZOOM, pParent),
 	  cSortContext(&m_sort_map, &m_eplist),
 	  m_pshow(pshow)
 {
 }
 
-CDepisodes::~CDepisodes()
+CDShowZoom::~CDShowZoom()
 {
 }
 
-void CDepisodes::DoDataExchange(CDataExchange* pDX)
+void CDShowZoom::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_EPISODES_LIST, m_eplist);
@@ -78,8 +78,8 @@ void CDepisodes::DoDataExchange(CDataExchange* pDX)
 #pragma warning( push )
 #pragma warning( disable : 26454 )
 
-BEGIN_MESSAGE_MAP(CDepisodes, CDialogEx)
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST, &CDepisodes::OnColumnClickEpisodesList)
+BEGIN_MESSAGE_MAP(CDShowZoom, CDialogEx)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST, &CDShowZoom::OnColumnClick)
 	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
@@ -88,7 +88,7 @@ END_MESSAGE_MAP()
 
 
 
-BOOL CDepisodes::OnInitDialog()
+BOOL CDShowZoom::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
@@ -173,7 +173,7 @@ BOOL CDepisodes::OnInitDialog()
 
 
 
-void CDepisodes::OnColumnClickEpisodesList(NMHDR* pNMHDR, LRESULT* pResult)
+void CDShowZoom::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	// This msg is always 'handled'
 	*pResult = 0;
@@ -193,7 +193,7 @@ void CDepisodes::OnColumnClickEpisodesList(NMHDR* pNMHDR, LRESULT* pResult)
  * Show a context menu for a show's zoomed popup episode list
  * The only option in the menu will be to copy the episode's title
  */
-void CDepisodes::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+void CDShowZoom::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
 	// Make sure the mouse click is on a list item
 	m_eplist.ScreenToClient(&point);

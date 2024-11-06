@@ -128,7 +128,7 @@ private:
 		bool ascending  = sort_context->m_sort_ascending;
 
 		// Compare the two list entries by each column in the sort list till one entry is 'bigger' than the other
-		for (sSortMapEntry sme : SortMap)
+		for (const sSortMapEntry& sme : SortMap)
 		{
 			const CString item1 = sort_context->GetListControl()->GetItemText(index1, sme.col_num);
 			const CString item2 = sort_context->GetListControl()->GetItemText(index2, sme.col_num);

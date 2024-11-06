@@ -127,7 +127,7 @@ BOOL CDSchedule::OnInitDialog()
 	CRect  rc;
 	GetParent()->GetDlgItem(IDC_TAB1)->GetClientRect(rc);
 	MoveWindow(&rc);
-//	// Now fit the list control to the dialog box
+	// Fit the list control to the dialog box
 	m_schedlist.MoveWindow(&rc);
 
 	// Make the column header bold

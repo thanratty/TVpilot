@@ -117,7 +117,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\CDArchive.h" />
-    <ClInclude Include="include\CDEpisodes.h" />
+    <ClInclude Include="include\CDShowZoom.h" />
     <ClInclude Include="include\CDInputBox.h" />
     <ClInclude Include="include\CDMessages.h" />
     <ClInclude Include="include\CDNewShow.h" />
@@ -148,7 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CDArchive.cpp" />
-    <ClCompile Include="src\CDEpisodes.cpp" />
+    <ClCompile Include="src\CDShowZoom.cpp" />
     <ClCompile Include="src\CDInputBox.cpp" />
     <ClCompile Include="src\CDMessages.cpp" />
     <ClCompile Include="src\CDNewShow.cpp" />

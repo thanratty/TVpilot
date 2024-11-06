@@ -12,7 +12,7 @@
 
 #include "Resource.h"
 #include "CDnewShow.h"
-#include "CDepisodes.h"
+#include "CDShowZoom.h"
 #include "CDInputBox.h"
 #include "CdownloadManager.h"
 #include "utils.hpp"
@@ -594,7 +594,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM /* lParam */)
 	}
 	else
 	{
-		CDepisodes dlg(this, pshow);
+		CDShowZoom dlg(this, pshow);
 		dlg.DoModal();
 	}
 

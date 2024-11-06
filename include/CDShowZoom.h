@@ -5,19 +5,19 @@
 
 
 
-// CDepisodes dialog
+// CDShowZoom dialog
 
-class CDepisodes : public CDialogEx, public cSortContext
+class CDShowZoom : public CDialogEx, public cSortContext
 {
-		DECLARE_DYNAMIC(CDepisodes)
+		DECLARE_DYNAMIC(CDShowZoom)
 
 public:
-		CDepisodes(CWnd* pParent, const show* pshow);
-		virtual ~CDepisodes();
+		CDShowZoom(CWnd* pParent, const show* pshow);
+		virtual ~CDShowZoom();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_EPISODES };
+	enum { IDD = IDD_SHOW_ZOOM };
 #endif
 
 protected:
@@ -34,6 +34,6 @@ static	const tSortMap			m_sort_map;
 
 public:
 		virtual BOOL OnInitDialog();
-		afx_msg void OnColumnClickEpisodesList(NMHDR* pNMHDR, LRESULT* pResult);
+		afx_msg void OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult);
 		afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };

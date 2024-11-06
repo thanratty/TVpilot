@@ -9,7 +9,7 @@
 #define IDD_NEW_SHOW                    135
 #define IDD_MESSAGES                    139
 #define IDR_MAINFRAME                   150
-#define IDD_EPISODES                    151
+#define IDD_SHOW_ZOOM                   151
 #define IDR_MNU_URL                     153
 #define IDD_INPUT_BOX                   154
 #define IDC_TAB1                        1000
