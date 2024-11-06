@@ -239,8 +239,11 @@ bool model::LoadFile()
  */
 bool model::SaveFile()
 {
-    // Sort on show title using show::operator<()
-    std::sort(m_active_shows.begin(), m_active_shows.end());
+    // Sort on show title
+    std::sort(m_active_shows.begin(), m_active_shows.end(), [](const show& a, const show& b)
+        {
+            return a.title < b.title;
+        });
 
     std::ofstream ofs(m_datafile.Filename(), std::ofstream::out);
     if (ofs.is_open()) {
@@ -287,6 +290,7 @@ void model::BuildEpisodeList()
         }
     }
 
+    // Sorts on airdate
     std::sort(m_guide.begin(), m_guide.end());
 }
 
