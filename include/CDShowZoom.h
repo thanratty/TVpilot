@@ -22,13 +22,13 @@ public:
 
 protected:
 		virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
 		DECLARE_MESSAGE_MAP()
 
 private:
 		const show*				m_pshow{ nullptr };
 		CFont					m_headerFont;
 		CListCtrl				m_eplist;
-
 static	const tSortMap			m_sort_map;
 
 

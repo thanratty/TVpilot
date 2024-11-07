@@ -33,27 +33,28 @@ public:
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+		virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	DECLARE_MESSAGE_MAP()
+		DECLARE_MESSAGE_MAP()
+
 public:
-	virtual BOOL OnInitDialog();
-	afx_msg void OnColumnClickShowList(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnDblClkShowList(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
+		virtual BOOL OnInitDialog();
+		afx_msg void OnColumnClickShowList(NMHDR* pNMHDR, LRESULT* pResult);
+		afx_msg void OnDblClkShowList(NMHDR* pNMHDR, LRESULT* pResult);
+		afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 
-	virtual void OnCancel();
-	virtual void OnOK();
+		virtual void OnCancel();
+		virtual void OnOK();
 
-	void	AppendRow(const sShowListEntry* sle);
-	void	SaveTopIndex();
-	void	RestoreTopIndex();
-	void	DeleteAllItems() { m_showlist.DeleteAllItems(); }
+		void	AppendRow(const sShowListEntry* sle);
+		void	SaveTopIndex();
+		void	RestoreTopIndex();
+inline  void	DeleteAllItems() { m_showlist.DeleteAllItems(); }
 
 private:
-	int			m_top_index{ 0 };
-	CPoint		m_click_point;
+		int				m_top_index{ 0 };
+		CPoint			m_click_point;
+		CListCtrl		m_showlist;
+static const tSortMap	m_sort_map;
 
-	CListCtrl	m_showlist;
-	static const tSortMap m_sort_map;
 };
