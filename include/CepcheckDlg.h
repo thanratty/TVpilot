@@ -64,9 +64,9 @@ public:
 	afx_msg void	OnBtnClickedDownload();
 	afx_msg void	OnBtnClickedDeleteShow();
 	afx_msg void	OnBtnClickedAddShow();
-	afx_msg void	OnBtnClickedMsgLog();
 	afx_msg void	OnBtnClickedBreak();
 	afx_msg void    OnBtnClickedChkMissedOnly();
+	afx_msg void    OnBtnClickedChkDebugLog();
 	afx_msg void	OnBtnClickedResetDays();
 	afx_msg void	OnBtnClickedExplorer();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
@@ -90,8 +90,9 @@ private:
 			unsigned		m_err_count{ 0 };
 			int				m_spin_pre_val{ DEFAULT_DAYS_PRE };
 			int				m_spin_post_val{ DEFAULT_DAYS_POST };
-			BOOL			m_missed_only{ FALSE };
 			bool			m_abort_download{ false };
+			//
+			BOOL			m_missed_only{ FALSE };
 
 	virtual void		OnOK();
 	virtual void		OnCancel();

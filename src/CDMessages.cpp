@@ -50,10 +50,8 @@ void CDmessages::OnBtnClickedClear()
 
 void CDmessages::OnOK()
 {
-	WriteMessageLog(L"OnOK() intercepted");
-
-	// The 'Messages' button is a SHOW/HIDE toggle, so let the parent do it's thing
-	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_BTN_MESSAGES, BN_CLICKED));
+	// Let the parent look after the SHOW/HIDE logic
+	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
 
 	//CDialogEx::OnOK();
 }
@@ -61,10 +59,8 @@ void CDmessages::OnOK()
 
 void CDmessages::OnCancel()
 {
-	WriteMessageLog(L"OnCancel() intercepted");
-
-	// The 'Messages' button is a SHOW/HIDE toggle, so let the parent do it's thing
-	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_BTN_MESSAGES, BN_CLICKED));
+	// Let the parent look after the SHOW/HIDE logic
+	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
 
 	//CDialogEx::OnCancel();
 }

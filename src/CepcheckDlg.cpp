@@ -49,9 +49,9 @@ void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST,  m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,   m_spin_pre);
-	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_missed_only);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,  m_spin_pre);
+	DDX_Check(pDX, IDC_CHK_MISSED_ONLY,  m_missed_only);
 }
 
 
@@ -71,10 +71,10 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtnClickedDownload)
 	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtnClickedDeleteShow)
 	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClickedAddShow)
-	ON_BN_CLICKED( IDC_BTN_MESSAGES,				&CepcheckDlg::OnBtnClickedMsgLog)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClickedBreak)
-	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CepcheckDlg::OnBtnClickedChkMissedOnly)
 	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClickedExplorer)
+	ON_BN_CLICKED(IDC_CHK_MISSED_ONLY,              &CepcheckDlg::OnBtnClickedChkMissedOnly)
+	ON_BN_CLICKED(IDC_CHK_DEBUG_LOG,                &CepcheckDlg::OnBtnClickedChkDebugLog)
 	ON_MESSAGE( WM_DOWNLOAD_COMPLETE,				&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_DOWNLOAD_PING,					&CepcheckDlg::OnDownloadPing)
 	ON_MESSAGE( WM_ZOOM_EPISODES,					&CepcheckDlg::OnZoomEpisodes)
@@ -396,22 +396,6 @@ void CepcheckDlg::OnBtnClickedAddShow()
 		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
 
 	// If there was no error, the model has successfully started a download thread for the new show
-}
-
-
-
-
-/**
- * Show/Hide the logging messages window
- *
- */
-void CepcheckDlg::OnBtnClickedMsgLog()
-{
-	static bool visible = false;
-
-	visible = !visible;
-	GetDlgItem(IDC_BTN_MESSAGES)->SetWindowText( (visible) ? L"Hide Log" : L"Show Log");
-	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
 }
 
 
@@ -879,6 +863,25 @@ void CepcheckDlg::OnBtnClickedChkMissedOnly()
 	m_data.ShowMissedOnly(m_missed_only);
 
 	UpdateScheduleList();
+}
+
+
+
+
+/**
+ * Show/Hide the logging messages window
+ *
+ */
+void CepcheckDlg::OnBtnClickedChkDebugLog()
+{
+static BOOL visible = false;
+
+	visible = !visible;
+
+	CButton* chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
+	chkbox->SetCheck(visible);
+
+	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
 }
 
 

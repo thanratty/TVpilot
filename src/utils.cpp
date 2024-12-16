@@ -479,9 +479,9 @@ int FindFreeSlot(const CslotData* sd)
 
 
 /**
- * Return first busy slot index, or -1 if none free
+ * Return first _BUSY_ slot index, or -1 if all slots are free
  *
- * NB	The slot array must be locked for this to be accurate.
+ * NB	The slot array must be locked for this to be thread safe.
  */
 int FindBusySlot(const CslotData* sd)
 {

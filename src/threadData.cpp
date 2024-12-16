@@ -23,10 +23,10 @@ cRequestData::cRequestData(CslotData* _pslots) :
     // It's safe to assume these Win32 Create API calls will succeed
 
     handle = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // Manual reset, initial state
-    handles.push_back(handle);
+    handles[0] = handle;
 
     handle = CREATE_EVENT(NULL, TRUE, FALSE, L"evRequest");          // Auto reset, initial state
-    handles.push_back(handle);
+    handles[1] = handle;
 
     sem_request_data = CREATE_SEMAPHORE( NULL, 1, 1, L"semRequestData");
 }

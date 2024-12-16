@@ -179,7 +179,7 @@ int slotnum;
 
 /**
  * Handle evResult event from a worker thread. CslotData contains the downloaded show info.
- * Pass the slot information to the database via a wimdows message.
+ * Pass the slot information to the database via a (thread safe) wimdows message.
  *
  */
 UINT __cdecl thrResults( LPVOID pParam )
@@ -189,7 +189,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 
 	while (true)
 	{
-		DWORD wait_result = events.Wait();
+		DWORD wait_result = events.Wait();		// TODO Check for E_WAIT_FILE?
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0)
@@ -209,7 +209,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 		}
 
 		if (!pData->Unlock())
-			WriteDebugConsole(L"Can't acquire cResultsData semaphore");
+			WriteDebugConsole(L"Can't release cResultsData semaphore");
 	}
 }
 

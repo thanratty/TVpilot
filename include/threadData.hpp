@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include <queue>
+#include <array>
 #include <string>
 
 #include "debugConsole.h"
@@ -85,7 +86,7 @@ public:
 private:
     inline static HANDLE        sem_request_data;
 
-    std::vector<HANDLE>         handles;                // Entry 0 is the terminate event
+    std::array<HANDLE,2>        handles;                // Entry 0 is the terminate event, 1 is the request event  [ TODO use std::array ]
     std::queue<std::string>     url_queue;
     CslotData*                  pslots{ nullptr };      // Ptr to the actual slot array
     DWORD                       m_last_error{ 0 };
