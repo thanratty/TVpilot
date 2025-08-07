@@ -59,6 +59,12 @@ public:
         return m_error_string;
     }
 
+
+    /**
+    Do we an acquire()? Can another thread could get an IsFree on the same slot and they both
+    try to grab it.?
+    */
+
     void SetUrl(const std::string& url)
     {
         m_slot_busy = true;

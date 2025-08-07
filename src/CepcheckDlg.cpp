@@ -513,23 +513,25 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 	// Tell the model to check all received show data
 	bool bDownloadErrors = m_data.DownloadComplete();
 
-	if ((bDownloadErrors == true) || (m_err_count > 0))
+	if (bDownloadErrors || (m_err_count > 0))
 	{
 		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
+		bDownloadErrors = false;
+		m_err_count = 0;
+	}
+	else if (m_abort_download)
+	{
+		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_ABORTED));
+		AfxMessageBox(L"Download aborted", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		m_abort_download = false;
 	}
 	else
 	{
 		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_OK));
-
-		if (m_abort_download)
-			AfxMessageBox(L"Download aborted", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
-		else
-			AfxMessageBox(L"Download finished OK", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
+		AfxMessageBox(L"Download complete", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
-	// If we aborted, reset the flag
-	m_abort_download = false;
 
 	// Update the UI
 	UpdateShowList();
@@ -717,6 +719,8 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	}
 	else if (pcontext->dialog_id == IDD_SHOWS)
 	{
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE, L"Copy Show Title");
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_ARCHIVE, L"Archive");
 		menu.EnableMenuItem(ID_MNU_ARCHIVE, (pshow->flags & showflags::SH_FL_ARCHIVED) ? MF_GRAYED : MF_ENABLED);
 	}
@@ -725,7 +729,12 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_UNARCHIVE, L"Unarchive");
 		menu.EnableMenuItem(ID_MNU_UNARCHIVE, (pshow->flags & showflags::SH_FL_ARCHIVED) ? MF_ENABLED : MF_GRAYED);
 	}
-
+	else
+	{
+		CStringW s{ L"Unrecognised context for right mouse button." };
+		AfxMessageBox(s, MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
+		WriteMessageLog(s);
+	}
 
 
 
@@ -944,7 +953,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 		case appevent::AE_DOWNLOAD_OK:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			// Also set tab appropriate buttons
@@ -952,6 +961,12 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			break;
 
 		case appevent::AE_DOWNLOAD_ABORTED:
+			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0);
+			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(1);
+			break;
+
 		case appevent::AE_DOWNLOAD_FAILED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
 
@@ -1073,7 +1088,7 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
 	// Tell the model the date interval we're interested in
 	m_data.SetDateInterval(m_spin_pre_val, m_spin_post_val);
 
-	// Update the on-screen display
+	// Update the UI
 	str.Format(L"- %2d", m_spin_pre_val);
 	GetDlgItem(IDC_STATIC_DAYS_PRE)->SetWindowText(str);
 
@@ -1092,6 +1107,9 @@ void CepcheckDlg::OnBtnClickedExplorer()
 {
 	m_data.ExploreDataFile();
 }
+
+
+
 
 /**
  * Break into the debugger
@@ -1156,8 +1174,6 @@ afx_msg LRESULT CepcheckDlg::OnAbortDownload( WPARAM wParam, LPARAM lParam )
 
 	// Gets reset by the WM_DOWNLOAD_COMPLETE handler
 	m_abort_download = true;
-
-	m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
 
 	m_data.AbortDownload();
 
