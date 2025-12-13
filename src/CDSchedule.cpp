@@ -228,6 +228,10 @@ void CDSchedule::OnOK()
 }
 
 
+CString CDSchedule::GetEpisodeNumber(int index) const
+{
+	return m_schedlist.GetItemText(index, COL_SCHED_EP_NUM);
+}
 
 
 CString CDSchedule::GetEpisodeTitle(int index) const

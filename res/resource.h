@@ -60,8 +60,8 @@
 #define ID_MNU_UNARCHIVE                33003
 #define ID_MNU_ARCHIVE                  33004
 #define ID_MNU_COPY_SHOW_TITLE          33005
-#define ID_MNU_COPY_EPISODE_TITLE       33006
-#define ID_MNU_COPY_EPNAME              33007
+#define ID_MNU_COPY_EP_TITLE            33006       // Just the episode title
+#define ID_MNU_COPY_EP_TITLE_NUM        33007       // The Title + <space> + "s05e02" for example
 #define ID_MNU_REFRESH_SHOW             33008
 
 // Next default values for new objects

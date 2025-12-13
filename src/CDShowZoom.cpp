@@ -205,14 +205,14 @@ void CDShowZoom::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	// Create a popup menu on the fly & show it
 	CMenu menu;
 	menu.CreatePopupMenu();
-	menu.AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EPNAME, L"Copy &Title");
+	menu.AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EP_TITLE, L"Copy &Title");
 	int selection = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RETURNCMD | TPM_NONOTIFY, point.x, point.y, this);
 	if (selection == 0)
 		return;
 
 	switch (selection)
 	{
-		case ID_MNU_COPY_EPNAME:
+		case ID_MNU_COPY_EP_TITLE:
 			CopyToClipboard(m_eplist.GetItemText(index, 0));
 			break;
 
