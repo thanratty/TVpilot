@@ -45,6 +45,7 @@ public:
 		void AppendRow(const sScheduleListEntry* gle);
 		CString GetEpisodeTitle(int index) const;
 		CString GetEpisodeNumber(int index) const;
+		CString GetEpisodeShow(int index) const;
 
 		inline void DeleteAllItems()
 		{

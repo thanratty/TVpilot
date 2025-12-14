@@ -240,6 +240,12 @@ CString CDSchedule::GetEpisodeTitle(int index) const
 }
 
 
+CString CDSchedule::GetEpisodeShow(int index) const
+{
+	return m_schedlist.GetItemText(index, COL_SCHED_SHOW);
+}
+
+
 
 
 /**

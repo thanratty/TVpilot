@@ -705,12 +705,12 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	{
 		// Add episode highlight menu entries
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_GOT_IT, L"&Got It");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_NOT_GOT_IT, L"Not Got It");		// Remove kbd accelerator
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_CLEAR, L"&Clear");
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_NOT_GOT_IT, L"&Not Got It");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_CLEAR, L"&Clear Flags");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_REFRESH_SHOW, L"Refresh Show");
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE, L"Copy &Show Title");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EP_TITLE_NUM, L"Copy Episode Title + &Number");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE_NUM, L"Copy Show Title + Number");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EP_TITLE, L"Copy Episode &Title");
 
 		// Enable them appropriately
@@ -833,9 +833,9 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 		case ID_MNU_COPY_EP_TITLE:
 			CopyToClipboard(m_dlgSchedule.GetEpisodeTitle(pcontext->list_index));
 			break;
-		case ID_MNU_COPY_EP_TITLE_NUM:
+		case ID_MNU_COPY_SHOW_TITLE_NUM:
 		{
-			CString title = m_dlgSchedule.GetEpisodeTitle(pcontext->list_index);
+			CString show  = m_dlgSchedule.GetEpisodeShow(pcontext->list_index);
 			CString epnum = m_dlgSchedule.GetEpisodeNumber(pcontext->list_index);
 
 			int iPos = 0;
@@ -843,7 +843,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			CString episode = (CString("00") + epnum.Tokenize(L"-", iPos)).Right(2);
 
 			CString str;
-			str.Format(L"%s s%se%s", (LPCTSTR) title, (LPCTSTR) series, (LPCTSTR)episode);
+			str.Format(L"%s s%se%s", (LPCTSTR) show, (LPCTSTR) series, (LPCTSTR)episode);
 			CopyToClipboard(str);
 		}
 			break;
