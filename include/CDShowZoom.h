@@ -34,6 +34,7 @@ static	const tSortMap			m_sort_map;
 
 public:
 		virtual BOOL OnInitDialog();
+		virtual BOOL PreTranslateMessage(MSG* pMsg);
 		afx_msg void OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult);
 		afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 };

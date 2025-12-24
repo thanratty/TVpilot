@@ -172,6 +172,45 @@ BOOL CDShowZoom::OnInitDialog()
 
 
 
+/**
+ * Trap key presses in the schedule list.
+ *   <RETURN> key zooms a shows episode
+ *   Apps/Context key pops up the context menu
+ */
+BOOL CDShowZoom::PreTranslateMessage(MSG* pMsg)
+{
+
+	if ((pMsg->message == WM_KEYDOWN) && (pMsg->hwnd == m_eplist.GetSafeHwnd()))
+	{
+		int index = GetSelectedListItem(m_eplist);
+		if (index != -1)
+		{
+			if (pMsg->wParam == VK_APPS)
+			{
+				CRect rect;
+				m_eplist.GetItemRect(index, &rect, LVIR_LABEL);
+				CPoint point(rect.TopLeft());
+				m_eplist.ClientToScreen(&point);
+
+				// Move the popup context over 1/4 the column width so it isn't hard left
+				LVCOLUMN ColumnInfo;
+				memset( &ColumnInfo, 0, sizeof(ColumnInfo));
+				ColumnInfo.mask= LVCF_WIDTH;
+				if (m_eplist.GetColumn( COL_EPISODES_TITLE, &ColumnInfo ))
+					point.x += (ColumnInfo.cx/4);
+
+				OnContextMenu(nullptr, point);
+				return TRUE;
+			}
+		}
+	}
+
+	// Message not handled in above traps. Pass it on to the default handler.
+	return CDialog::PreTranslateMessage(pMsg);
+}
+
+
+
 
 void CDShowZoom::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
