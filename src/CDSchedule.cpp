@@ -153,13 +153,13 @@ BOOL CDSchedule::OnInitDialog()
 	col.pszText = L"EpFlags";
 	m_schedlist.InsertColumn(COL_SCHED_EP_FLAGS, &col);
 
-
 	// Set the individual column widths
 	int listWidth = rc.Width();
 	m_schedlist.SetColumnWidth(COL_SCHED_SHOW,     30 * listWidth / 100);
 	m_schedlist.SetColumnWidth(COL_SCHED_EP_NUM,   10 * listWidth / 100);
 	m_schedlist.SetColumnWidth(COL_SCHED_DATE_STR, 15 * listWidth / 100);
 	m_schedlist.SetColumnWidth(COL_SCHED_TITLE,    45 * listWidth / 100);
+
 	// Set to zero width (ie hide) the date sort column and episode flags
 	m_schedlist.SetColumnWidth(COL_SCHED_DATE_SORT, 0);
 	m_schedlist.SetColumnWidth(COL_SCHED_EP_FLAGS, 0);
@@ -382,8 +382,9 @@ BOOL CDSchedule::PreTranslateMessage(MSG* pMsg)
 			{
 				CRect rect;
 				m_schedlist.GetItemRect(index, &rect, LVIR_LABEL);
-				CPoint point(rect.TopLeft());
+				CPoint point(rect.CenterPoint());
 				m_schedlist.ClientToScreen(&point);
+
 				OnContextMenu(nullptr, point);
 				return TRUE;
 			}

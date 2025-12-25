@@ -173,8 +173,7 @@ BOOL CDShowZoom::OnInitDialog()
 
 
 /**
- * Trap key presses in the schedule list.
- *   <RETURN> key zooms a shows episode
+ * Trap key presses in the zoomed show episode list.
  *   Apps/Context key pops up the context menu
  */
 BOOL CDShowZoom::PreTranslateMessage(MSG* pMsg)
@@ -189,15 +188,8 @@ BOOL CDShowZoom::PreTranslateMessage(MSG* pMsg)
 			{
 				CRect rect;
 				m_eplist.GetItemRect(index, &rect, LVIR_LABEL);
-				CPoint point(rect.TopLeft());
+				CPoint point(rect.CenterPoint());
 				m_eplist.ClientToScreen(&point);
-
-				// Move the popup context over 1/4 the column width so it isn't hard left
-				LVCOLUMN ColumnInfo;
-				memset( &ColumnInfo, 0, sizeof(ColumnInfo));
-				ColumnInfo.mask= LVCF_WIDTH;
-				if (m_eplist.GetColumn( COL_EPISODES_TITLE, &ColumnInfo ))
-					point.x += (ColumnInfo.cx/4);
 
 				OnContextMenu(nullptr, point);
 				return TRUE;
