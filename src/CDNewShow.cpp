@@ -8,7 +8,7 @@
 
 #include "common.hpp"
 
-#include "CDnewShow.h"
+#include "CDnewShow.hpp"
 
 
 // CDnewShow dialog

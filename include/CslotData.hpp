@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "Cshow.h"
+#include "Cshow.hpp"
 #include "utils.hpp"
 
 
@@ -34,36 +34,30 @@ public:
         CloseHandle(evRequest);
     }
 
-    inline bool IsBusy() const
-    {
+    inline bool IsBusy() const {
         return m_slot_busy;
     }
 
-    inline bool IsFree() const
-    {
+    inline bool IsFree() const {
         return !IsBusy();
     }
 
-    inline UINT ThreadStatus() const
-    {
+    inline UINT ThreadStatus() const {
         return m_thread_status;
     }
 
-    inline void SetThreadStatus(UINT status) 
-    {
+    inline void SetThreadStatus(UINT status) {
         m_thread_status = status;
     }
 
-    inline const std::string& ErrorString() const
-    {
+    inline const std::string& ErrorString() const {
         return m_error_string;
     }
 
-
     /**
-    Do we an acquire()? Can another thread could get an IsFree on the same slot and they both
-    try to grab it.?
-    */
+     * Do we an acquire()? Can another thread could get an IsFree on the same slot and they both
+     * try to grab it.?
+     */
 
     void SetUrl(const std::string& url)
     {
@@ -98,6 +92,7 @@ public:
     }
 
 
+
 public:
     // Slot data
     //
@@ -116,7 +111,6 @@ public:
 
 private:
     UINT            m_thread_status{ E_THREAD_OK };
-
     bool            m_slot_busy{ false };
     bool            m_exit_thread{ false };
 

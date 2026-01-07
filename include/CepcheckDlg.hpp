@@ -1,10 +1,10 @@
 #pragma once
 #include "config.h"
 
-#include "CDShows.h"
-#include "CDSchedule.h"
-#include "CDArchive.h"
-#include "CDmessages.h"
+#include "CDShows.hpp"
+#include "CDSchedule.hpp"
+#include "CDArchive.hpp"
+#include "CDmessages.hpp"
 #include "model.hpp"
 #include "utils.hpp"
 
@@ -63,7 +63,7 @@ public:
 	afx_msg void	OnBtnClickedSave();
 	afx_msg void	OnBtnClickedDownload();
 	afx_msg void	OnBtnClickedDeleteShow();
-	afx_msg void	OnBtnClickedAddShow();
+	afx_msg void	OnBtnClickedNewShow();
 	afx_msg void	OnBtnClickedBreak();
 	afx_msg void    OnBtnClickedChkMissedOnly();
 	afx_msg void    OnBtnClickedChkDebugLog();
@@ -98,6 +98,7 @@ private:
 	virtual void		OnCancel();
 			void		UpdateTabTotals();
 			void		UpdateOnscreenCounters();
+			void		ResetOnscreenCounters();
 
 			void		UpdateShowList();
 			void		UpdateScheduleList();

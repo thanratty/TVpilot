@@ -4,7 +4,7 @@
 #define         ENABLE_CONSOLE_WINDOW       0       // Create a console window for debug messages [DEBUG build only]
 #define         PAUSE_BEFORE_EXIT           0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
 
-#define         USE_LOCAL_DATAFILE          0       // Use alternative datafile in exe folder for debugging [CdataFile.cpp for filenames]
+#define         USE_TEST_DATAFILE           0       // Use alternative datafile for debugging/testing
 #define         SHOW_APP_EVENTS             0       // Print all appevents in the message window [ DEBUG build only ]
 #define         KEEP_BUTTONS_ENABLED        0       // Keep all buttons enabled for ease of testing/debugging
 #define			SAVE_WEBPAGE_ON_ERROR		0		// Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]
@@ -26,7 +26,7 @@
  *   Release build file is in the folder %APPDATA%\APP_NAME
  *   Debug build file is in the same folder as the executable.
  */
-#define     LOCAL_DATAFILE_NAME         L"\\tvpilotlocal"
+#define     TEST_DATAFILE_NAME          L"\\TV-Pilot-Test"
 #define     RELEASE_DATAFILE_NAME       L"\\TV-Pilot-Data"
 
 /**

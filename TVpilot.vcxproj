@@ -22,14 +22,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -116,26 +116,26 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\CDArchive.h" />
-    <ClInclude Include="include\CDShowZoom.h" />
-    <ClInclude Include="include\CDInputBox.h" />
-    <ClInclude Include="include\CDMessages.h" />
-    <ClInclude Include="include\CDNewShow.h" />
-    <ClInclude Include="include\CDSchedule.h" />
-    <ClInclude Include="include\CDShows.h" />
+    <ClInclude Include="include\CDArchive.hpp" />
+    <ClInclude Include="include\CDShowZoom.hpp" />
+    <ClInclude Include="include\CDInputBox.hpp" />
+    <ClInclude Include="include\CDMessages.hpp" />
+    <ClInclude Include="include\CDNewShow.hpp" />
+    <ClInclude Include="include\CDSchedule.hpp" />
+    <ClInclude Include="include\CDShows.hpp" />
     <ClInclude Include="include\CcurlJob.hpp" />
     <ClInclude Include="include\CdataFile.hpp" />
-    <ClInclude Include="include\CdownloadManager.h" />
-    <ClInclude Include="include\CepcheckDlg.h" />
-    <ClInclude Include="include\Cepisode.h" />
-    <ClInclude Include="include\Cshow.h" />
+    <ClInclude Include="include\CdownloadManager.hpp" />
+    <ClInclude Include="include\CepcheckDlg.hpp" />
+    <ClInclude Include="include\Cepisode.hpp" />
+    <ClInclude Include="include\Cshow.hpp" />
     <ClInclude Include="include\CslotData.hpp" />
-    <ClInclude Include="include\CsortContext.h" />
+    <ClInclude Include="include\CsortContext.hpp" />
     <ClInclude Include="include\CsyncObjects.hpp" />
     <ClInclude Include="include\common.hpp" />
     <ClInclude Include="include\config.h" />
     <ClInclude Include="include\debugConsole.h" />
-    <ClInclude Include="include\TVpilot.h" />
+    <ClInclude Include="include\TVpilot.hpp" />
     <ClInclude Include="include\framework.h" />
     <ClInclude Include="include\model.hpp" />
     <ClInclude Include="include\pch.h" />

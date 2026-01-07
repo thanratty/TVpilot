@@ -140,7 +140,8 @@ CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events)
 }
 
 
-// Returns the index of the signalled event, or E_WAIT_FAIL
+// Returns the index of a signalled event, or E_SO_WAIT_FAIL
+//
 int CMultiEvents::Wait()
 {
     DWORD result = WaitForMultipleObjects( m_handles.size(), m_handles.data(), FALSE, INFINITE);
@@ -154,25 +155,25 @@ int CMultiEvents::Wait()
     m_last_error = GetLastError();
     SyncDebugMessage(L"CMultiEvents::Wait() failed");
 
-    return E_WAIT_FAIL;
+    return E_SO_WAIT_FAIL;
 }
 
 
 int CMultiEvents::Reset(DWORD index)
 {
     if (index >= m_handles.size())
-        return E_RESET_FAIL_INDEX;
+        return E_SO_RESET_FAIL_INDEX;
     if (m_bIsSignalled[ index ] == false)
-        return E_RESET_FAIL_UNLOCK;
+        return E_SO_RESET_FAIL_UNLOCK;
 
     if (ResetEvent(m_handles[ index ])) {
         m_bIsSignalled[ index ] = false;
-        return 0;
+        return E_SO_OK;
     }
 
     m_last_error = GetLastError();
     SyncDebugMessage(L"CMultiEvents::Reset() failed");
 
-    return E_RESET_FAIL;
+    return E_SO_RESET_FAIL;
 }
 

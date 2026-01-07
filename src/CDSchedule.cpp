@@ -10,10 +10,10 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "CepcheckDlg.h"
+#include "CepcheckDlg.hpp"
 #include "utils.hpp"
 
-#include "CDSchedule.h"
+#include "CDSchedule.hpp"
 
 
 
@@ -101,7 +101,7 @@ void CDSchedule::DoDataExchange(CDataExchange* pDX)
 #pragma warning( disable : 26454 )
 
 BEGIN_MESSAGE_MAP(CDSchedule, CDialog)
-	ON_MESSAGE(WM_SCHED_EP_FLAGS_CHANGED,		&CDSchedule::OnSchedEpFlagsChanged)
+	ON_MESSAGE(WM_TVP_SCHED_EP_FLAGS_CHANGED,		&CDSchedule::OnSchedEpFlagsChanged)
 	ON_NOTIFY(LVN_COLUMNCLICK, IDC_SCHED_LIST,  &CDSchedule::OnColumnClick)
 	ON_NOTIFY(NM_DBLCLK,	   IDC_SCHED_LIST,  &CDSchedule::OnDblclkSchedList)
 	ON_NOTIFY(NM_CUSTOMDRAW,   IDC_SCHED_LIST,  &CDSchedule::OnCustomdrawSchedList)
@@ -259,7 +259,7 @@ void CDSchedule::OnDblclkSchedList(NMHDR* pNMHDR, LRESULT* pResult)
 	if (row != -1)
 	{
 		DWORD hash = m_schedlist.GetItemData(row);
-		GetParent()->PostMessageW(WM_ZOOM_EPISODES, static_cast<WPARAM>(hash));
+		GetParent()->PostMessageW(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash));
 	}
 
 	*pResult = 0;
@@ -294,7 +294,7 @@ void CDSchedule::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 	CString      str = m_schedlist.GetItemText(index, COL_SCHED_EP_FLAGS);
 	context.ep_flags = static_cast<episodeflags>(_ttoi(str));
 
-	GetParent()->PostMessage(WM_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
+	GetParent()->PostMessage(WM_TVP_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
 }
 
 
@@ -375,7 +375,7 @@ BOOL CDSchedule::PreTranslateMessage(MSG* pMsg)
 			if (pMsg->wParam == VK_RETURN)
 			{
 				DWORD hash = m_schedlist.GetItemData(index);
-				GetParent()->PostMessageW(WM_ZOOM_EPISODES, hash);
+				GetParent()->PostMessageW(WM_TVP_ZOOM_EPISODES, hash);
 				return TRUE;
 			}
 			else if (pMsg->wParam == VK_APPS)

@@ -14,22 +14,22 @@
 class CdataFile
 {
 public:
-    CdataFile();
+        CdataFile();
 
-    inline const wchar_t* Filename() const
-    {
-        return m_filename.c_str();
-    }
+inline  const wchar_t* Filename() const
+        {
+            return m_filename.c_str();
+        }
 
-    inline bool IsNewFile() const
-    {
-        return new_data_file;
-    }
+inline  bool IsNewFile() const
+        {
+            return m_IsNewFile;
+        }
 
 private:
-    void            BuildFilename();
+        void             BuildFilename();
 
-    std::wstring     m_filename;
-    bool             new_data_file{ false };
+        std::wstring     m_filename;
+        bool             m_IsNewFile{ false };
 };
 

@@ -9,7 +9,7 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "Cshow.h"
+#include "Cshow.hpp"
 
 
 class CslotData;
@@ -20,6 +20,7 @@ enum class appevent : unsigned
 	AE_APP_STARTED = 1,
 	AE_TAB_CHANGED,
 	AE_SHOW_ADDED,
+	AE_SHOW_REFRESHED,
 	AE_SHOW_DELETED,
 	AE_DOWNLOAD_STARTED,
 	AE_DOWNLOAD_OK,
@@ -94,7 +95,7 @@ typedef struct ShowListEntry_tag
 
 
 /**
- * This is the structure passed in for GetFirstFilteredEpisode() / GetNextFilteredEpisode() from the UI episode guide list
+ * This is the structure passed in for GetFilteredEpisode() / GetNextFilteredEpisode() from the UI episode guide list
  * 
  */
 typedef struct sScheduleListEntry_tag

@@ -6,7 +6,7 @@
 using namespace boost;
 
 
-#include "CdownloadManager.h"
+#include "CdownloadManager.hpp"
 #include "CdataFile.hpp"
 #include "utils.hpp"
 
@@ -16,11 +16,18 @@ using namespace boost;
 
 // Which show list selector
 typedef enum class SHOWLIST_tag : unsigned {
-    SEARCH_ACTIVE,
-    SEARCH_ARCHIVE,
-    SEARCH_BOTH
+    ACTIVE,
+    ARCHIVE,
+    BOTH
 } eSHOWLIST;
 
+
+
+// When iterating a vector, which object to return
+typedef enum class GET_ACTION_tag : unsigned {
+    GET_FIRST,
+    GET_NEXT
+} eGETACTION;
 
 
 
@@ -59,113 +66,117 @@ public:
 class model
 {
 public:
-    model()
-    {
-        // A new empty model just needs a few dates preparing
-        m_today      = gregorian::day_clock::local_day();
-        EvalScheduleDateWindow();
+        model()
+        {
+            // A new empty model just needs a few dates preparing
+            m_today      = gregorian::day_clock::local_day();
+            EvalScheduleDateWindow();
 
-        if (m_datafile.IsNewFile())
-            SaveFile();
-    };
-
-
-    friend std::ostream& operator<< (std::ostream& wostream, const model& m);
-    friend std::istream& operator>> (std::istream& wistream, model& m);
+            if (m_datafile.IsNewFile())
+                SaveFile();
+        };
 
 
-    // Read/Write data file
-    bool        LoadFile();
-    bool        SaveFile();
-    void        ExploreDataFile();
-
-    bool        EpisodeFlagsChange(const sPopupContext* pcontext);
-
-    bool        GetFirstActiveShow(sShowListEntry* sle);
-    bool        GetNextActiveShow(sShowListEntry* sle);
-    bool        GetFirstArchiveShow(sShowListEntry* sle);
-    bool        GetNextArchiveShow(sShowListEntry* sle);
-
-    // To step through episodes within the date filter & return info
-    void        SetDateInterval(int lower, int upper);
-    void        SetToday();
-    bool        GetFirstFilteredEpisode(sScheduleListEntry* sle);
-    bool        GetNextFilteredEpisode(sScheduleListEntry* sle);
-
-    // Download from internet
-    void        DownloadPing(DWORD slotnum);
-    bool        DownloadAllShows();
-    bool        DownloadNewShow(CString& url);
-    bool        DownloadRefreshShow(show* pshow);
-    bool        DownloadComplete();
-    void        AbortDownload(void);
-
-    void        BuildEpisodeList();
-    void        DeleteShow(DWORD hash);
-    void        AddShow(show& show);
-
-    bool        ArchiveShow(DWORD hash);
-    bool        UnarchiveShow(DWORD hash);
-
-    unsigned    GetNumActiveShows(void) const { return m_active_shows.size(); }
-    unsigned    GetNumArchiveShows(void) const { return m_archive_shows.size(); }
-    show*       FindShow(DWORD searchhash, eSHOWLIST source);
+        friend std::ostream& operator<< (std::ostream& wostream, const model& m);
+        friend std::istream& operator>> (std::istream& wistream, model& m);
 
 
-    void SetMsgWindow(HWND hMsgWin)
-    {
-        m_hMsgWin = hMsgWin;
-        dm.SetMsgWindow( m_hMsgWin );
-    }
+        // Read/Write data file
+        bool        LoadFile();
+        bool        SaveFile();
+        void        OpenDataFileFolder();
 
-    inline void ShowMissedOnly(bool missed_only)
-    {
-        m_missed_edpisodes_only = missed_only;
-    }
+        bool        EpisodeFlagsChange(const sPopupContext* pcontext);
+ 
+        bool        GetShow(eSHOWLIST list, eGETACTION action, sShowListEntry* sle) const;
 
-    inline bool DownloadInProgress() const
-    {
-        return dm.DownloadInProgress();
-    }
+        // To step through episodes within the date filter & return info
+        void        SetDateInterval(int lower, int upper);
+        void        SetTodaysDate();
+        bool        GetFilteredEpisode(eGETACTION locus, sScheduleListEntry* sle);
 
-    inline bool IsNewDataFile() const
-    {
-        return m_datafile.IsNewFile();
-    }
+
+        // Download from internet
+        void        DownloadPing(DWORD slotnum);
+        bool        DownloadAllShows();
+        bool        DownloadSingleShow(DWORD hash);
+        bool        DownloadComplete();
+        void        AbortDownload(void);
+
+        void        BuildEpisodeList();
+        void        DeleteShow(DWORD hash);
+        DWORD       AddNewShow(const CString& url);
+
+        bool        ArchiveShow(DWORD hash);
+        bool        UnarchiveShow(DWORD hash);
+
+        show* FindShow(DWORD searchhash, eSHOWLIST source);
+        show* FindShow(const CString& url, eSHOWLIST source);
+
+        unsigned NumShows(eSHOWLIST list) const
+        { 
+            if (list == eSHOWLIST::ACTIVE)
+                return m_active_shows.size();
+            else if (list == eSHOWLIST::ARCHIVE)
+                return m_archive_shows.size();
+            else if (list == eSHOWLIST::BOTH)
+                return m_active_shows.size() + m_archive_shows.size();
+            else
+            {
+                CString str(L"NumShows() : Bad show list");
+                WriteMessageLog(str);
+                AfxMessageBox(str);
+                return 0;
+            }
+        }
+
+        void SetMsgWindow(HWND hMsgWin)
+        {
+            m_hMsgWin = hMsgWin;
+            dm.SetMsgWindow( m_hMsgWin );
+        }
+
+inline  void ShowMissedOnly(bool missed_only)
+        {
+            m_missed_edpisodes_only = missed_only;
+        }
+
+inline  bool DownloadInProgress() const
+        {
+            return dm.DownloadInProgress();
+        }
+
+inline  bool IsNewDataFile() const
+        {
+            return m_datafile.IsNewFile();
+        }
 
 
 private:
-    void        EvalScheduleDateWindow();
-    void        CheckDownloadComplete();
+        void        EvalScheduleDateWindow();
+        void        CheckDownloadComplete();
 
 
-    std::vector<show>           m_active_shows;
-    std::vector<show>           m_archive_shows;
-    std::vector<sGuideEntry>    m_guide;
+        std::vector<show>           m_active_shows;
+        std::vector<show>           m_archive_shows;
+        std::vector<sGuideEntry>    m_guide;
 
-    // Iterators for the filtered range in the guide list
-    std::vector<sGuideEntry>::iterator      guide_list_last;
-    std::vector<sGuideEntry>::iterator      guide_list_next;
+        CCriticalSection            m_critical;
+        CdownloadManager	        dm;
+        CdataFile                   m_datafile;
 
-    CCriticalSection            m_critical;
-    CdownloadManager	        dm;
-    CdataFile                   m_datafile;
+        // Where to post 'ping' and 'complete' msgs to.
+        HWND                        m_hMsgWin { NULL };
 
-    // Where to post 'ping' and 'complete' msgs to.
-    HWND                        m_hMsgWin { NULL };
+        // Default # days interval. Updated in CepcheckDlg::OnInitDialog()
+        int                         m_pre_days { 2 };
+        int                         m_post_days{ 2 };
 
-    // Default # days interval. Updated in CepcheckDlg::OnInitDialog()
-    int                         m_pre_days { 2 };
-    int                         m_post_days{ 2 };
+        boost::gregorian::date      m_start_date, m_end_date, m_today;
+        BOOL                        m_missed_edpisodes_only { FALSE };
+        bool                        m_abort_download { false };
 
-    boost::gregorian::date      m_start_date, m_end_date, m_today;
-    BOOL                        m_missed_edpisodes_only { FALSE };
-    bool                        m_abort_download { false };
-
-    // Current indices used when app requests next show/episode
-    unsigned int                m_current_show { 0 };
-
-    unsigned int                m_ping_expected{ 0 };
-    unsigned int                m_ping_received{ 0 };
+        unsigned int                m_ping_expected{ 0 };
+        unsigned int                m_ping_received{ 0 };
 };
 

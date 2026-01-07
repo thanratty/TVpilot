@@ -4,8 +4,8 @@
 
 
 
-// The worker threads do the actual downloading & parsing
-UINT __cdecl thrWorkerThread(LPVOID pParam);
+// These worker threads manage the actual downloading & parsing. One thread per slot.
+UINT __cdecl thrSlotThread(LPVOID pParam);
 
 // Control threads to handle: download requests, results available, results processed
 UINT __cdecl thrRequest(LPVOID pParam);

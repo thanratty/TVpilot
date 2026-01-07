@@ -20,11 +20,11 @@
 /** In a release build, the database is in %APPDATALOCAL%\TVpilot
  *  For debugging, the local database is in same folder as the executable
  */
-#if USE_LOCAL_DATAFILE==0
+#if USE_TEST_DATAFILE==0
 constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
 #else
-#pragma message ("!! CONFIGURED FOR LOCAL DATA FILE")
-constexpr wchar_t* DATAFILE_NAME = LOCAL_DATAFILE_NAME;
+#pragma message ("!! CONFIGURED FOR TEST DATA FILE")
+constexpr wchar_t* DATAFILE_NAME = TEST_DATAFILE_NAME;
 #endif
 
 
@@ -42,7 +42,7 @@ CdataFile::CdataFile()
     if (yesno == IDNO)
         ExitProcess( E_APP_DATABASE) ;
 
-    new_data_file = true;
+    m_IsNewFile = true;
 
     HANDLE result = CreateFile( m_filename.c_str(),                     // Filename
                                 (GENERIC_READ | GENERIC_WRITE),         // Desired access
@@ -68,8 +68,6 @@ void CdataFile::BuildFilename()
 {
 wchar_t  buffer[MAX_PATH + 1] = {};
 
-#if USE_LOCAL_DATAFILE==0
-
     PWSTR ppath = nullptr;
 
     SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, NULL, &ppath);
@@ -87,17 +85,8 @@ wchar_t  buffer[MAX_PATH + 1] = {};
             AfxPostQuitMessage(1);
         }
 
-#else
-
-    // Local datafile must be in same folder as the executable
-    GetModuleFileName(NULL, buffer, MAX_PATH);
-    PathRemoveFileSpec(buffer);
-
-#endif
-
     m_filename = buffer;
     m_filename.append(DATAFILE_NAME);
-
 }
 
 

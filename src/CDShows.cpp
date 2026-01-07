@@ -8,8 +8,8 @@
 #include <string>
 
 #include "resource.h"
-#include "CDShows.h"
-#include "CepcheckDlg.h"
+#include "CDShows.hpp"
+#include "CepcheckDlg.hpp"
 
 #include "utils.hpp"
 
@@ -271,7 +271,7 @@ void CDShows::OnDblClkShowList(NMHDR* pNMHDR, LRESULT* pResult)
 	if (row != -1)
 	{
 		DWORD hash = m_showlist.GetItemData(row);
-		GetParent()->PostMessage(WM_ZOOM_EPISODES, static_cast<WPARAM>(hash));
+		GetParent()->PostMessage(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash));
 	}
 
 	*pResult = 0;
@@ -298,7 +298,7 @@ void CDShows::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 	context.list_index = index;
 	context.show_hash  = m_showlist.GetItemData(index);
 
-	GetParent()->PostMessage(WM_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
+	GetParent()->PostMessage(WM_TVP_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
 }
 
 

@@ -11,7 +11,7 @@
 #include "boost/date_time/gregorian/gregorian.hpp"
 using namespace boost;
 
-#include "Cepisode.h"
+#include "Cepisode.hpp"
 
 
 /**
@@ -46,7 +46,7 @@ DEFINE_ENUM_FLAG_OPERATORS(showflags)
 
 
 
-
+// This really is just data. Make it a struct?
 
 class show
 {

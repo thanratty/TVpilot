@@ -10,8 +10,8 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "CDShowZoom.h" 
-#include "CepcheckDlg.h"
+#include "CDShowZoom.hpp"
+#include "CepcheckDlg.hpp"
 
 #include "utils.hpp"
 

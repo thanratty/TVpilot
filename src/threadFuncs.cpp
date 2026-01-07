@@ -8,7 +8,7 @@
 #include "common.hpp"
 
 #include "CslotData.hpp"
-#include "CdownloadManager.h"
+#include "CdownloadManager.hpp"
 #include "model.hpp"
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
@@ -38,21 +38,21 @@ void SaveWebPage(const cCurlJob& curljob);
  * Each worker thread handles one slot
  * 
  */
-UINT __cdecl thrWorkerThread(LPVOID pParam)
+UINT __cdecl thrSlotThread(LPVOID pParam)
 {
 UINT	status = E_THREAD_OK;
 int		index;
 
-	CslotData&		slot = * (CslotData*) pParam;
+	CslotData&		slot = * static_cast<CslotData*>(pParam);
 	CMultiEvents	request(&slot.evRequest, 1);
 
 	while (true)
 	{
 		// Wait for a new request
-		if ((index = request.Wait()) == E_WAIT_FAIL)
+		if ((index = request.Wait()) == E_SO_WAIT_FAIL)
 		{
 			// If the Wait fails - just loop & try again.
-			WriteDebugConsole(L"thrWorkerThread WAIT_FAIL!");
+			WriteDebugConsole(L"thrSlotThread WAIT_FAIL!");
 			continue;
 		}
 
@@ -80,7 +80,7 @@ int		index;
 		}
 		else
 		{
-			// No download errors. Parse the HTML & extract the show info.
+			// No download errors. Parse the HTML into the show object
 			sXmlErrorInfo xml_error_info;
 			slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
 			if (slot.m_xml_status != E_XPARSE_OK)
@@ -106,9 +106,9 @@ int		index;
 		// Save the status & Signal that we're all done
 		slot.SetThreadStatus(status);
 		if (!SetEvent(slot.evResults))
-			WriteDebugConsole(L"Can't set worker evResults event");
+			WriteDebugConsole(L"Can't set slot evResults event");
 
-		VERIFY(request.Reset(index) == 0);
+		VERIFY(request.Reset(index) == E_SO_OK);
 	}
 }
 
@@ -144,7 +144,7 @@ int slotnum;
 
 		// There is at least one URL request in the request_data struct. Find a slot for it
 		// If there's no free download slot, loop for the next timeout 
-		// Keep popping requests off the queue till all slots are full or there's no more requests
+		// Keep popping requests off the queue till all slots are full or there are no more requests
 
 		if (!request_data.Lock())
 			WriteDebugConsole(L"Can't acquire request_data semaphore");
@@ -169,7 +169,7 @@ int slotnum;
 		if (!request_data.Unlock())
 			WriteDebugConsole(L"Can't release request_data semaphore");
 
-		if (!events.Reset(index)==0)
+		if (events.Reset(index) != E_SO_OK)
 			WriteDebugConsole(L"Can't reset thrRequest event");
 	}
 }
@@ -203,8 +203,8 @@ UINT __cdecl thrResults( LPVOID pParam )
 		{
 			if (events.IsSignalled(slotnum + 1))
 			{
-				PostMessage(pData->GetMessageWindow(), WM_DOWNLOAD_PING, slotnum, 0);
-				VERIFY(events.Reset(slotnum + 1) == 0);
+				PostMessage(pData->GetMessageWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
+				VERIFY(events.Reset(slotnum + 1) == E_SO_OK);
 			}
 		}
 
@@ -217,7 +217,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 
 
 /**
- * Handle evRelease event from the database. the slot results have been processed & incorporated into
+ * Handle evRelease event from the database. The slot results have been processed & incorporated into
  * the database. Reset & release the slot.
  *
  */
@@ -232,9 +232,11 @@ UINT __cdecl thrRelease( LPVOID pParam )
 	{
 		DWORD wait_result = events.Wait();
 
+		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0)
 			return E_THREAD_OK;
 
+		// Get thread/slot index
 		DWORD slot = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock())
@@ -245,7 +247,7 @@ UINT __cdecl thrRelease( LPVOID pParam )
 		if (!slotslock.Unlock())
 			WriteDebugConsole(L"Can't release thrRelease slots semaphore");
 
-		VERIFY(events.Reset(wait_result)==0);
+		VERIFY(events.Reset(wait_result) == E_SO_OK);
 	}
 }
 

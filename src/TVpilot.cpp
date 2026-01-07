@@ -9,11 +9,11 @@
 #include "libxml/HTMLparser.h"
 
 #include "common.hpp"
-#include "CepcheckDlg.h"
+#include "CepcheckDlg.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
 
-#include "TVpilot.h"
+#include "TVpilot.hpp"
 
 
 
@@ -78,7 +78,7 @@ BOOL CepcheckApp::InitInstance()
 
 	/**
 	 * We used to need the CSV file for TVmaze show numbers but we now
-	 * scrape that info from epguides along with the IMDB url.
+	 * scrape that info from epguides.com along with the IMDB url.
 	 */
 
 #if DOWNLOAD_ALL_SHOWS_CSV==1

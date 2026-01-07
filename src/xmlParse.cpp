@@ -15,8 +15,8 @@
 #include "libxml/HTMLparser.h"
 #include "libxml/HTMLtree.h"
 
-#include "Cepisode.h"
-#include "Cshow.h"
+#include "Cepisode.hpp"
+#include "Cshow.hpp"
 #include "CcurlJob.hpp"
 #include "utils.hpp"
 

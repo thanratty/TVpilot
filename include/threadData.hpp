@@ -19,7 +19,7 @@ public:
     cRequestData(CslotData* _pslots);
     ~cRequestData();
 
-    inline BOOL TerminateThread()
+    inline BOOL TerminateThread() const
     {
         return ::SetEvent(handles[0]);
     }
@@ -41,6 +41,7 @@ public:
 
     inline void Trigger() const
     {
+        // [0] is the terminate event, [1] is the request trigger event
         SetEvent(handles[1]);
     }
 
@@ -61,6 +62,7 @@ public:
 
     inline void Push(const std::string url)
     {
+        // Push on the end of the FIFO
         url_queue.push(url);
     }
 
@@ -69,7 +71,7 @@ public:
         url_queue = {};
     }
 
-
+    // Pop off the top of the FIFO
     std::string Pop()
     {
         std::string str;
@@ -116,7 +118,7 @@ public:
 
     inline void SetMsgWindow(HWND hWin)
     {
-        hMessageWindow = hWin;
+        m_hMsgWin = hWin;
     }
 
     inline BOOL TerminateThread() const
@@ -134,7 +136,7 @@ public:
     // Returns true if unlocked OK
     bool Unlock() const
     {
-        LONG last_value;
+        [[ maybe_unused]] LONG last_value;
         BOOL result = ReleaseSemaphore(sem_results_data, 1, &last_value);
         VERIFY(result);
         return (result) ? true : false;
@@ -152,7 +154,7 @@ public:
 
     inline HWND GetMessageWindow() const
     {
-        return hMessageWindow;
+        return m_hMsgWin;
     }
 
     inline CslotData* Slots() const
@@ -164,7 +166,7 @@ public:
 private:
     inline static HANDLE    sem_results_data;
 
-    HWND                    hMessageWindow{ NULL };
+    HWND                    m_hMsgWin{ NULL };
     DWORD                   m_last_error{ 0 };
     std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event
     CslotData*              pslots{ nullptr };          // Ptr to the actual slot array

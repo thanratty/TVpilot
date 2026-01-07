@@ -11,14 +11,14 @@
 #include "pathcch.h"
 
 #include "Resource.h"
-#include "CDnewShow.h"
-#include "CDShowZoom.h"
-#include "CDInputBox.h"
-#include "CdownloadManager.h"
+#include "CDnewShow.hpp"
+#include "CDShowZoom.hpp"
+#include "CDInputBox.hpp"
+#include "CdownloadManager.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
 
-#include "CepcheckDlg.h"
+#include "CepcheckDlg.hpp"
 
 
 
@@ -70,18 +70,18 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtnClickedSave)
 	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtnClickedDownload)
 	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtnClickedDeleteShow)
-	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClickedAddShow)
+	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClickedNewShow)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClickedBreak)
 	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClickedExplorer)
 	ON_BN_CLICKED(IDC_CHK_MISSED_ONLY,              &CepcheckDlg::OnBtnClickedChkMissedOnly)
 	ON_BN_CLICKED(IDC_CHK_DEBUG_LOG,                &CepcheckDlg::OnBtnClickedChkDebugLog)
-	ON_MESSAGE( WM_DOWNLOAD_COMPLETE,				&CepcheckDlg::OnDownloadComplete)
-	ON_MESSAGE( WM_DOWNLOAD_PING,					&CepcheckDlg::OnDownloadPing)
-	ON_MESSAGE( WM_ZOOM_EPISODES,					&CepcheckDlg::OnZoomEpisodes)
-	ON_MESSAGE( WM_LAUNCH_URL,						&CepcheckDlg::OnLaunchUrl)
-	ON_MESSAGE( WM_SHOW_CONTEXT_MENU,				&CepcheckDlg::OnShowContextMenu)
-	ON_MESSAGE( WM_SIGNAL_APP_EVENT,				&CepcheckDlg::OnSignalAppEvent)
-	ON_MESSAGE( WM_ABORT_DOWNLOAD,					&CepcheckDlg::OnAbortDownload)
+	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
+	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
+	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CepcheckDlg::OnZoomEpisodes)
+	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
+	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
+	ON_MESSAGE( WM_TVP_SIGNAL_APP_EVENT,			&CepcheckDlg::OnSignalAppEvent)
+	ON_MESSAGE( WM_TVP_ABORT_DOWNLOAD,				&CepcheckDlg::OnAbortDownload)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -186,11 +186,11 @@ BOOL CepcheckDlg::OnInitDialog()
 	CenterWindow();
 
 	// Set button enable/disable states to something sensible
-	PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_APP_STARTED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_APP_STARTED));
 
 	// If we start with a new/empty database, all we can initally do is add a new show
 	if (m_data.IsNewDataFile())
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_CREATED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_CREATED));
 
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
@@ -211,7 +211,7 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
 	m_dlgSchedule.ShowWindow((selectedTab == TAB_NUM_SCHEDULE) ? SW_SHOW : SW_HIDE);
 	m_dlgArchive.ShowWindow( (selectedTab == TAB_NUM_ARCHIVE)  ? SW_SHOW : SW_HIDE);
 
-	PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
 
 	// All done
 	*pResult = 0;
@@ -233,7 +233,7 @@ void CepcheckDlg::OnBtnClickedLoad()
 	UpdateScheduleList();
 	UpdateArchiveList();
 
-	PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_LOADED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_LOADED));
 
 	AfxMessageBox(L"Shows loaded from disk OK", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 }
@@ -251,7 +251,7 @@ void CepcheckDlg::OnBtnClickedSave()
 		AfxMessageBox(L"Error saving data file!", MB_ICONERROR | MB_OK | MB_APPLMODAL );
 	else
 	{
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_SAVED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_SAVED));
 		AfxMessageBox(L"Shows saved to disk OK", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 }
@@ -277,7 +277,7 @@ void CepcheckDlg::OnBtnClickedDownload()
 	{
 		// Set appropriate button states during download
 		WriteMessageLog(L"Downloading all shows...");
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
 
 		// Enable the 'Cancel Download' button in the massage box
 		m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
@@ -325,7 +325,7 @@ void CepcheckDlg::OnBtnClickedDeleteShow()
 
 	// Update the display
 	UpdateArchiveList();
-	PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_SHOW_DELETED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_SHOW_DELETED));
 
 	AfxMessageBox(L"Show deleted", MB_ICONINFORMATION | MB_OK | MB_APPLMODAL);
 }
@@ -337,7 +337,7 @@ void CepcheckDlg::OnBtnClickedDeleteShow()
  * Enter a URL for epguides.com & add a new show to the database
  *
  */
-void CepcheckDlg::OnBtnClickedAddShow()
+void CepcheckDlg::OnBtnClickedNewShow()
 {
 	// Popup the dialog box to enter the URL
 	CDnewShow	dbox(this);
@@ -350,12 +350,17 @@ void CepcheckDlg::OnBtnClickedAddShow()
 		return;
 
 	CString new_url = dbox.m_new_url.MakeLower().Trim();
-	new_url.Replace(L"www.", L"");
 	if (new_url.IsEmpty())
 		return;
 
-	// Validate the URL. Trailing backslash is optional.
-	std::wregex pattern(L"^https:\\/\\/(www\\.)?epguides\\.com\\/[^\\/]+([\\/]{1})?$");
+	// For consistant hash calculation strip leading www & ensure there;s a trailing slash
+	new_url.Replace(L"www.", L"");
+	if (new_url.Right(1) != "/")
+		new_url += '/';
+
+	// Validate the URL.
+	//std::wregex pattern(L"^https:\\/\\/(www\\.)?epguides\\.com\\/[^\\/]+([\\/]{1})?$"); TODO
+	std::wregex pattern(L"^https:\\/\\/(www\\.)?epguides\\.com\\/[^\\/]+([\\/]{1})$");
 	std::wstring input(new_url);
 	bool good_url = std::regex_match(input, pattern);
 
@@ -365,17 +370,8 @@ void CepcheckDlg::OnBtnClickedAddShow()
 		return;
 	}
 
-	// For consistant hash calculation, terminate all URLs with a backslash
-	if (new_url[new_url.GetLength()-1] != '/')
-	{
-		new_url.Insert(INT_MAX, '/');
-	}
-
-	// Search both lists for the hashs
-	if (
-		(m_data.FindShow(SimpleHash(new_url), eSHOWLIST::SEARCH_ACTIVE)  != nullptr) ||
-		(m_data.FindShow(SimpleHash(new_url), eSHOWLIST::SEARCH_ARCHIVE) != nullptr)
-		)
+	// Search both active & archive lists for the show
+	if ( m_data.FindShow(new_url, eSHOWLIST::BOTH) != nullptr )
 	{
 		AfxMessageBox(L"That show is already in the database", MB_ICONEXCLAMATION | MB_OK);
 		return;
@@ -386,14 +382,18 @@ void CepcheckDlg::OnBtnClickedAddShow()
 	m_ping_count = m_err_count = 0;
 	UpdateOnscreenCounters();
 
-	// Start downloading the show's info
-	if (m_data.DownloadNewShow(new_url) == false)
+	// Add it to the model
+	DWORD hash = m_data.AddNewShow(new_url);
+
+
+	// Start downloading the new show's info
+	if (m_data.DownloadSingleShow(hash) == false)
 	{
 		AfxMessageBox(L"Add new show failed", MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL);
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
 	}
 	else
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
 
 	// If there was no error, the model has successfully started a download thread for the new show
 }
@@ -402,25 +402,25 @@ void CepcheckDlg::OnBtnClickedAddShow()
 
 
 /**
- * Clear then repopulate the Shows list from the database
+ * Clear then repopulate the Shows ClistCtrl from the database
  *
  */
 void CepcheckDlg::UpdateShowList()
 {
 	sShowListEntry	sle;
+	eGETACTION		action{ eGETACTION::GET_FIRST };
 
 	// Get the dialog box to do a few things
 	m_dlgShows.SaveTopIndex();
 	m_dlgShows.DeleteAllItems();
 
-	bool found_one = m_data.GetFirstActiveShow(&sle);
-	while (found_one)
+	while (m_data.GetShow(eSHOWLIST::ACTIVE, action, &sle))
 	{
-		ShowListStringsToLocal(&sle);
-
 		// Add this show to the list
+		ShowListStringsToLocal(&sle);
 		m_dlgShows.AppendRow(&sle);
-		found_one = m_data.GetNextActiveShow(&sle);
+
+		action = eGETACTION::GET_NEXT;
 	}
 
 	// Sort the list & redraw it
@@ -441,18 +441,18 @@ void CepcheckDlg::UpdateShowList()
  */
 void CepcheckDlg::UpdateScheduleList()
 {
-	sScheduleListEntry	sle;
+	sScheduleListEntry		sle;
+	eGETACTION				action{ eGETACTION::GET_FIRST };
 
 	// Clear the CtrlList
 	m_dlgSchedule.DeleteAllItems();
 
-	bool found_one = m_data.GetFirstFilteredEpisode(&sle);
-	while (found_one)
+	while (m_data.GetFilteredEpisode(action, &sle))
 	{
 		ScheduleListStringsToLocal(&sle);
-
 		m_dlgSchedule.AppendRow(&sle);
-		found_one = m_data.GetNextFilteredEpisode(&sle);
+
+		action = eGETACTION::GET_NEXT;
 	}
 
 	m_dlgSchedule.SortList();
@@ -464,17 +464,17 @@ void CepcheckDlg::UpdateScheduleList()
 void CepcheckDlg::UpdateArchiveList()
 {
 	sShowListEntry	sle;
+	eGETACTION		action { eGETACTION::GET_FIRST };
 
 	// Clear the CtrlList
 	m_dlgArchive.DeleteAllItems();
 
-	bool found_one = m_data.GetFirstArchiveShow(&sle);
-	while (found_one)
+	while (m_data.GetShow(eSHOWLIST::ARCHIVE, action, &sle))
 	{
 		ShowListStringsToLocal(&sle);
-
 		m_dlgArchive.AppendRow(&sle);
-		found_one = m_data.GetNextArchiveShow(&sle);
+
+		action = eGETACTION::GET_NEXT;
 	}
 
 	m_dlgArchive.Invalidate();
@@ -502,6 +502,19 @@ void CepcheckDlg::UpdateOnscreenCounters(void)
 
 
 /**
+ * Update the UI ping & error counter boxes
+ *
+ */
+void CepcheckDlg::ResetOnscreenCounters(void)
+{
+	m_ping_count = m_err_count = 0;
+	UpdateOnscreenCounters();
+}
+
+
+
+
+/**
  * Handler for WM_DOWNLOAD_COMPLETE message sent by the dispatch thread when all shows have completed downloading & been processed
  *
  */
@@ -515,20 +528,20 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 
 	if (bDownloadErrors || (m_err_count > 0))
 	{
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 		bDownloadErrors = false;
 		m_err_count = 0;
 	}
 	else if (m_abort_download)
 	{
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_ABORTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_ABORTED));
 		AfxMessageBox(L"Download aborted", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		m_abort_download = false;
 	}
 	else
 	{
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_OK));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_OK));
 		AfxMessageBox(L"Download complete", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
@@ -550,7 +563,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
  */
 afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER(lParam);
+	UNREFERENCED_PARAMETER( lParam );
 
 	// Bump ping counter and update the UI
 	m_ping_count++;
@@ -569,10 +582,12 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
  * A row on the Shows or Schedule tab was double-clicked. Popup a modal dialog listing all episodes for that Show.
  *
  */
-afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM /* lParam */)
+afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM lParam )
 {
+	UNREFERENCED_PARAMETER( lParam );
+
 	DWORD hash = static_cast<DWORD>(wParam);
-	const show* pshow = m_data.FindShow(hash, eSHOWLIST::SEARCH_BOTH);
+	const show* pshow = m_data.FindShow(hash, eSHOWLIST::BOTH);
 
 	if (pshow == nullptr) {
 		WriteMessageLog(L"OnZoomEpisodes() show not found");
@@ -591,14 +606,14 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM /* lParam */)
 
 
 /**
- * Update the text on the Shows tab
+ * Update the text on the 'Shows' & 'Archive tabs
  *
  */
 void CepcheckDlg::UpdateTabTotals(void)
 {
 	// Put # Shows in the Show tab text
 	CString str;
-	str.Format(L"Shows (%d)", m_data.GetNumActiveShows());
+	str.Format(L"Shows (%d)", m_data.NumShows(eSHOWLIST::ACTIVE));
 
 	TCITEM ltag;
 	ltag.mask = TCIF_TEXT;
@@ -606,7 +621,7 @@ void CepcheckDlg::UpdateTabTotals(void)
 	m_tabctrl.SetItem(TAB_NUM_SHOWS, &ltag);
 	str.UnlockBuffer();
 
-	str.Format(L"Archive (%d)", m_data.GetNumArchiveShows());
+	str.Format(L"Archive (%d)", m_data.NumShows(eSHOWLIST::ARCHIVE));
 	ltag.pszText = str.LockBuffer();
 	m_tabctrl.SetItem(TAB_NUM_ARCHIVE, &ltag);
 	str.UnlockBuffer();
@@ -627,7 +642,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 	DWORD hash = static_cast<DWORD>(wParam);
 	unsigned selection = static_cast<unsigned>(lParam);
 
-	const show* ashow = m_data.FindShow(hash, eSHOWLIST::SEARCH_BOTH);
+	const show* ashow = m_data.FindShow(hash, eSHOWLIST::BOTH);
 	if (ashow == nullptr)
 		return 0;
 
@@ -679,7 +694,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	DWORD  hash  = pcontext->show_hash;
 	CPoint point = pcontext->click_point;
 	
-	show* pshow = m_data.FindShow(hash, eSHOWLIST::SEARCH_BOTH);
+	show* pshow  = m_data.FindShow(hash, eSHOWLIST::BOTH);
 	if (pshow == nullptr)
 	{
 		AfxMessageBox(L"Show not found for context menu.", MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL );
@@ -695,8 +710,8 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 
 	// All of the dialog context menus have these options for URLs enabled
 	menu.EnableMenuItem(ID_MNU_EPGUIDES_GO, (pshow->epguides_url.length() > 0) ? MF_ENABLED : MF_GRAYED);
-	menu.EnableMenuItem(ID_MNU_TVMAZE_GO,   (pshow->tvmaze_url.length() > 0)   ? MF_ENABLED : MF_GRAYED);
 	menu.EnableMenuItem(ID_MNU_THETVDB_GO,  (pshow->thetvdb_url.length() > 0)  ? MF_ENABLED : MF_GRAYED);
+	menu.EnableMenuItem(ID_MNU_TVMAZE_GO,   (pshow->tvmaze_url.length() > 0)   ? MF_ENABLED : MF_GRAYED);
 	menu.EnableMenuItem(ID_MNU_IMDB_GO,     (pshow->imdb_url.length() > 0)     ? MF_ENABLED : MF_GRAYED);
 
 
@@ -756,7 +771,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 		case ID_MNU_IMDB_GO:
 		case ID_MNU_THETVDB_GO:
 		case ID_MNU_THETVDB_SEARCH:
-			PostMessageW(WM_LAUNCH_URL, hash, selection);
+			PostMessageW(WM_TVP_LAUNCH_URL, hash, selection);
 			break;
 
 		case ID_MNU_EPGUIDES_EDIT:
@@ -779,7 +794,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 				UpdateShowList();
 				UpdateScheduleList();
 				UpdateArchiveList();
-				PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
+				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
 			}
 			else
 				AfxMessageBox(L"Error. Active show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
@@ -791,7 +806,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 				UpdateShowList();
 				UpdateScheduleList();
 				UpdateArchiveList();
-				PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
+				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
 			}
 			else
 				AfxMessageBox(L"Error. Archive show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
@@ -813,12 +828,11 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			pcontext->ep_flags |= episodeflags::EP_FL_NOT_GOT;
 			ep_flags_changed = m_data.EpisodeFlagsChange(pcontext);
 			break;
-		case ID_MNU_REFRESH_SHOW:
-			// Reset on-screen counters
-			m_ping_count = m_err_count = 0;
-			UpdateOnscreenCounters();
 
-			if (m_data.DownloadRefreshShow(pshow) == false)
+		case ID_MNU_REFRESH_SHOW:
+			// Reset ping & download counter
+			ResetOnscreenCounters();
+			if (m_data.DownloadSingleShow(hash) == false)
 				AfxMessageBox(L"Refresh show failed", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 			else
 				WriteMessageLog(L"Refreshing show...");
@@ -861,14 +875,14 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	if (url_edited == true)
 	{
 		// Enable the Save/Load buttons if need be
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_URL_EDITED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_URL_EDITED));
 	}
 
 	if (ep_flags_changed == true)
 	{
 		// Get the schedule dialog to update its list control entry
-		m_dlgSchedule.PostMessage(WM_SCHED_EP_FLAGS_CHANGED, reinterpret_cast<WPARAM>(pcontext));
-		PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_EP_FLAGS_CHANGED));
+		m_dlgSchedule.PostMessage(WM_TVP_SCHED_EP_FLAGS_CHANGED, reinterpret_cast<WPARAM>(pcontext));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_EP_FLAGS_CHANGED));
 	}
 
 	return 0;
@@ -945,8 +959,8 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 #endif
 
 	// Have a few useful values handy
-	unsigned numActiveShows  = m_data.GetNumActiveShows();
-	unsigned numArchiveShows = m_data.GetNumArchiveShows();
+	unsigned numActiveShows  = m_data.NumShows(eSHOWLIST::ACTIVE);
+	unsigned numArchiveShows = m_data.NumShows(eSHOWLIST::ARCHIVE);
 	int selectedTab = m_tabctrl.GetCurSel();
 
 	switch (event)
@@ -972,7 +986,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			// Also set tab appropriate buttons
-			PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
 			break;
 
 		case appevent::AE_DOWNLOAD_ABORTED:
@@ -1015,13 +1029,15 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
+		// TODO - check if these are needed?
 		case appevent::AE_URL_EDITED:
 		case appevent::AE_SHOW_ADDED:
+		case appevent::AE_SHOW_REFRESHED:
 		case appevent::AE_SHOW_DELETED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
-			PostMessage(WM_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
 			break;
 
 		case appevent::AE_ARCHIVE_CHANGED:
@@ -1120,7 +1136,7 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
  */
 void CepcheckDlg::OnBtnClickedExplorer()
 {
-	m_data.ExploreDataFile();
+	m_data.OpenDataFileFolder();
 }
 
 
@@ -1215,7 +1231,7 @@ static int day = 0;
 			int nTopIndex     = m_dlgSchedule.GetTopIndex();
 
 			// Set the new date filter in the model & re-do the schedule list
-			m_data.SetToday();
+			m_data.SetTodaysDate();
 			UpdateScheduleList();
 
 			// Restore any selection and scroll position

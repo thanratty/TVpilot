@@ -8,8 +8,8 @@
 #include "common.hpp"
 
 #include "utils.hpp"
-#include "CDarchive.h"
-#include "CepcheckDlg.h"
+#include "CDarchive.hpp"
+#include "CepcheckDlg.hpp"
 
 
 
@@ -209,7 +209,7 @@ void CDArchive::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 	context.list_index = index;
 	context.show_hash  = m_archivelist.GetItemData(index);
 
-	GetParent()->PostMessage(WM_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
+	GetParent()->PostMessage(WM_TVP_SHOW_CONTEXT_MENU, reinterpret_cast<WPARAM>(&context));
 
 }
 
@@ -229,7 +229,7 @@ void CDArchive::OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult)
 	if (row != -1)
 	{
 		DWORD hash = m_archivelist.GetItemData(row);
-		GetParent()->PostMessage(WM_ZOOM_EPISODES, static_cast<WPARAM>(hash), 0);
+		GetParent()->PostMessage(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash), 0);
 	}
 
 	*pResult = 0;

@@ -4,14 +4,17 @@
 
 
 
-#define     E_WAIT_FAIL              (-1)
-#define     E_RESET_FAIL_INDEX       (-2)
-#define     E_RESET_FAIL_UNLOCK      (-3)
-#define     E_RESET_FAIL             (-4)
+
+
+#define     E_SO_OK                     (0)
+#define     E_SO_WAIT_FAIL              (-1)
+#define     E_SO_RESET_FAIL_INDEX       (-2)
+#define     E_SO_RESET_FAIL_UNLOCK      (-3)
+#define     E_SO_RESET_FAIL             (-4)
 
 
 
-
+// TODO Use a singleton class ???
 class CslotsSem
 {
 public:
@@ -26,8 +29,8 @@ private:
     CString     m_name;
 
     // Only a single instance of these two vars shared between all objects
-    inline static int    m_refcount = 0;
-    inline static HANDLE m_hSem = nullptr;
+    inline static int    m_refcount{ 0 };
+    inline static HANDLE m_hSem{ nullptr };
 };
 
 

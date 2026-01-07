@@ -8,7 +8,7 @@
 #include "common.hpp"
 #include "utils.hpp"
 
-#include "CDmessages.h"
+#include "CDmessages.hpp"
 
 
 // CDmessages dialog
@@ -51,7 +51,7 @@ void CDmessages::OnBtnClickedClear()
 void CDmessages::OnOK()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
 
 	//CDialogEx::OnOK();
 }
@@ -60,7 +60,7 @@ void CDmessages::OnOK()
 void CDmessages::OnCancel()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessageW(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
 
 	//CDialogEx::OnCancel();
 }
@@ -68,6 +68,6 @@ void CDmessages::OnCancel()
 
 void CDmessages::OnBtnClickedAbortDownload()
 {
-	GetParent()->PostMessage(WM_ABORT_DOWNLOAD);
+	GetParent()->PostMessage(WM_TVP_ABORT_DOWNLOAD);
 }
 

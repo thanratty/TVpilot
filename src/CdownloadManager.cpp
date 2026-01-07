@@ -12,7 +12,7 @@
 #include "threadFuncs.hpp"
 #include "utils.hpp"
 
-#include "CdownloadManager.h"
+#include "CdownloadManager.hpp"
 
 
 
@@ -44,11 +44,11 @@ CdownloadManager::CdownloadManager() :
 	CWinThread* thread;
 	CString		str;
 
-	// Start the worker threads (m_slots is initialised by now)
+	// Start a worker thread for each slot (m_slots is initialised by now)
 	//
 	for (auto i=0 ; i < NUM_WORKER_THREADS ; i++)
 	{
-		thread = AfxBeginThread(thrWorkerThread, &m_slots[i]);
+		thread = AfxBeginThread(thrSlotThread, &m_slots[i]);
 		ASSERT(thread);
 		str.Format(L"slot-%-u", i);
 		SetThreadDescription(thread->m_hThread, str);

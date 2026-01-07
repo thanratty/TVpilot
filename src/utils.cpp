@@ -16,10 +16,10 @@
 
 #include "common.hpp"
 
-#include "CDShows.h"
-#include "CDSchedule.h"
-#include "CDInputBox.h"
-#include "CsortContext.h"
+#include "CDShows.hpp"
+#include "CDSchedule.hpp"
+#include "CDInputBox.hpp"
+#include "CsortContext.hpp"
 #include "CslotData.hpp"
 #include "debugConsole.h"
 #include "utils.hpp"
@@ -82,7 +82,7 @@ DWORD SimpleHash(const CString& url)
 
 
 /**
- * Convert SS-EE episode string to a number for temporal ordering
+ * Convert "SS-EE" formatted episode string to a number for temporal ordering
  */
 static unsigned EpisodeToNumber(const CString& epstring)
 {
@@ -439,7 +439,7 @@ void CopyToClipboard(const char *str)
 
 
 /**
- * Copy std string text to clipboard
+ * Copy std::string text to clipboard
  */
 void CopyToClipboard(const std::string str)
 {

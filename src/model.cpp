@@ -18,9 +18,9 @@
 
 #include "common.hpp"
 
-#include "Cepisode.h"
-#include "Cshow.h"
-#include "CepcheckDlg.h"
+#include "Cepisode.hpp"
+#include "Cshow.hpp"
+#include "CepcheckDlg.hpp"
 #include "threadFuncs.hpp"
 #include "xmlParse.hpp"
 #include "utils.hpp"
@@ -141,7 +141,7 @@ std::istream& operator>> (std::istream& istream, model& model)
  * Search the active and/or the archived lists for a show with the given hash
  *
  */
-show* model::FindShow(DWORD search_hash, eSHOWLIST source)
+show* model::FindShow(DWORD search_hash, eSHOWLIST source) 
 {
     show* retval = nullptr;
     auto funcObject = fnoMatchShowHash(search_hash);
@@ -152,14 +152,14 @@ show* model::FindShow(DWORD search_hash, eSHOWLIST source)
     }
     else
     {
-        if ((source == eSHOWLIST::SEARCH_ACTIVE) || (source == eSHOWLIST::SEARCH_BOTH))
+        if ((source == eSHOWLIST::ACTIVE) || (source == eSHOWLIST::BOTH))
         {
             auto it = std::find_if(m_active_shows.begin(), m_active_shows.end(), funcObject);
             if (it != m_active_shows.end())
                 retval = &*it;
         }
 
-        if ((retval == nullptr) && ((source == eSHOWLIST::SEARCH_ARCHIVE) || (source == eSHOWLIST::SEARCH_BOTH)))
+        if ((retval == nullptr) && ((source == eSHOWLIST::ARCHIVE) || (source == eSHOWLIST::BOTH)))
         {
             auto it = std::find_if(m_archive_shows.begin(), m_archive_shows.end(), funcObject);
             if (it != m_archive_shows.end())
@@ -168,6 +168,15 @@ show* model::FindShow(DWORD search_hash, eSHOWLIST source)
     }
     return retval;
 }
+
+
+
+
+show* model::FindShow(const CString& url, eSHOWLIST source) 
+{
+    return FindShow(SimpleHash(url), source);
+}
+
 
 
 
@@ -187,18 +196,6 @@ void model::DeleteShow(DWORD hash)
 
 
 /**
- * Add a new show to the model. All shos start off in the active list.
- *
- */
-void model::AddShow(show& show)
-{
-    m_active_shows.push_back(show);
-}
-
-
-
-
-/**
  * Clear out the data model and re-load it from disk
  * 
  */
@@ -208,11 +205,6 @@ bool model::LoadFile()
     m_guide.clear();
     m_active_shows.clear();
     m_archive_shows.clear();
-
-    // Just in case, set a bunch of members vars to defaults!
-    guide_list_last   = m_guide.begin();
-    guide_list_next   = m_guide.begin();
-    m_current_show    = 0;
 
     // The file's definately there thanks to the constructor
     std::ifstream ifs(m_datafile.Filename(), std::ofstream::in);
@@ -259,9 +251,8 @@ bool model::SaveFile()
 
 
 /**
- * After downloading or deleting anything, rescan all show episodes into the guide vector.
- * 
- * Apply wide filters here: m_active_shows_only, and m_missed_episodes_only
+ * After downloading or deleting anything, add **ALL** active show episodes into the guide vector.
+ * Leave the vector sorted on airdate.
  * 
  */
 void model::BuildEpisodeList()
@@ -297,90 +288,29 @@ void model::BuildEpisodeList()
 
 
 
-/**
- * Populate the sShowListEntry structure with first Show 'alpabetically' <==???
- * 
- */
-bool model::GetFirstActiveShow(sShowListEntry* sle)
+bool model::GetShow(eSHOWLIST list, eGETACTION action, sShowListEntry* sle) const
 {
-    m_current_show    = 0;
+    static unsigned index{ 0 };
+    const std::vector<show>* pVec;
 
-    if (m_active_shows.size() == 0)
+    // Makes no sense to iterate through both lists at once
+    if (list == eSHOWLIST::BOTH)
         return false;
 
-    CopyOutShowInfo(sle, &m_active_shows[ m_current_show ]);
+    pVec = (list == eSHOWLIST::ACTIVE) ? &m_active_shows : &m_archive_shows;
 
-    return true;
-}
-
-
-
-
-/**
- * Populate the sShowListEntry structure with next Show.
- * AFTER first calling to GetFirstActiveShow().
- * 
- */
-bool model::GetNextActiveShow(sShowListEntry* sle)
-{
-    // No shows?
-    if (m_active_shows.size() == 0)
-    {
-        WriteMessageLog(L"GetNextActiveShow(): size=0");
+    if (pVec->size() == 0)
         return false;
-    }
+
+    if (action == eGETACTION::GET_FIRST)
+        index = 0;
 
     // At the end already?
-    if (m_current_show == (m_active_shows.size() - 1))
-    {
-        DebugWriteMessageLog(L"GetNextActiveShow(): All done");
-        return false;
-    }
-
-    m_current_show++;
-
-    CopyOutShowInfo(sle, &m_active_shows[ m_current_show ]);
-
-    return true;
-}
-
-
-
-
-bool model::GetFirstArchiveShow(sShowListEntry* sle)
-{
-    m_current_show = 0;
-
-    if (m_archive_shows.size() == 0)
+    if (index > NumShows( list ) - 1)
         return false;
 
-    CopyOutShowInfo(sle, &m_archive_shows[ m_current_show ]);
-
-    return true;
-}
-
-
-
-
-bool model::GetNextArchiveShow(sShowListEntry* sle)
-{
-    // No shows?
-    if (m_archive_shows.size() == 0)
-    {
-        WriteMessageLog(L"GetNextArchiveShow(): size=0");
-        return false;
-    }
-
-    // At the end already?
-    if (m_current_show == (m_archive_shows.size() - 1))
-    {
-        DebugWriteMessageLog(L"GetNextArchivShow(): All done");
-        return false;
-    }
-
-    m_current_show++;
-
-    CopyOutShowInfo(sle, &m_archive_shows[ m_current_show ]);
+    CopyOutShowInfo(sle, &pVec->at(index));
+    ++index;
 
     return true;
 }
@@ -405,54 +335,77 @@ CopyGuideEntryToScheduleListEntry(const sGuideEntry* ge, sScheduleListEntry* sle
 
 
 /**
- * Populate the sEpisodeListEntry structure with FIRST episode within the filter range
- * 
+ * Populate the sGuideListEntry structure with NEXT episode within the filter range
+ *
  */
-bool model::GetFirstFilteredEpisode(sScheduleListEntry* sle)
+bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
 {
     sGuideEntry ge;
+    static unsigned index{ 0 },
+                    index_end{ 0 };
+
+    if (m_guide.size() == 0)
+        return false;
+
+    if (action == eGETACTION::GET_FIRST)
+    {
+        // If we're using date filters, set them up here. sGuideEntry has an operator<() & is used as a functor.
+        if (!m_missed_edpisodes_only)
+        {
+            ge.airdate = m_start_date;
+            auto start_iter = std::lower_bound(m_guide.begin(), m_guide.end(), ge);
+            index = start_iter - m_guide.begin();
+
+            ge.airdate = m_end_date;
+            auto end_iter = std::upper_bound(m_guide.begin(), m_guide.end(), ge);
+            index_end = end_iter - m_guide.begin();
+        }
+        else
+            index = 0;
+    }
+
+    // At the end already?
+    if (index > m_guide.size() - 1)
+    {
+        DebugWriteMessageLog(L"GetFilteredEpisode(): All done");
+        return false;
+    }
+
 
     if (m_missed_edpisodes_only)
     {
-        ge.airdate - gregorian::min_date_time;
-        guide_list_next = std::lower_bound(m_guide.begin(), m_guide.end(), ge);
-
-        // Include EVERY episode, dates ignored, just the 'NOT_GOT' flag checked
-        guide_list_next = m_guide.begin();
-        guide_list_last = m_guide.end();
-
-        while (!(guide_list_next->episode_flags & episodeflags::EP_FL_NOT_GOT))
+        // Just return missed episodes. Ignore dates completely.
+        while (true)
         {
-            guide_list_next++;
-            if (guide_list_next == guide_list_last)
+            if (m_guide[ index ].episode_flags & episodeflags::EP_FL_NOT_GOT)
+            {
+                CopyGuideEntryToScheduleListEntry(&m_guide[index], sle);
+                index++;
+                return true;
+            }
+
+            index++;
+            if (index >= index_end)
                 return false;
         }
     }
     else
     {
-        // Get 1st element not 'less than' m_start_date
-        ge.airdate = m_start_date;
-        guide_list_next = std::lower_bound(m_guide.begin(), m_guide.end(), ge);
-
-        // No episodes in the date range?
-        if (guide_list_next == m_guide.end())
-            return false;
-        // Future episode was listed but with no air date yet
-        if (guide_list_next->airdate.is_not_a_date())
-            return false;
-        // Ran off the end of the list?
-        if (guide_list_next->airdate.is_infinity())
+        // Normal date filtering
+        if (index >= index_end)
             return false;
 
-        // Get 1st element 'greater than' m_end_date    
-        ge.airdate = m_end_date;
-        guide_list_last = std::upper_bound(guide_list_next, m_guide.end(), ge);
+        // Episode was listed on epguides.com with either no airdate or a stupid airdate
+        if (
+            (m_guide[ index ].airdate.is_not_a_date()) ||
+            (m_guide[ index ].airdate.is_infinity())
+           )
+            return false;
     }
 
+    CopyGuideEntryToScheduleListEntry(&m_guide[ index ], sle);
 
-    CopyGuideEntryToScheduleListEntry(&*guide_list_next, sle);
-
-    ++guide_list_next;
+    ++index;
 
     return true;
 }
@@ -460,85 +413,62 @@ bool model::GetFirstFilteredEpisode(sScheduleListEntry* sle)
 
 
 
-/**
- * Populate the sGuideListEntry structure with NEXT episode within the filter range
- * 
- */
-bool model::GetNextFilteredEpisode(sScheduleListEntry* sle)
-{
-    if ((guide_list_next == guide_list_last) || (guide_list_next == m_guide.end()) )
-        return false;
-
-    // Future episode was listed but with no air date yet
-    if (guide_list_next->airdate.is_not_a_date())
-        return false;
-
-    // Ran off the end of the list
-    if (guide_list_next->airdate.is_infinity())
-        return false;
-
-    // Not by date, just on the NOT_GOT flag
-    if (m_missed_edpisodes_only)
-    {
-        while (!(guide_list_next->episode_flags & episodeflags::EP_FL_NOT_GOT))
-        {
-            guide_list_next++;
-            if (guide_list_next == guide_list_last)
-                return false;
-        }
-    }
 
 
-    CopyGuideEntryToScheduleListEntry(&*guide_list_next, sle);
 
-    ++guide_list_next;
 
-    return true;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 /**
- * Download a show's information from the URL and create a new database entry.
- * Currently only called when adding a new show.
+ * Create an "empty" show object from a URL & add it to the "database"
+ *
+ * Only called when adding a new show, doesn't start a download
  * 
+ * RETURN:      Hash of the new show object
+ *
  */
-bool model::DownloadNewShow(CString& url)
+DWORD model::AddNewShow(const CString& url)
 {
-    bool retval = true;
-    CString error1(L"Download already in progress!");
-
-    // Already downloading?
-    if (dm.DownloadInProgress()) {
-        WriteMessageLog(error1);
-        AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-        return false;
-    }
-
-    // Clear all other shows 'WAITING' flag so they aren't downloaded.
-    std::for_each(m_active_shows.begin(), m_active_shows.end(), [](show& show) {show.state &= ~showstate::SH_ST_WAITING; });
 
     // Prepare a new Show object
     show	new_show;
     new_show.epguides_url = CW2A(url, CP_UTF8);
-    new_show.hash         = SimpleHash(new_show.epguides_url);
-    new_show.title        = "--NEW SHOW--";
-    new_show.state        = showstate::SH_ST_NEW_SHOW | showstate::SH_ST_WAITING;
-    new_show.flags        = showflags::SH_FL_NONE;
+    new_show.hash = SimpleHash(new_show.epguides_url);
+    new_show.title = "--NEW SHOW--";
+    new_show.state = showstate::SH_ST_NEW_SHOW | showstate::SH_ST_WAITING;
+    new_show.flags = showflags::SH_FL_NONE;
 
-    // Add it to the shows vector
-    AddShow(new_show);
+    // Add it to the shows vector (can't fail)
+    m_active_shows.push_back(new_show);
 
-    // Setup the ping counters
-    m_ping_expected = 1;
-    m_ping_received = 0;
-
-    dm.DownloadShow(new_show.epguides_url);
-
-    // Need to filter for new_show in ping handler
-
-    return retval;
+    return new_show.hash;
 }
 
 
@@ -582,29 +512,50 @@ bool model::DownloadAllShows()
 
 
 /**
- * Download and refresh a single existing show.
- * 
+ * Download a show's information from the URL and create a new database entry.
+ *
+ * Currently only called when adding a new show.
+ *
  */
-bool model::DownloadRefreshShow(show* pshow)
+bool model::DownloadSingleShow(DWORD hash)
 {
+    bool retval = true;
+
     // Already downloading?
     if (dm.DownloadInProgress()) {
-        AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+        CString error1(L"Download already in progress!");
+        WriteMessageLog(error1);
+        AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
         return false;
     }
 
-    // Clear all other shows 'WAITING' flag so they aren't downloaded.
-    std::for_each(m_active_shows.begin(), m_active_shows.end(), [](show& show) {show.state &= ~showstate::SH_ST_WAITING; });
-    pshow->state |= showstate::SH_ST_WAITING;
 
-    // Reset counters
+    show* pShow = FindShow(hash, eSHOWLIST::ACTIVE);
+    if (pShow == nullptr) {
+        CString error1(L"DownloadSingleShow() : Can't find show");
+        WriteMessageLog(error1);
+        AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+        return FALSE;
+    }
+
+
+    // Clear all other shows 'WAITING' flag so they aren't downloaded.
+    std::for_each(m_active_shows.begin(), m_active_shows.end(), [hash](show& show) {
+        if (show.hash != hash)
+            show.state &= ~showstate::SH_ST_WAITING;
+        });
+    pShow->state |= showstate::SH_ST_WAITING;
+
+    // Setup the ping counters
     m_ping_expected = 1;
     m_ping_received = 0;
 
-    dm.DownloadShow(pshow->epguides_url);
+    dm.DownloadShow(pShow->epguides_url);
     WriteMessageLog(L"Download requested");
 
-    return true;
+    // NB  TODO Do I need to filter for new_show in ping handler?
+
+    return retval;
 }
 
 
@@ -614,6 +565,8 @@ bool model::DownloadRefreshShow(show* pshow)
 * If all shows are downloaded *OR* the download has been sucessfully
 * aborted, send WM_DOWNLOAD_COMPLETE to the main dialog window.
 *
+* TODO Shouldn't CdownloadManager determine when the download's complete? Not the model/database?
+* 
 */
 void model::CheckDownloadComplete()
 {
@@ -622,7 +575,7 @@ void model::CheckDownloadComplete()
         (m_ping_expected == m_ping_received)
        )
     {
-        ::PostMessage(m_hMsgWin, WM_DOWNLOAD_COMPLETE, 0, 0);
+        ::PostMessage(m_hMsgWin, WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
     }
 }
 
@@ -652,7 +605,7 @@ void model::DownloadPing(DWORD slotnum)
     m_ping_received++;
 
     // If this is for a new show, a dummy database entry was added so this pointer will always be valid
-    show* originalShow = FindShow(resultShow.hash, eSHOWLIST::SEARCH_ACTIVE);
+    show* originalShow = FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
 
     if (slot.ThreadStatus() != E_THREAD_OK)
     {
@@ -669,7 +622,7 @@ void model::DownloadPing(DWORD slotnum)
 
         // Put the show's episodes in the database - lock the 'database' while we're twiddling.
         CSingleLock dbLock(&m_critical);
-        dbLock.Lock();
+        VERIFY(dbLock.Lock());
 
         // Copy over URLs and stuff from the downloaded show into the original show. Preserve the original show flags.
         originalShow->episodes    = resultShow.episodes;
@@ -766,11 +719,11 @@ bool model::DownloadComplete()
 
 
 
-
-
-
-
-void model::SetToday()
+/**
+ * Done when program launches & when the time rolls over past midnight
+ *
+ */
+void model::SetTodaysDate()
 {
     m_today = gregorian::day_clock::local_day();
     EvalScheduleDateWindow();
@@ -795,16 +748,16 @@ void model::SetDateInterval(int lower, int upper)
 bool model::ArchiveShow(DWORD hash)
 {
     auto funcObject = fnoMatchShowHash(hash);
-    auto iter = std::find_if(m_active_shows.begin(), m_active_shows.end(), funcObject);
+    auto show = std::find_if(m_active_shows.begin(), m_active_shows.end(), funcObject);
 
     // This shouldn't happen!
-    if (iter == m_active_shows.end())
+    if (show == m_active_shows.end())
         return false;
 
-    (*iter).flags |= showflags::SH_FL_ARCHIVED;
+    show->flags |= showflags::SH_FL_ARCHIVED;
 
-    m_archive_shows.push_back(*iter);
-    m_active_shows.erase(iter);
+    m_archive_shows.push_back(*show);
+    m_active_shows.erase(show);
 
     BuildEpisodeList();
 
@@ -816,13 +769,14 @@ bool model::ArchiveShow(DWORD hash)
 
 bool model::UnarchiveShow(DWORD hash)
 {
-    auto show = std::find_if(m_archive_shows.begin(), m_archive_shows.end(), fnoMatchShowHash(hash));
+    auto funcObject = fnoMatchShowHash(hash);
+    auto show = std::find_if(m_archive_shows.begin(), m_archive_shows.end(), funcObject);
 
     // This shouldn't happen!
     if (show == m_archive_shows.end())
         return false;
 
-    (*show).flags &= ~showflags::SH_FL_ARCHIVED;
+    show->flags &= ~showflags::SH_FL_ARCHIVED;
 
     m_active_shows.push_back(*show);
     m_archive_shows.erase(show);
@@ -840,7 +794,7 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
     DWORD hash = pcontext->show_hash;
     bool retval = true;
 
-    show* pshow = FindShow(hash, eSHOWLIST::SEARCH_ACTIVE);
+    show* pshow = FindShow(hash, eSHOWLIST::ACTIVE);
     if (pshow != nullptr)
     {
         fnoMatchEpisodeNumber  fnoMatchEpNum(pcontext->ep_num);
@@ -881,7 +835,7 @@ void model::AbortDownload(void)
  * Open an explorer window in the datafile location
  *
  */
-void model::ExploreDataFile(void)
+void model::OpenDataFileFolder(void)
 {
     wchar_t filepath[ MAX_PATH ];
 

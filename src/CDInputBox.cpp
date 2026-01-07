@@ -9,7 +9,7 @@
 
 #include "common.hpp"
 
-#include "CDInputBox.h"
+#include "CDInputBox.hpp"
 
 
 

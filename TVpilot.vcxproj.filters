@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\TVpilot.h">
+    <ClInclude Include="include\TVpilot.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CepcheckDlg.h">
+    <ClInclude Include="include\CepcheckDlg.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\targetver.h">
@@ -27,10 +27,10 @@
     <ClInclude Include="include\pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDShows.h">
+    <ClInclude Include="include\CDShows.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDSchedule.h">
+    <ClInclude Include="include\CDSchedule.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\CcurlJob.hpp">
@@ -45,34 +45,34 @@
     <ClInclude Include="include\model.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Cshow.h">
+    <ClInclude Include="include\Cshow.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Cepisode.h">
+    <ClInclude Include="include\Cepisode.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDNewShow.h">
+    <ClInclude Include="include\CDNewShow.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDMessages.h">
+    <ClInclude Include="include\CDMessages.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDShowZoom.h">
+    <ClInclude Include="include\CDShowZoom.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDInputBox.h">
+    <ClInclude Include="include\CDInputBox.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CDArchive.h">
+    <ClInclude Include="include\CDArchive.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CsortContext.h">
+    <ClInclude Include="include\CsortContext.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CdownloadManager.h">
+    <ClInclude Include="include\CdownloadManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\CslotData.hpp">

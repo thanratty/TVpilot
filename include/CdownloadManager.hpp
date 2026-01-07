@@ -16,6 +16,7 @@ class CdownloadManager
 public:
     // Delete copy constructor
     CdownloadManager(const CdownloadManager&) = delete;
+
     CdownloadManager();
     ~CdownloadManager();
 
@@ -24,6 +25,7 @@ public:
     bool DownloadInProgress() const;
     void AbortDownload();
 
+
     void ReleaseSlot(DWORD slotnum)
     {
         // Notify the release task to free the slot
@@ -31,6 +33,7 @@ public:
             WriteDebugConsole(L"Can't set slot evRelease");
 
         // There's a free slot - check for queued requests
+        // TODO The release event wont be handled yet will it?
         if (request_data.Pending())
             request_data.Trigger();
     }
@@ -45,9 +48,10 @@ public:
 private:
 
     // Array of slot data for all worker threads & its access control semaphore 
+    // TODO Make this a vector<> ???
     CslotData	     m_slots[ NUM_WORKER_THREADS ];
 
-    // The three manager tasks
+    // The three event manager tasks
     CWinThread*      m_thrRequest{ nullptr };
     CWinThread*      m_thrResults{ nullptr };
     CWinThread*      m_thrRelease{ nullptr };
