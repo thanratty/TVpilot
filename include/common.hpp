@@ -30,23 +30,17 @@
 //
 constexpr int WM_TVP_DOWNLOAD_COMPLETE		 = (WM_USER + 7000);
 constexpr int WM_TVP_DOWNLOAD_PING			 = (WM_USER + 7001);
-constexpr int WM_TVP_ZOOM_EPISODES			 = (WM_USER + 7002);
-constexpr int WM_TVP_LAUNCH_URL				 = (WM_USER + 7003);
-constexpr int WM_TVP_SHOW_CONTEXT_MENU		 = (WM_USER + 7004);
-constexpr int WM_TVP_SIGNAL_APP_EVENT		 = (WM_USER + 7005);
-constexpr int WM_TVP_ABORT_DOWNLOAD          = (WM_USER + 7006);
+constexpr int WM_TVP_SLOT_RELEASED           = (WM_USER + 7002);
+constexpr int WM_TVP_ZOOM_EPISODES			 = (WM_USER + 7003);
+constexpr int WM_TVP_LAUNCH_URL				 = (WM_USER + 7004);
+constexpr int WM_TVP_SHOW_CONTEXT_MENU		 = (WM_USER + 7005);
+constexpr int WM_TVP_SIGNAL_APP_EVENT		 = (WM_USER + 7006);
+constexpr int WM_TVP_ABORT_DOWNLOAD          = (WM_USER + 7007);
 //
 constexpr int WM_TVP_SCHED_EP_FLAGS_CHANGED  = (WM_USER + 8000);
 
 
 
-// Status and return codes TODO Thread busy? Idle? ???
-//
-constexpr UINT E_THREAD_OK = 0;
-constexpr UINT E_THREAD_CURL = 1;
-constexpr UINT E_THREAD_XML = 2;
-constexpr UINT E_THREAD_PARSE = 3;
-constexpr UINT E_THREAD_DOC_ERR = 4;
 
 constexpr UINT E_APP_OK = 0;
 constexpr UINT E_APP_DATABASE = 1;

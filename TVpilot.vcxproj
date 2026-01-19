@@ -116,6 +116,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Cslot.hpp" />
     <ClInclude Include="include\CDArchive.hpp" />
     <ClInclude Include="include\CDShowZoom.hpp" />
     <ClInclude Include="include\CDInputBox.hpp" />
@@ -129,7 +130,6 @@
     <ClInclude Include="include\CepcheckDlg.hpp" />
     <ClInclude Include="include\Cepisode.hpp" />
     <ClInclude Include="include\Cshow.hpp" />
-    <ClInclude Include="include\CslotData.hpp" />
     <ClInclude Include="include\CsortContext.hpp" />
     <ClInclude Include="include\CsyncObjects.hpp" />
     <ClInclude Include="include\common.hpp" />
@@ -147,6 +147,7 @@
     <ClInclude Include="res\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Cslot.cpp" />
     <ClCompile Include="src\CDArchive.cpp" />
     <ClCompile Include="src\CDShowZoom.cpp" />
     <ClCompile Include="src\CDInputBox.cpp" />

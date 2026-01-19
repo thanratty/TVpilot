@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define         ENABLE_CONSOLE_WINDOW       0       // Create a console window for debug messages [DEBUG build only]
+#define         ENABLE_CONSOLE_WINDOW       1       // Create a console window for debug messages [DEBUG build only]
 #define         PAUSE_BEFORE_EXIT           0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
 
 #define         USE_TEST_DATAFILE           0       // Use alternative datafile for debugging/testing
@@ -14,7 +14,7 @@
 #define         CURL_REPLY_TIMEOUT          8000    // Allow 8 seconds for https transaction to complete
 
 #define         TRACE_SYNC_OBJECTS          0       // Must also have console window enabled to work [DEBUG build only]
-#define         NAME_SYNC_OBJECTS           0       // Windows Events & Semaphores are created with names
+#define         NAME_SYNC_OBJECTS           1       // Windows Events & Semaphores are created with names
 
 #define         NUM_WORKER_THREADS          15      // Number of worker threads created to do the actual downloading
 

@@ -75,7 +75,7 @@ private:
  *  Stream the whole model OUT to disk
  *
  */
-std::ostream& operator<< (std::ostream& ostream, const model& model)
+std::ostream& operator<<(std::ostream& ostream, const model& model)
 {
     size_t num_shows = model.m_active_shows.size() + model.m_archive_shows.size();
 
@@ -97,7 +97,7 @@ std::ostream& operator<< (std::ostream& ostream, const model& model)
  *  Stream the whole model IN from disk
  *
  */
-std::istream& operator>> (std::istream& istream, model& model)
+std::istream& operator>>(std::istream& istream, model& model)
 {
     std::string str;
     do
@@ -587,14 +587,14 @@ void model::CheckDownloadComplete()
  * Existing episode flags must be copied over as that's not in the reveived data
  * 
  */
-void model::DownloadPing(DWORD slotnum)
+void model::OnDownloadPing(DWORD slotnum)
 {
-    CslotData& slot = dm.GetSlot(slotnum);
+    Cslot& slot = gSlots[slotnum];
     const show& resultShow = slot.m_show;
 
-    if (slot.IsFree())
+    if (slot.IsFree() || (slot.m_slotstate != eSlotState::SS_NOTIFY_SENT))
     {
-        const wchar_t* msg = L"ERROR! Empty slot signalled.";
+        const wchar_t* msg = L"ERROR! Empty slot or bad slotstate signalled.";
         WriteMessageLog(msg);
         WriteDebugConsole(msg);
         MessageBeep(MB_ICONASTERISK);
@@ -603,13 +603,15 @@ void model::DownloadPing(DWORD slotnum)
     }
 
     m_ping_received++;
+    slot.m_slotstate = eSlotState::SS_PROCESSING;
 
     // If this is for a new show, a dummy database entry was added so this pointer will always be valid
     show* originalShow = FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
 
-    if (slot.ThreadStatus() != E_THREAD_OK)
+    if (slot.m_thread_result != eThreadResult::TR_OK)
     {
-        WriteMessageLog("DownloadPing() Download error, aborting : " + slot.ErrorString());
+        slot.m_slotstate = eSlotState::SS_JOB_ERROR;
+        WriteMessageLog("DownloadPing() Download error, aborting : " + slot.m_error_string);
         originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
         AbortDownload();
     }
@@ -656,7 +658,7 @@ void model::DownloadPing(DWORD slotnum)
         }
 
         // Notify the appropriate worker thread we're done
-        dm.ReleaseSlot( slotnum );
+        dm.ResultsProcessed( slotnum );  
     }
 
     // Time to send WM_DOWNLOAD_COMPLETE ?
@@ -720,16 +722,29 @@ bool model::DownloadComplete()
 
 
 /**
+ * theReleases thread send a WM_TVP_SLOT_RELEASED msg whenever a slot is freed.
+ * That ends up here where we check if there are URLs in the queue & retrigger a evRequest if there are.
+ *
+ */
+void model::OnSlotReleased(DWORD slotnum)
+{
+    dm.OnSlotReleased( slotnum );
+}
+
+
+
+
+/**
  * Done when program launches & when the time rolls over past midnight
  *
  */
 void model::SetTodaysDate()
 {
     m_today = gregorian::day_clock::local_day();
-    EvalScheduleDateWindow();
+    EvalScheduleDateRange();
 }
 
-void model::EvalScheduleDateWindow()
+void model::EvalScheduleDateRange()
 {
     m_start_date = m_today - gregorian::date_duration(m_pre_days);
     m_end_date   = m_today + gregorian::date_duration(m_post_days);
@@ -739,7 +754,7 @@ void model::SetDateInterval(int lower, int upper)
 {
     m_pre_days  = lower;
     m_post_days = upper;
-    EvalScheduleDateWindow();
+    EvalScheduleDateRange();
 }
 
 

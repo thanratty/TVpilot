@@ -70,7 +70,7 @@ public:
         {
             // A new empty model just needs a few dates preparing
             m_today      = gregorian::day_clock::local_day();
-            EvalScheduleDateWindow();
+            EvalScheduleDateRange();
 
             if (m_datafile.IsNewFile())
                 SaveFile();
@@ -97,7 +97,8 @@ public:
 
 
         // Download from internet
-        void        DownloadPing(DWORD slotnum);
+        void        OnDownloadPing(DWORD slotnum);
+        void        OnSlotReleased(DWORD slotnum);
         bool        DownloadAllShows();
         bool        DownloadSingleShow(DWORD hash);
         bool        DownloadComplete();
@@ -153,7 +154,7 @@ inline  bool IsNewDataFile() const
 
 
 private:
-        void        EvalScheduleDateWindow();
+        void        EvalScheduleDateRange();
         void        CheckDownloadComplete();
 
 

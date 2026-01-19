@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHK_DEBUG_LOG,                &CepcheckDlg::OnBtnClickedChkDebugLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
+	ON_MESSAGE( WM_TVP_SLOT_RELEASED,				&CepcheckDlg::OnSlotReleased)
 	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CepcheckDlg::OnZoomEpisodes)
 	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
 	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
@@ -557,23 +558,45 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 
 
 /**
- * Handler for the WM_DOWNLOAD_PING message sent after every show before its download thread exits
- * This function just updates counters & the UI. We call into the model to actually process the response.
+ * Handler for the WM_TVP_DOWNLOAD_PING message sent after a shows info has been downloaded.
+ * This local function just updates the UI counters. Call into the model to actually process the response.
  *
  */
 afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER( lParam );
+	UNREFERENCED_PARAMETER(lParam);
 
 	// Bump ping counter and update the UI
 	m_ping_count++;
 	UpdateOnscreenCounters();
 
 	// Notify the model
-	m_data.DownloadPing( slotnum );
+	m_data.OnDownloadPing(slotnum);
 
 	return 0;
 }
+
+
+
+
+/**
+ * Handler for the WM_TVP_SLOW_RELEASED message, sent from the thrRelase thread after the model has finished with the slot.
+ * This local function just calls into the model.
+ *
+ */
+afx_msg LRESULT CepcheckDlg::OnSlotReleased(WPARAM slotnum, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+
+	// Notify the model
+	m_data.OnSlotReleased(slotnum);
+
+	return 0;
+}
+
+
+
+
 
 
 

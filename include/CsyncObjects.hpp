@@ -40,8 +40,8 @@ class CMultiEvents
 public:
     CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events );
 
-    int  Wait();
-    int  Reset(DWORD index);
+    int     Wait();
+    int     Reset(DWORD index);
 
     inline bool IsSignalled(DWORD index) const
     {

@@ -146,16 +146,15 @@ int CMultiEvents::Wait()
 {
     DWORD result = WaitForMultipleObjects( m_handles.size(), m_handles.data(), FALSE, INFINITE);
 
-    if (CheckWaitResult(m_handles.size(), result))
+    if (!CheckWaitResult(m_handles.size(), result))
     {
-        m_bIsSignalled[ result ] = true;
-        return result;
+        m_last_error = GetLastError();
+        SyncDebugMessage(L"CMultiEvents::Wait() failed");
+        return E_SO_WAIT_FAIL;
     }
 
-    m_last_error = GetLastError();
-    SyncDebugMessage(L"CMultiEvents::Wait() failed");
-
-    return E_SO_WAIT_FAIL;
+    m_bIsSignalled[result] = true;
+    return result;
 }
 
 

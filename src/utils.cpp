@@ -20,7 +20,7 @@
 #include "CDSchedule.hpp"
 #include "CDInputBox.hpp"
 #include "CsortContext.hpp"
-#include "CslotData.hpp"
+#include "Cslot.hpp"
 #include "debugConsole.h"
 #include "utils.hpp"
 
@@ -28,9 +28,9 @@
 
 using namespace boost;
 
+extern std::vector<Cslot> gSlots;
+
 STATIC CEdit* pLoggingWindow = nullptr;
-
-
 
 
 
@@ -464,31 +464,24 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 
 /**
  * Return first free slot index, or -1 if none free
- *
- * NB	The slot array must be locked for this to be safe
+ * 
  */
-int FindFreeSlot(const CslotData* sd)
+int FirstFreeSlot( void ) 
 {
-	for (int i = 0; i < NUM_WORKER_THREADS; i++)
-		if (sd[i].IsFree())
-			return i;
+	auto iter = std::find_if(gSlots.begin(), gSlots.end(), [](const Cslot& s) { return s.IsFree();});
 
-	return -1;
+	return (iter == gSlots.end()) ? -1 : (iter - gSlots.begin());
 }
 
 
 
 /**
- * Return first _BUSY_ slot index, or -1 if all slots are free
+ * Return first busy slot index, or -1 if all slots are free
  *
- * NB	The slot array must be locked for this to be thread safe.
  */
-int FindBusySlot(const CslotData* sd)
+int FirstBusySlot( void ) 
 {
-	for (int i=0 ; i < NUM_WORKER_THREADS ; i++)
-		if (sd[i].IsBusy())
-			return i;
+	auto iter = std::find_if(gSlots.begin(), gSlots.end(), [](const Cslot& s) { return s.IsBusy();});
 
-	return -1;
+	return (iter == gSlots.end()) ? -1 : (iter - gSlots.begin());
 }
-

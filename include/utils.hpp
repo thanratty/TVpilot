@@ -224,6 +224,6 @@ void ReplaceAllSubstrings(std::string& str, const char* sub);
 
 bool CheckWaitResult(unsigned numevents, DWORD result);
 
-int FindFreeSlot(const CslotData* sd);
-int FindBusySlot(const CslotData* sd);
+int FirstFreeSlot( void );
+int FirstBusySlot( void );
 
