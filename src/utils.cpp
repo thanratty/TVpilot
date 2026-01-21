@@ -485,3 +485,18 @@ int FirstBusySlot( void )
 
 	return (iter == gSlots.end()) ? -1 : (iter - gSlots.begin());
 }
+
+
+
+#if (TRACE_THREAD_CREATION==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
+
+void TRACE_CREATION(const wchar_t* str)
+{
+	WriteDebugConsole(str);
+}
+
+#else
+
+#define		TRACE_CREATION(x)     do {} while (0)
+
+#endif

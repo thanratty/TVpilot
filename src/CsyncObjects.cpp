@@ -14,6 +14,16 @@
 
 
 
+
+
+constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
+
+
+
+
+
+
+
 #if (ENABLE_CONSOLE_WINDOW==1) && (TRACE_SYNC_OBJECTS==1) && defined (_DEBUG)
 #define     SyncDebugMessage(x)     Sync_Debug_Message(x)
 #else
@@ -47,6 +57,7 @@ STATIC void Sync_Debug_Message(const wchar_t* msg)
 }
 
 #endif
+
 
 
 CslotsSem::CslotsSem()
@@ -98,7 +109,7 @@ bool CslotsSem::Lock()
 {
     ASSERT(m_hSem != nullptr);
 
-    DWORD result = WaitForSingleObject(m_hSem, INFINITE);
+    DWORD result = WaitForSingleObject(m_hSem, SLOT_LOCK_TIMEOUT);
     if (CheckWaitResult(1, result))
         return true;
 

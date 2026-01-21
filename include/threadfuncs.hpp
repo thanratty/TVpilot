@@ -18,7 +18,7 @@ enum eThreadResult : UINT
 };
 
 
-enum class eThreadStatus : UINT
+enum class eThreadState : UINT
 {
     TS_UNKNOWN,
     TS_RUNNING,

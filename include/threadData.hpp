@@ -17,12 +17,19 @@ extern std::vector<Cslot>  gSlots;
 
 
 
+constexpr DWORD THREAD_EXIT_TIMEOUT = 4000;
+
+
+
+
 class cRequests
 {
 public:
 
     cRequests()
     {
+        TRACE_CREATION(L"cRequests constructor\n");
+
         handles[0]      = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // AUTO reset, initial state
         handles[1]      = CREATE_EVENT(NULL, FALSE, FALSE, L"evRequest");         // AUTO reset, initial state
 
@@ -37,23 +44,14 @@ public:
 
     ~cRequests()
     {
-        // Terminate the requests handler thread
-        SetEvent(handles[0]);
+        TRACE_CREATION(L"cRequests destructor\n");
 
-        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, 5000);
-        VERIFY(result == WAIT_OBJECT_0);
+        TerminateThread();
 
-        CloseHandle(handles[0]);
-        CloseHandle(handles[1]);
-
-        delete m_pWinThread;
-        m_pWinThread = nullptr;
-
-        CloseHandle(sem_requests);
+        CloseHandle(handles[0]);    handles[0]   = INVALID_HANDLE_VALUE;
+        CloseHandle(handles[1]);    handles[1]   = INVALID_HANDLE_VALUE;
+        CloseHandle(sem_requests);  sem_requests = INVALID_HANDLE_VALUE;
     }
-
-
-
 
 
     inline const HANDLE* Handles() const
@@ -61,12 +59,17 @@ public:
         return handles.data();
     }
 
+    inline void NotifyThread() const
+    {
+        SetEvent(handles[1]);
+    }
+
     inline bool Pending() const
     {
         Lock();
-        bool retval = !url_queue.empty();
+        bool bPending = !url_queue.empty();
         Unlock();
-        return retval;
+        return bPending;
     }
 
     inline void ClearQueue()
@@ -76,17 +79,13 @@ public:
         Unlock();
     }
 
-    inline void Trigger() const
-    {
-        SetEvent(handles[1]);
-    }
-
     inline void Push(const std::string url)
     {
         Lock();
         url_queue.push(url);
         Unlock();
-        Trigger();
+
+        NotifyThread();
     }
 
     // Pop off the top of the FIFO
@@ -94,7 +93,7 @@ public:
     {
         std::string str;
         if (url_queue.empty()) {
-            WriteDebugConsole(L"cReguestData Pop() on empty queue!");
+            WriteDebugConsole(L"cReguests Pop() on empty queue!");
         }
         else {
             Lock();
@@ -114,7 +113,6 @@ private:
         return CheckWaitResult(1, result);
     }
 
-    // This should be private & handled internally?
     bool Unlock() const
     {
         BOOL result = ReleaseSemaphore(sem_requests, 1, NULL);
@@ -122,15 +120,26 @@ private:
         return result;
     }
 
+    void TerminateThread()
+    {
+        SetEvent(handles[0]);
+        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, 5000);
+        VERIFY(result == WAIT_OBJECT_0);
+
+        delete m_pWinThread;
+        m_pWinThread = nullptr;
+    }
+
+
 
 
 private:
     HANDLE                      m_evRequest{ INVALID_HANDLE_VALUE };
     HANDLE                      sem_requests{ INVALID_HANDLE_VALUE };
 
-    CWinThread*                 m_pWinThread{ nullptr };
+    CWinThread*                 m_pWinThread{ nullptr };    // The thrRequests() thread
 
-    std::array<HANDLE,2>        handles;                // Entry 0 is the terminate event, 1 is the request event
+    std::array<HANDLE,2>        handles;                    // Entry #0 is the terminate event, #1 is the request event
     std::queue<std::string>     url_queue;
 };
 
@@ -156,6 +165,8 @@ public:
 
     cResults()
     {
+        TRACE_CREATION(L"cResults constructor\n");
+
         sem_results = CREATE_SEMAPHORE(NULL, 1, 1, L"semResultsData");
 
         HANDLE handle = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermResults");     // Auto reset, initial state
@@ -175,15 +186,13 @@ public:
 
     ~cResults()
     {
-        SetEvent(handles[0]);
-        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, 5000);
-        VERIFY( result == WAIT_OBJECT_0 );
-        std::for_each(handles.begin(), handles.end(), [](const HANDLE& h) { CloseHandle(h); });
+        TRACE_CREATION(L"cResults destructor\n");
 
-        delete m_pWinThread;
-        m_pWinThread = nullptr;
+        TerminateThread();
 
-        CloseHandle(sem_results);
+        // We only own the evTermResults handle. The individual slots own the other handles
+        CloseHandle(handles[0]);    handles[0]  = INVALID_HANDLE_VALUE;
+        CloseHandle(sem_results);   sem_results = INVALID_HANDLE_VALUE;
     }
 
 
@@ -193,15 +202,11 @@ public:
         m_hMsgWin = hWin;
     }
 
-    inline HWND GetMessageWindow() const
+    inline HWND GetMsgWindow() const
     {
         return m_hMsgWin;
     }
 
-    inline BOOL TerminateThread() const
-    {
-        return ::SetEvent(handles[0]);
-    }
 
     // Returns true if locked OK
     bool Lock() const
@@ -239,6 +244,19 @@ public:
 
 
 private:
+
+    void TerminateThread()
+    {
+        SetEvent(handles[0]);
+        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, THREAD_EXIT_TIMEOUT);
+        VERIFY(result == WAIT_OBJECT_0);
+
+        delete m_pWinThread;
+        m_pWinThread = nullptr;
+    }
+
+
+private:
     inline static HANDLE    sem_results;
 
     CWinThread*             m_pWinThread{ nullptr };
@@ -259,6 +277,8 @@ public:
     {
         HANDLE handle;
 
+        TRACE_CREATION(L"cReleases constructor\n");
+
         // It's safe to assume these Win32 Create API calls will succeed
 
         sem_releases = CREATE_SEMAPHORE(NULL, 1, 1, L"semReleases");
@@ -273,33 +293,25 @@ public:
         ASSERT(m_pWinThread);
         m_pWinThread->m_bAutoDelete = false;
         m_pWinThread->ResumeThread();
-        SetThreadDescription(m_pWinThread->m_hThread, L"thrResults");
+        SetThreadDescription(m_pWinThread->m_hThread, L"thrReleases");
     }
 
 
     ~cReleases()
     {
-        SetEvent(handles[0]);
-        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, 5000);
-        VERIFY(result == WAIT_OBJECT_0);
-        std::for_each(handles.begin(), handles.end(), [](const HANDLE& h) { CloseHandle(h); });
+        TRACE_CREATION(L"cReleases destructor\n");
 
-        delete m_pWinThread;
-        m_pWinThread = nullptr;
+        TerminateThread();
 
-        CloseHandle(sem_releases);
-        CloseHandle(handles[0]);
+        // We only own the evTermRelease handle. The individual slots own the other handles
+        CloseHandle(handles[0]);    handles[0]   = INVALID_HANDLE_VALUE;
+        CloseHandle(sem_releases);  sem_releases = INVALID_HANDLE_VALUE;
     }
 
-
-    inline BOOL Terminate() const
-    {
-        return SetEvent(handles[0]);
-    }
 
     inline void ReleaseSlot(DWORD slotnum)
     {
-        gSlots.at(slotnum).ResetAndFree();
+        gSlots.at(slotnum).Reset();
     }
 
     bool Lock()
@@ -333,12 +345,40 @@ public:
         return handles.size();
     }
 
+    inline void SetMsgWindow(HWND hWin)
+    {
+        m_hMsgWin = hWin;
+    }
+
+    inline HWND GetMsgWindow() const
+    {
+        return m_hMsgWin;
+    }
+
+
+private:
+    void TerminateThread()
+    {
+        SetEvent(handles[0]);
+        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, THREAD_EXIT_TIMEOUT);
+        VERIFY(result == WAIT_OBJECT_0);
+
+        delete m_pWinThread;
+        m_pWinThread = nullptr;
+    }
+
+
+
+
+
+
 
 
 private:
     CWinThread*             m_pWinThread{ nullptr };
     HANDLE                  sem_releases{ INVALID_HANDLE_VALUE };
     DWORD                   m_last_error{ 0 };
+    HWND                    m_hMsgWin{ 0 };
     std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event
 };
 

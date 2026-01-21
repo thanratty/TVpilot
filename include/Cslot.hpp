@@ -29,6 +29,7 @@ enum class eSlotState
     SS_JOB_ERROR,
     SS_PROCESSED,
     SS_THREAD_EXIT_FLAGGED,
+    SS_THREAD_EXITING,
     SS_THREAD_EXITED
 };
 
@@ -60,7 +61,7 @@ public:
 
     bool            m_exit_thread{ false };
 
-    eThreadStatus   m_thread_status{ eThreadStatus::TS_UNKNOWN };
+    eThreadState    m_thread_state{ eThreadState::TS_UNKNOWN };
     eThreadResult   m_thread_result{ eThreadResult::TR_OK };
     eSlotState      m_slotstate{ eSlotState::SS_FREE };
 };
@@ -87,6 +88,9 @@ public:
     {
         CString str;
 
+        // Object tracing
+        TRACE_CREATION(L"Cslot constructor");
+
         // Inc the singleton (starts at -1)
         gSlotCount++;
         m_SlotNumber = gSlotCount;
@@ -105,14 +109,22 @@ public:
         ASSERT(m_pWinThread);
         m_pWinThread->m_bAutoDelete = false;
         m_pWinThread->ResumeThread();
-
         str.Format(L"slot-%02u", m_SlotNumber);
         SetThreadDescription(m_pWinThread->m_hThread, str);
     }
 
     ~Cslot()
     {
+        // Object tracing
+        TRACE_CREATION(L"CSlot destructor");
+        CloseSlot();
+    }
+
+
+    void CloseSlot()
+    {
         TerminateThread();
+
         CloseHandle(m_hEvRequest);
         CloseHandle(m_hEvResult);
         CloseHandle(m_hEvRelease);
@@ -140,44 +152,43 @@ public:
     }
 
 
-    void ResetAndFree()
+    void Reset()
     {
         m_show.Reset();
         m_error_string.erase();
 
         m_http_status = 0;
         m_curl_status = 0;
-        m_xml_status = 0;
+        m_xml_status  = 0;
 
-        m_thread_status = eThreadStatus::TS_RUNNING;
         m_slotstate = eSlotState::SS_FREE;
     }
 
     void TerminateThread()
     {
-        // Terminates the worker thread for this slot
-        m_exit_thread = true;
-        m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
-
-        SetEvent(m_hEvRequest);
-        if (WAIT_OBJECT_0 != WaitForSingleObject(m_pWinThread, THREAD_TERMINATE_TIMEOUT))
+        if (m_pWinThread)
         {
-            WriteMessageLog(L"Slot thread didn't terminate within timeout");
+            // Terminates the worker thread for this slot
+            m_exit_thread = true;
+            m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
+
+            SetEvent(m_hEvRequest);
+            if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread, THREAD_TERMINATE_TIMEOUT))
+                m_slotstate = eSlotState::SS_THREAD_EXITED;
+            else
+                WriteMessageLog(L"Slot thread didn't terminate within timeout");
+
+            delete m_pWinThread;
+            m_pWinThread = nullptr;
         }
-
-        delete m_pWinThread;
-        m_pWinThread = nullptr;
-
-        m_slotstate = eSlotState::SS_THREAD_EXITED;
     }
 
 
-    // What exactly does 'busy' mean?
-    bool IsBusy() const {
+    inline bool IsBusy() const {
         return !IsFree();
     }
 
-    bool IsFree() const {
+    inline bool IsFree() const {
         return m_slotstate == eSlotState::SS_FREE;
     }
 

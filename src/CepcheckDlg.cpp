@@ -109,6 +109,14 @@ BOOL CepcheckDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+#ifdef _DEBUG
+	CString str;
+	GetWindowText(str);
+	str += L" [DEBUG]";
+	SetWindowText(str);
+#endif
+
+
 	// Center the text in the two counters
 	GetDlgItem(IDC_PING_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
 	GetDlgItem(IDC_ERR_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
@@ -187,11 +195,11 @@ BOOL CepcheckDlg::OnInitDialog()
 	CenterWindow();
 
 	// Set button enable/disable states to something sensible
-	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_APP_STARTED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_APP_STARTED));
 
 	// If we start with a new/empty database, all we can initally do is add a new show
 	if (m_data.IsNewDataFile())
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_CREATED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
 
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
@@ -212,7 +220,7 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
 	m_dlgSchedule.ShowWindow((selectedTab == TAB_NUM_SCHEDULE) ? SW_SHOW : SW_HIDE);
 	m_dlgArchive.ShowWindow( (selectedTab == TAB_NUM_ARCHIVE)  ? SW_SHOW : SW_HIDE);
 
-	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 
 	// All done
 	*pResult = 0;
@@ -234,7 +242,7 @@ void CepcheckDlg::OnBtnClickedLoad()
 	UpdateScheduleList();
 	UpdateArchiveList();
 
-	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_LOADED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_LOADED));
 
 	AfxMessageBox(L"Shows loaded from disk OK", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 }
@@ -252,7 +260,7 @@ void CepcheckDlg::OnBtnClickedSave()
 		AfxMessageBox(L"Error saving data file!", MB_ICONERROR | MB_OK | MB_APPLMODAL );
 	else
 	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_FILE_SAVED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_SAVED));
 		AfxMessageBox(L"Shows saved to disk OK", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 }
@@ -278,7 +286,7 @@ void CepcheckDlg::OnBtnClickedDownload()
 	{
 		// Set appropriate button states during download
 		WriteMessageLog(L"Downloading all shows...");
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 
 		// Enable the 'Cancel Download' button in the massage box
 		m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
@@ -326,7 +334,7 @@ void CepcheckDlg::OnBtnClickedDeleteShow()
 
 	// Update the display
 	UpdateArchiveList();
-	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_SHOW_DELETED));
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_SHOW_DELETED));
 
 	AfxMessageBox(L"Show deleted", MB_ICONINFORMATION | MB_OK | MB_APPLMODAL);
 }
@@ -391,10 +399,10 @@ void CepcheckDlg::OnBtnClickedNewShow()
 	if (m_data.DownloadSingleShow(hash) == false)
 	{
 		AfxMessageBox(L"Add new show failed", MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL);
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 	}
 	else
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_STARTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 
 	// If there was no error, the model has successfully started a download thread for the new show
 }
@@ -529,20 +537,20 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 
 	if (bDownloadErrors || (m_err_count > 0))
 	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_FAILED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 		bDownloadErrors = false;
 		m_err_count = 0;
 	}
 	else if (m_abort_download)
 	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_ABORTED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
 		AfxMessageBox(L"Download aborted", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		m_abort_download = false;
 	}
 	else
 	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_DOWNLOAD_OK));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_OK));
 		AfxMessageBox(L"Download complete", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
@@ -817,7 +825,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 				UpdateShowList();
 				UpdateScheduleList();
 				UpdateArchiveList();
-				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
+				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_ARCHIVE_CHANGED));
 			}
 			else
 				AfxMessageBox(L"Error. Active show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
@@ -829,7 +837,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 				UpdateShowList();
 				UpdateScheduleList();
 				UpdateArchiveList();
-				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_ARCHIVE_CHANGED));
+				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_ARCHIVE_CHANGED));
 			}
 			else
 				AfxMessageBox(L"Error. Archive show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
@@ -898,14 +906,14 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	if (url_edited == true)
 	{
 		// Enable the Save/Load buttons if need be
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_URL_EDITED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_URL_EDITED));
 	}
 
 	if (ep_flags_changed == true)
 	{
 		// Get the schedule dialog to update its list control entry
 		m_dlgSchedule.PostMessage(WM_TVP_SCHED_EP_FLAGS_CHANGED, reinterpret_cast<WPARAM>(pcontext));
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_EP_FLAGS_CHANGED));
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_EP_FLAGS_CHANGED));
 	}
 
 	return 0;
@@ -973,12 +981,12 @@ void CepcheckDlg::OnBtnClickedResetDays()
  */
 afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */ )
 {
-	appevent event = static_cast<appevent>(wParam);
+	eAppevent event = static_cast<eAppevent>(wParam);
 
-#if (SHOW_APP_EVENTS==1) && defined(_DEBUG)
-	CString msg;
-	msg.Format(L"appevent: %d", event);
-	WriteMessageLog(msg);
+#if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
+	CString _msg;
+	_msg.Format(L"eAppevent: %d", event);
+	WriteMessageLog(_msg);
 #endif
 
 	// Have a few useful values handy
@@ -988,12 +996,12 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 	switch (event)
 	{
-		case appevent::AE_APP_STARTED:
+		case eAppevent::AE_APP_STARTED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
-		case appevent::AE_DOWNLOAD_STARTED:
+		case eAppevent::AE_DOWNLOAD_STARTED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
 
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
@@ -1003,23 +1011,23 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
-		case appevent::AE_DOWNLOAD_OK:
+		case eAppevent::AE_DOWNLOAD_OK:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			// Also set tab appropriate buttons
-			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 			break;
 
-		case appevent::AE_DOWNLOAD_ABORTED:
+		case eAppevent::AE_DOWNLOAD_ABORTED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(1);
 			break;
 
-		case appevent::AE_DOWNLOAD_FAILED:
+		case eAppevent::AE_DOWNLOAD_FAILED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
 
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
@@ -1027,17 +1035,17 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
-		case appevent::AE_FILE_LOADED:
+		case eAppevent::AE_FILE_LOADED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(1);
 			break;
 
-		case appevent::AE_FILE_SAVED:
+		case eAppevent::AE_FILE_SAVED:
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
-		case appevent::AE_FILE_CREATED:
+		case eAppevent::AE_FILE_CREATED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
@@ -1046,29 +1054,29 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			break;
 
 		// Can only happen on Schedule dialog
-		case appevent::AE_EP_FLAGS_CHANGED:
+		case eAppevent::AE_EP_FLAGS_CHANGED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
 		// TODO - check if these are needed?
-		case appevent::AE_URL_EDITED:
-		case appevent::AE_SHOW_ADDED:
-		case appevent::AE_SHOW_REFRESHED:
-		case appevent::AE_SHOW_DELETED:
+		case eAppevent::AE_URL_EDITED:
+		case eAppevent::AE_SHOW_ADDED:
+		case eAppevent::AE_SHOW_REFRESHED:
+		case eAppevent::AE_SHOW_DELETED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
-			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(appevent::AE_TAB_CHANGED));
+			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 			break;
 
-		case appevent::AE_ARCHIVE_CHANGED:
+		case eAppevent::AE_ARCHIVE_CHANGED:
 			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
 			break;
 
-		case appevent::AE_TAB_CHANGED:
+		case eAppevent::AE_TAB_CHANGED:
 			if (selectedTab == TAB_NUM_SHOWS) {
 				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(1);
 				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0);
@@ -1089,7 +1097,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 		default:
 			CString str;
-			str.Format(L"Unhandled appevent: %d", event);
+			str.Format(L"Unhandled eAppevent: %d", event);
 			WriteMessageLog(str);
 			break;
 	}

@@ -3,8 +3,7 @@
 #include "resource.h"		// main symbols
 
 
-
-#if (NAME_SYNC_OBJECTS==1)
+#if (NAMED_SYNC_OBJECTS==1)
 #define     CREATE_EVENT(a,b,c,d)           CreateEvent(a,b,c,d)
 #define     CREATE_SEMAPHORE(a,b,c,d)       CreateSemaphore(a,b,c,d)
 #else

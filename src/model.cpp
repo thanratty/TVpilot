@@ -722,7 +722,7 @@ bool model::DownloadComplete()
 
 
 /**
- * theReleases thread send a WM_TVP_SLOT_RELEASED msg whenever a slot is freed.
+ * thrReleases thread send a WM_TVP_SLOT_RELEASED msg whenever a slot is freed.
  * That ends up here where we check if there are URLs in the queue & retrigger a evRequest if there are.
  *
  */

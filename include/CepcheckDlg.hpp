@@ -85,6 +85,7 @@ private:
 			CDSchedule		m_dlgSchedule;
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
+			//
 			model			m_data;
 			//
 			unsigned		m_ping_count{ 0 };

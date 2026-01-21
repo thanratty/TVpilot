@@ -48,7 +48,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(ProjectDir)external\curl-8.6.0_4-win32-mingw\bin;$(ProjectDir)external\libxml2-2.7.8.win32\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)external\curl-8.6.0_4-win32-mingw\bin;$(ProjectDir)external\libxml2-2.7.8.win32\lib;$(ProjectDir)external\iconv-1.9.2.win32\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>$(ProjectDir)include;$(ProjectDir)res;F:\Boost-Library\boost_1_78_0;$(ProjectDir)external\curl-8.6.0_4-win32-mingw\include;$(ProjectDir)external\libxml2-2.7.8.win32\include;$(ProjectDir)external\iconv-1.9.2.win32\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -69,7 +69,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)\curl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcurl.lib;libxml2.lib;Pathcch.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl.lib;libxml2.lib;Pathcch.lib;iconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
       <MapExports>true</MapExports>

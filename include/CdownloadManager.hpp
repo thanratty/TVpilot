@@ -39,9 +39,6 @@ public:
 
 private:
 
-    CWinThread*      m_thrResults{ nullptr };
-    CWinThread*      m_thrRelease{ nullptr };
-
     // Destination of WM_DOWNLOAD_PING message
     HWND             m_hMsgWindow{ NULL };
 

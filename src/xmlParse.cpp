@@ -10,6 +10,7 @@
 #include <regex>
 
 #include "boost/algorithm/string/trim.hpp"
+#include "iconv.h"
 
 #include "libxml/xpath.h"
 #include "libxml/HTMLparser.h"
@@ -64,6 +65,40 @@ bool my_replace(std::string& str, const std::string& from, const std::string& to
 }
 
 
+// TODO Tidy me up please daddy
+
+static void ascii_conv(const std::string& str)
+{
+	int enable = 1;
+
+	iconv_t			cd;
+
+	cd = iconv_open("ASCII//TRANSLIT", "UTF-8");
+	if (cd == (iconv_t)(-1))
+		DebugBreak();
+	if (iconvctl(cd, ICONV_SET_TRANSLITERATE, &enable))
+		DebugBreak();
+
+
+	size_t inlen = str.length();
+	size_t outlen = inlen * 4;
+
+	char* outbuf = new char[ outlen ];
+	memset(outbuf, 0, outlen);
+
+	char* out_start = outbuf;
+	const char* in_start = str.c_str();
+
+	int count = iconv(cd, &in_start, &inlen, &out_start, &outlen);
+	if ((count > 0) || (count == -1))
+		DebugBreak();
+
+
+	delete[] outbuf;
+	iconv_close(cd);
+}
+
+
 
 
 STATIC
@@ -72,18 +107,23 @@ std::string GuessTvdbUrl(const std::string& title)
 	std::string		url("https://thetvdb.com/series/");
 	std::string		show(title);
 
+	//CString cstr = CA2W(show.c_str(), CP_UTF8);
+
+	// TODO user std::find_if
+	bool ok = true; 
 	for (auto& ch : show)
-		if (! isalnum(ch))
-			ch = '-';
+		if ((ch <' ') || (ch>0x7e))
+		{
+			ok = false;
+			break;
+		}
 
-	// Remove all double dashes
-	while(my_replace(show, "--", "-"));
+	if (ok) {
+		show.erase(remove_if(show.begin(), show.end(), ::isspace), show.end());
+		url += show;
+	}
 
-	// Remove any trailing dash
-	if (show[show.length()-1] == '-')
-		show.pop_back();
 
-	url += show;
 	return url;
 }
 

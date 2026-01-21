@@ -40,6 +40,7 @@ void CdownloadManager::SetMsgWindow(HWND hMsgWindow)
 {
 	m_hMsgWindow = hMsgWindow;
 	results.SetMsgWindow(hMsgWindow);
+	releases.SetMsgWindow(hMsgWindow);
 }
 
 
@@ -79,7 +80,7 @@ void CdownloadManager::OnSlotReleased(DWORD slotnum)
 	UNREFERENCED_PARAMETER(slotnum);
 
 	if (requests.Pending())
-		requests.Trigger();
+		requests.NotifyThread();
 }
 
 

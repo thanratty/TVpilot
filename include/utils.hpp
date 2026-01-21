@@ -15,9 +15,9 @@ using namespace boost;
 class CslotData;
 
 
-enum class appevent : unsigned
+enum class eAppevent
 {
-	AE_APP_STARTED = 1,
+	AE_APP_STARTED,
 	AE_TAB_CHANGED,
 	AE_SHOW_ADDED,
 	AE_SHOW_REFRESHED,
@@ -226,4 +226,13 @@ bool CheckWaitResult(unsigned numevents, DWORD result);
 
 int FirstFreeSlot( void );
 int FirstBusySlot( void );
+
+
+
+
+#if (TRACE_THREAD_CREATION==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
+void TRACE_CREATION(const wchar_t* str);
+#else
+#define		TRACE_CREATION(x)     do {} while (0)
+#endif
 

@@ -44,7 +44,9 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval ;
 
-	slot.m_thread_status = eThreadStatus::TS_RUNNING;
+	TRACE_CREATION(L"thrSlotThread created");
+
+	slot.m_thread_state = eThreadState::TS_RUNNING;
 
 	while (true)
 	{
@@ -62,8 +64,9 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 		// Terminate flag set? Exit the thread.
 		if (slot.m_exit_thread) {
-			slot.m_slotstate = eSlotState::SS_THREAD_EXITED;
-			slot.m_thread_status = eThreadStatus::TS_FINISHED;
+			slot.m_slotstate = eSlotState::SS_THREAD_EXITING;
+			slot.m_thread_state = eThreadState::TS_FINISHED;
+			TRACE_CREATION(L"thrSlotThread exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -136,6 +139,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	CslotsSem		slotslock;
 	int				freeslot;
 
+	TRACE_CREATION(L"thrRequests starting");
+
 	while (true)
 	{
 		// Wait forever, on any event (there are only two!)
@@ -147,8 +152,10 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		}
 
 		// Terminate event? (auto-reset)
-		if (wait_result == WAIT_OBJECT_0)
+		if (wait_result == WAIT_OBJECT_0) {
+			TRACE_CREATION(L"thrRequests exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
+		}
 
 		ASSERT(wait_result == (WAIT_OBJECT_0 + 1));
 
@@ -166,10 +173,10 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 			if (!slotslock.Lock())
 				WriteDebugConsole(L"Can't acquire thrRequest slot semaphore");
 			else {
-				gSlots[freeslot].SetUrl(str);
-				gSlots[freeslot].m_slotstate = eSlotState::SS_URL_SET;
+				gSlots.at(freeslot).SetUrl(str);
+				gSlots.at(freeslot).m_slotstate = eSlotState::SS_URL_SET;
 				slotslock.Unlock();
-				SetEvent(gSlots[freeslot].m_hEvRequest);
+				SetEvent(gSlots.at(freeslot).m_hEvRequest);
 			}
 
 		}
@@ -203,19 +210,15 @@ UINT __cdecl thrResults( LPVOID pParam )
 		}
 
 		// Terminate thread event?
-		if (wait_result == WAIT_OBJECT_0)
+		if (wait_result == WAIT_OBJECT_0) {
+			TRACE_CREATION(L"thrResults exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
+		}
 
-// TODO No semaphore needed - result data doesn't change.
-//		if(!results.Lock())
-//			WriteDebugConsole(L"Can't acquire cResultsData semaphore!");
 
-		int slotnum = wait_result - WAIT_OBJECT_0 - 1;
-		gSlots[ slotnum ].m_slotstate = eSlotState::SS_NOTIFY_SENT;
-		PostMessage(results.GetMessageWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
-
-//		if (!results.Unlock())
-//			WriteDebugConsole(L"Can't release cResultsData semaphore");
+		DWORD slotnum = wait_result - WAIT_OBJECT_0 - 1;
+		gSlots.at(slotnum).m_slotstate = eSlotState::SS_NOTIFY_SENT;
+		PostMessage(results.GetMsgWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
 	}
 }
 
@@ -234,6 +237,8 @@ UINT __cdecl thrReleases( LPVOID pParam )
 	CMultiEvents	events(releases.Handles(), releases.NumHandles());
 	CslotsSem		slotslock;
 
+	TRACE_CREATION(L"thrReleases starting");
+
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
@@ -244,19 +249,23 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
-		if (wait_result == WAIT_OBJECT_0)
+		if (wait_result == WAIT_OBJECT_0) {
+			TRACE_CREATION(L"thrReleases exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
+		}
 
 		// Get thread/slot index
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
-		if (!slotslock.Lock())
+		if (!slotslock.Lock()) {
 			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore");
-
-		releases.ReleaseSlot( slotnum );
-
-		if (!slotslock.Unlock())
-			WriteDebugConsole(L"Can't release thrRelease slots semaphore");
+		}
+		else {
+			releases.ReleaseSlot(slotnum);
+			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
+			if (!slotslock.Unlock())
+				WriteDebugConsole(L"Can't release thrRelease slots semaphore");
+		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);
 	}

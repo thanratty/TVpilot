@@ -5,6 +5,13 @@
 
 //--
 
+#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
+#define _CRTDBG_MAP_ALLOC
+#include <crtdebug.h>
+#endif
+
+//--
+
 #include "curl/curl.h"
 #include "libxml/HTMLparser.h"
 
@@ -37,6 +44,16 @@ CepcheckApp::CepcheckApp()
 CepcheckApp theApp;
 
 
+int CepcheckApp::ExitInstance()
+{
+#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
+	_CrtDumpMemoryLeaks();
+#endif
+
+	return CWinApp::ExitInstance();
+}
+
+
 // CepcheckApp initialization
 
 BOOL CepcheckApp::InitInstance()
@@ -52,6 +69,12 @@ BOOL CepcheckApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
+
+
+#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); 
+#endif
+
 
 	AfxEnableControlContainer();
 
