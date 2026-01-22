@@ -11,9 +11,6 @@
 #include <threadfuncs.hpp>
 
 
-extern std::vector<Cslot>  gSlots;
-
-
 
 
 
@@ -28,7 +25,7 @@ public:
 
     cRequests()
     {
-        TRACE_CREATION(L"cRequests constructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cRequests constructor\n");
 
         handles[0]      = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // AUTO reset, initial state
         handles[1]      = CREATE_EVENT(NULL, FALSE, FALSE, L"evRequest");         // AUTO reset, initial state
@@ -44,7 +41,7 @@ public:
 
     ~cRequests()
     {
-        TRACE_CREATION(L"cRequests destructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cRequests destructor\n");
 
         TerminateThread();
 
@@ -59,7 +56,7 @@ public:
         return handles.data();
     }
 
-    inline void NotifyThread() const
+    inline void NotifyRequestThread() const
     {
         SetEvent(handles[1]);
     }
@@ -85,7 +82,7 @@ public:
         url_queue.push(url);
         Unlock();
 
-        NotifyThread();
+        NotifyRequestThread();
     }
 
     // Pop off the top of the FIFO
@@ -165,16 +162,17 @@ public:
 
     cResults()
     {
-        TRACE_CREATION(L"cResults constructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cResults constructor\n");
 
         sem_results = CREATE_SEMAPHORE(NULL, 1, 1, L"semResultsData");
 
         HANDLE handle = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermResults");     // Auto reset, initial state
         handles.push_back(handle);
 
-        // The gSlots global is guaranteed to be fully constructed by now.
-        for (const Cslot& slot : gSlots)
-            handles.push_back(slot.m_hEvResult);
+        // The gSlots global is guaranteed to be fully constructed by now. Add all the slots evResult handles.
+        auto slothandles = xxSlots.GetResultHandles();
+        handles.insert(handles.end(), slothandles.begin(), slothandles.end());
+
 
         m_pWinThread = AfxBeginThread(thrResults, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
         ASSERT(m_pWinThread);
@@ -186,7 +184,7 @@ public:
 
     ~cResults()
     {
-        TRACE_CREATION(L"cResults destructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cResults destructor\n");
 
         TerminateThread();
 
@@ -277,7 +275,7 @@ public:
     {
         HANDLE handle;
 
-        TRACE_CREATION(L"cReleases constructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cReleases constructor\n");
 
         // It's safe to assume these Win32 Create API calls will succeed
 
@@ -286,8 +284,10 @@ public:
         handle = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermReleases");     // Terminate thread, always index 0, manual reset, initial state
         handles.push_back(handle);
 
-        for (const Cslot& slot : gSlots)
-            handles.push_back(slot.m_hEvRelease);
+        // The gSlots global is guaranteed to be fully constructed by now. Add all the slots evResult handles.
+        auto slothandles = xxSlots.GetReleaseHandles();
+        handles.insert(handles.end(), slothandles.begin(), slothandles.end());
+
 
         m_pWinThread = AfxBeginThread(thrReleases, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
         ASSERT(m_pWinThread);
@@ -299,7 +299,7 @@ public:
 
     ~cReleases()
     {
-        TRACE_CREATION(L"cReleases destructor\n");
+        TRACK_DYNAMIC_OBJECTS(L"cReleases destructor\n");
 
         TerminateThread();
 
@@ -311,7 +311,7 @@ public:
 
     inline void ReleaseSlot(DWORD slotnum)
     {
-        gSlots.at(slotnum).Reset();
+        xxSlots.ResetAndFree(slotnum);
     }
 
     bool Lock()

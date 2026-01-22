@@ -30,7 +30,7 @@ private:
 
     // Only a single instance of these two vars shared between all objects
     inline static int    m_refcount{ 0 };
-    inline static HANDLE m_hSem{ nullptr };
+    inline static HANDLE m_hSem{ INVALID_HANDLE_VALUE };
 };
 
 

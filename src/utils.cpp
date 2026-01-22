@@ -28,7 +28,7 @@
 
 using namespace boost;
 
-extern std::vector<Cslot> gSlots;
+
 
 STATIC CEdit* pLoggingWindow = nullptr;
 
@@ -462,41 +462,18 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 
 
 
-/**
- * Return first free slot index, or -1 if none free
- * 
- */
-int FirstFreeSlot( void ) 
-{
-	auto iter = std::find_if(gSlots.begin(), gSlots.end(), [](const Cslot& s) { return s.IsFree();});
-
-	return (iter == gSlots.end()) ? -1 : (iter - gSlots.begin());
-}
 
 
 
-/**
- * Return first busy slot index, or -1 if all slots are free
- *
- */
-int FirstBusySlot( void ) 
-{
-	auto iter = std::find_if(gSlots.begin(), gSlots.end(), [](const Cslot& s) { return s.IsBusy();});
+#if (ENABLE_OBJECT_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
 
-	return (iter == gSlots.end()) ? -1 : (iter - gSlots.begin());
-}
-
-
-
-#if (TRACE_THREAD_CREATION==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-
-void TRACE_CREATION(const wchar_t* str)
+void TRACK_DYNAMIC_OBJECTS(const wchar_t* str)
 {
 	WriteDebugConsole(str);
 }
 
 #else
 
-#define		TRACE_CREATION(x)     do {} while (0)
+#define		TRACK_DYNAMIC_OBJECTS(x)     do {} while (0)
 
 #endif

@@ -27,13 +27,10 @@ public:
     void OnSlotReleased( DWORD slotnum );
 
 
-    void ResultsProcessed(DWORD slotnum)
+    void ReleaseSlot(DWORD slotnum)
     {
-        gSlots[ slotnum ].m_slotstate = eSlotState::SS_PROCESSED;
-
-        // Notify the release task to free the slot
-        if (SetEvent(gSlots[ slotnum ].m_hEvRelease) == 0)
-            WriteDebugConsole(L"Can't set slot evRelease");
+        xxSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
+        xxSlots.SignalRelease(slotnum);
     }
 
 

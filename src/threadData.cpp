@@ -13,7 +13,5 @@
 
 
 
-extern std::vector<Cslot> gSlots;
-
 
 

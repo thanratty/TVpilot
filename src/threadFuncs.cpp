@@ -30,13 +30,13 @@ void SaveWebPage(const cCurlJob& curljob);
 
 
 
-extern std::vector<Cslot> gSlots;
+extern Cslots xxSlots;
 
 
 
 
 /**
- * Each worker thread handles one slot
+ * Each worker thread handles one slot. The thread waits on a single request event.
  * 
  */
 UINT __cdecl thrSlotThread(LPVOID pParam)
@@ -44,14 +44,14 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval ;
 
-	TRACE_CREATION(L"thrSlotThread created");
+	TRACK_DYNAMIC_OBJECTS(L"thrSlotThread created");
 
 	slot.m_thread_state = eThreadState::TS_RUNNING;
 
 	while (true)
 	{
-		// Wait for a new request TODO No evTerminate ?!?
-		DWORD wait_result = WaitForSingleObject(slot.m_hEvRequest, INFINITE);
+		// Wait for a new request event
+		DWORD wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
@@ -66,7 +66,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (slot.m_exit_thread) {
 			slot.m_slotstate = eSlotState::SS_THREAD_EXITING;
 			slot.m_thread_state = eThreadState::TS_FINISHED;
-			TRACE_CREATION(L"thrSlotThread exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrSlotThread exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -114,11 +114,9 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		}
 
 		// Save the status & Signal that we're all done
-		slot.m_thread_result = retval;
-		slot.m_slotstate = eSlotState::SS_RESULTS_READY;
-
-		if (!SetEvent(slot.m_hEvResult))
-			WriteDebugConsole(L"Can't set slot evResult event");
+		slot.SetThreadResult(retval);
+		slot.SetState(eSlotState::SS_RESULTS_READY);
+		slot.SignalResult();
 
 	}
 }
@@ -139,7 +137,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	CslotsSem		slotslock;
 	int				freeslot;
 
-	TRACE_CREATION(L"thrRequests starting");
+	TRACK_DYNAMIC_OBJECTS(L"thrRequests starting");
 
 	while (true)
 	{
@@ -153,7 +151,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACE_CREATION(L"thrRequests exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrRequests exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -165,7 +163,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 		while (requests.Pending())
 		{
-			if ((freeslot = FirstFreeSlot()) == -1)
+			if ((freeslot = xxSlots.FirstFreeSlot()) == -1)
 				break;
 
 			std::string str = requests.Pop();		// Auto locks
@@ -173,17 +171,12 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 			if (!slotslock.Lock())
 				WriteDebugConsole(L"Can't acquire thrRequest slot semaphore");
 			else {
-				gSlots.at(freeslot).SetUrl(str);
-				gSlots.at(freeslot).m_slotstate = eSlotState::SS_URL_SET;
+				xxSlots.SetUrl(freeslot, str);
 				slotslock.Unlock();
-				SetEvent(gSlots.at(freeslot).m_hEvRequest);
+				xxSlots.SignalRequest(freeslot);
 			}
 
 		}
-
-//		if (events.Reset(1) != E_SO_OK)
-//			WriteDebugConsole(L"Can't reset thrRequest event");
-
 	}
 }
 
@@ -211,14 +204,14 @@ UINT __cdecl thrResults( LPVOID pParam )
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACE_CREATION(L"thrResults exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrResults exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
-
 		DWORD slotnum = wait_result - WAIT_OBJECT_0 - 1;
-		gSlots.at(slotnum).m_slotstate = eSlotState::SS_NOTIFY_SENT;
 		PostMessage(results.GetMsgWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
+
+		xxSlots.SetState(slotnum, eSlotState::SS_NOTIFY_SENT);
 	}
 }
 
@@ -237,7 +230,7 @@ UINT __cdecl thrReleases( LPVOID pParam )
 	CMultiEvents	events(releases.Handles(), releases.NumHandles());
 	CslotsSem		slotslock;
 
-	TRACE_CREATION(L"thrReleases starting");
+	TRACK_DYNAMIC_OBJECTS(L"thrReleases starting");
 
 	while (true)
 	{
@@ -250,7 +243,7 @@ UINT __cdecl thrReleases( LPVOID pParam )
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACE_CREATION(L"thrReleases exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrReleases exiting");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 

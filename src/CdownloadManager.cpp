@@ -16,8 +16,6 @@
 #include "CdownloadManager.hpp"
 
 
-extern std::vector<Cslot>  gSlots;
-
 
 
 
@@ -53,7 +51,7 @@ bool retval = false;
 	if (requests.Pending()) {
 		retval = true;
 	}
-	else if (FirstBusySlot() != -1) {
+	else if (xxSlots.FirstBusySlot() != -1) {
 			retval = true;
 	}
 
@@ -80,7 +78,7 @@ void CdownloadManager::OnSlotReleased(DWORD slotnum)
 	UNREFERENCED_PARAMETER(slotnum);
 
 	if (requests.Pending())
-		requests.NotifyThread();
+		requests.NotifyRequestThread();
 }
 
 

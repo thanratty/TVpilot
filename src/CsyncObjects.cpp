@@ -24,7 +24,7 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
-#if (ENABLE_CONSOLE_WINDOW==1) && (TRACE_SYNC_OBJECTS==1) && defined (_DEBUG)
+#if (ENABLE_CONSOLE_WINDOW==1) && (ENABLE_SYNC_OBJECT_TRACKING==1) && defined (_DEBUG)
 #define     SyncDebugMessage(x)     Sync_Debug_Message(x)
 #else
 #define     SyncDebugMessage(x)     do {} while(0)
@@ -40,7 +40,7 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
  * Don't use WriteMessageLog() because we can't safely access UI objects from worker threads
  * and this function would use SendMessage to manipulate the message window. 
  */
-#if (ENABLE_CONSOLE_WINDOW==1) && (TRACE_SYNC_OBJECTS==1) && defined (_DEBUG)
+#if (ENABLE_CONSOLE_WINDOW==1) && (ENABLE_SYNC_OBJECT_TRACKING==1) && defined (_DEBUG)
 
 STATIC void Sync_Debug_Message(const wchar_t* msg)
 {
@@ -66,12 +66,11 @@ CslotsSem::CslotsSem()
     m_name.Format(L"slotsSem-%-u", m_refcount);
 
     // There's only one underlying semaphore object for all instances
-    if (m_hSem == nullptr)
+    if (m_hSem == INVALID_HANDLE_VALUE)
     {
         m_hSem = CREATE_SEMAPHORE(
             NULL,               // Default security attributes
-            1,                  // Initial count
-            1,                  // Maximum count
+            1, 1,               // Initial count, Maximum count
             m_name );
 
         if (m_hSem == NULL) {
@@ -140,10 +139,10 @@ bool CslotsSem::Unlock()
 
 CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events)
 {
-    for (unsigned i = 0; i < num_events; i++)
+    for (unsigned i=0; i < num_events; i++)
     {
         m_handles.push_back(handles[i]);
-        m_bIsSignalled.push_back(false);
+        m_bIsSignalled.push_back(false);        // TODO IsSignalled not needed with auto-reset events ???
     }
     CString str;
     str.Format(L"CMultiEvents created with %d handles", num_events);

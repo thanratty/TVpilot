@@ -65,71 +65,29 @@ bool my_replace(std::string& str, const std::string& from, const std::string& to
 }
 
 
-// TODO Tidy me up please daddy
-
-static void ascii_conv(const std::string& str)
-{
-	int enable = 1;
-
-	iconv_t			cd;
-
-	cd = iconv_open("ASCII//TRANSLIT", "UTF-8");
-	if (cd == (iconv_t)(-1))
-		DebugBreak();
-	if (iconvctl(cd, ICONV_SET_TRANSLITERATE, &enable))
-		DebugBreak();
-
-
-	size_t inlen = str.length();
-	size_t outlen = inlen * 4;
-
-	char* outbuf = new char[ outlen ];
-	memset(outbuf, 0, outlen);
-
-	char* out_start = outbuf;
-	const char* in_start = str.c_str();
-
-	int count = iconv(cd, &in_start, &inlen, &out_start, &outlen);
-	if ((count > 0) || (count == -1))
-		DebugBreak();
-
-
-	delete[] outbuf;
-	iconv_close(cd);
-}
 
 
 
-
+/**
+ * Try and guess the URL for thetvdb.com from the show title. Give up on non-ASCII characters and
+ * just return the base URL as a default.
+ */
 STATIC
 std::string GuessTvdbUrl(const std::string& title)
 {
 	std::string		url("https://thetvdb.com/series/");
 	std::string		show(title);
 
-	//CString cstr = CA2W(show.c_str(), CP_UTF8);
 
-	// TODO user std::find_if
-	bool ok = true; 
-	for (auto& ch : show)
-		if ((ch <' ') || (ch>0x7e))
-		{
-			ok = false;
-			break;
-		}
-
-	if (ok) {
+	// If all the chars in the title are ASCII, remove any spaces and append to the URL
+	if (show.end() == std::find_if( show.begin(), show.end(), [](const char c){ return ((c < ' ') || (c > 0x7e)); } ))
+	{
 		show.erase(remove_if(show.begin(), show.end(), ::isspace), show.end());
 		url += show;
 	}
 
-
 	return url;
 }
-
-
-
-
 
 
 

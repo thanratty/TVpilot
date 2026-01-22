@@ -364,11 +364,10 @@ void CepcheckDlg::OnBtnClickedNewShow()
 
 	// For consistant hash calculation strip leading www & ensure there;s a trailing slash
 	new_url.Replace(L"www.", L"");
-	if (new_url.Right(1) != "/")
+	if (new_url.Right(1) != L"/")
 		new_url += '/';
 
 	// Validate the URL.
-	//std::wregex pattern(L"^https:\\/\\/(www\\.)?epguides\\.com\\/[^\\/]+([\\/]{1})?$"); TODO
 	std::wregex pattern(L"^https:\\/\\/(www\\.)?epguides\\.com\\/[^\\/]+([\\/]{1})$");
 	std::wstring input(new_url);
 	bool good_url = std::regex_match(input, pattern);

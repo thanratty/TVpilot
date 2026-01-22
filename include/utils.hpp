@@ -224,15 +224,12 @@ void ReplaceAllSubstrings(std::string& str, const char* sub);
 
 bool CheckWaitResult(unsigned numevents, DWORD result);
 
-int FirstFreeSlot( void );
-int FirstBusySlot( void );
 
 
 
-
-#if (TRACE_THREAD_CREATION==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-void TRACE_CREATION(const wchar_t* str);
+#if (ENABLE_OBJECT_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
+void TRACK_DYNAMIC_OBJECTS(const wchar_t* str);
 #else
-#define		TRACE_CREATION(x)     do {} while (0)
+#define		TRACK_DYNAMIC_OBJECTS(x)     do {} while (0)
 #endif
 

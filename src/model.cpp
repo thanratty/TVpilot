@@ -31,6 +31,9 @@
 
 
 
+extern Cslots xxSlots;
+
+
 
 
 /**
@@ -589,10 +592,9 @@ void model::CheckDownloadComplete()
  */
 void model::OnDownloadPing(DWORD slotnum)
 {
-    Cslot& slot = gSlots[slotnum];
-    const show& resultShow = slot.m_show;
+    const show& resultShow = xxSlots.GetShow(slotnum);
 
-    if (slot.IsFree() || (slot.m_slotstate != eSlotState::SS_NOTIFY_SENT))
+    if (xxSlots.IsFree(slotnum) || (xxSlots.GetState(slotnum) != eSlotState::SS_NOTIFY_SENT))
     {
         const wchar_t* msg = L"ERROR! Empty slot or bad slotstate signalled.";
         WriteMessageLog(msg);
@@ -603,15 +605,15 @@ void model::OnDownloadPing(DWORD slotnum)
     }
 
     m_ping_received++;
-    slot.m_slotstate = eSlotState::SS_PROCESSING;
+    xxSlots.SetState(slotnum, eSlotState::SS_PROCESSING);
 
     // If this is for a new show, a dummy database entry was added so this pointer will always be valid
     show* originalShow = FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
 
-    if (slot.m_thread_result != eThreadResult::TR_OK)
+    if (xxSlots.GetThreadResult(slotnum) != eThreadResult::TR_OK)
     {
-        slot.m_slotstate = eSlotState::SS_JOB_ERROR;
-        WriteMessageLog("DownloadPing() Download error, aborting : " + slot.m_error_string);
+        xxSlots.SetState(slotnum, eSlotState::SS_JOB_ERROR);
+        WriteMessageLog("DownloadPing() Download error, aborting : " + xxSlots.GetErrorString(slotnum));
         originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
         AbortDownload();
     }
@@ -657,8 +659,8 @@ void model::OnDownloadPing(DWORD slotnum)
             }
         }
 
-        // Notify the appropriate worker thread we're done
-        dm.ResultsProcessed( slotnum );  
+        // Notify the thrRelease thread we're done
+        dm.ReleaseSlot( slotnum );  
     }
 
     // Time to send WM_DOWNLOAD_COMPLETE ?

@@ -12,8 +12,11 @@
 
 
 //
-// The global array of download slots. This is 
+// The global slot 'manager'
 //
-std::vector<Cslot> gSlots = std::vector<Cslot>( NUMBER_OF_DOWNLOAD_THREADS );
+
+Cslots xxSlots;
+
+
 
 
