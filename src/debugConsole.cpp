@@ -11,7 +11,7 @@
 
 
 
-#define		PRINTF_BUFFER_SIZE		256
+#define		CONSOLE_BUFFER_SIZE		1024
 
 
 
@@ -19,8 +19,8 @@
 #if (ENABLE_CONSOLE_WINDOW==1) && defined (_DEBUG)
 
 
-STATIC HANDLE		hDebugConsole	= NULL;
-STATIC wchar_t*		pBuffer			= nullptr;
+STATIC HANDLE		hDebugConsole	= INVALID_HANDLE_VALUE;
+STATIC wchar_t		pBuffer[ CONSOLE_BUFFER_SIZE ];
 
 
 void WriteDebugConsole(const wchar_t* str)
@@ -42,7 +42,7 @@ void DebugConsolePrintf(const wchar_t* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
-		vswprintf_s(pBuffer, PRINTF_BUFFER_SIZE, format, args);
+		vswprintf_s(pBuffer, CONSOLE_BUFFER_SIZE, format, args);
 		WriteDebugConsole(pBuffer);
 		va_end(args);
 	}
@@ -64,22 +64,15 @@ void OpenDebugConsole()
 		return;
 	}
 
-	SetConsoleTitle(L"TV Pilot Debug Output");
+	SetConsoleTitle(L"TV Pilot Console Output");
 	WriteDebugConsole(L"Console Ready\n\n");
-
-	pBuffer = new wchar_t[ PRINTF_BUFFER_SIZE ];
 }
 
 
 void CloseDebugConsole()
 {
-	if (pBuffer) {
-		delete pBuffer;
-		pBuffer = nullptr;
-	}
-
 	FreeConsole();
-	hDebugConsole = NULL;
+	hDebugConsole = INVALID_HANDLE_VALUE;
 }
 
 

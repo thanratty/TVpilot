@@ -20,8 +20,9 @@
 #include "CDSchedule.hpp"
 #include "CDInputBox.hpp"
 #include "CsortContext.hpp"
-#include "Cslot.hpp"
+#include "Cslots.hpp"
 #include "debugConsole.h"
+
 #include "utils.hpp"
 
 

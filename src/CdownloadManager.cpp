@@ -8,9 +8,6 @@
 #include "common.hpp"
 
 #include "CsyncObjects.hpp"
-#include "Cslot.hpp"
-#include "threadData.hpp"
-#include "threadFuncs.hpp"
 #include "utils.hpp"
 
 #include "CdownloadManager.hpp"
@@ -37,6 +34,7 @@ void CdownloadManager::DownloadShow(const std::string& url)
 void CdownloadManager::SetMsgWindow(HWND hMsgWindow)
 {
 	m_hMsgWindow = hMsgWindow;
+
 	results.SetMsgWindow(hMsgWindow);
 	releases.SetMsgWindow(hMsgWindow);
 }
@@ -48,12 +46,8 @@ bool CdownloadManager::DownloadInProgress() const
 {
 bool retval = false;
 
-	if (requests.Pending()) {
-		retval = true;
-	}
-	else if (xxSlots.FirstBusySlot() != -1) {
+	if (requests.RequestsPending() || (gSlots.FirstBusySlot() != -1))
 			retval = true;
-	}
 
 	return retval;
 }
@@ -77,7 +71,7 @@ void CdownloadManager::OnSlotReleased(DWORD slotnum)
 {
 	UNREFERENCED_PARAMETER(slotnum);
 
-	if (requests.Pending())
+	if (requests.RequestsPending())
 		requests.NotifyRequestThread();
 }
 

@@ -7,30 +7,33 @@
 
 #include "common.hpp"
 
-#include "Cslot.hpp"
+#include "Cslots.hpp"
 #include "CdownloadManager.hpp"
-#include "model.hpp"
+//#include "model.hpp"
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
-#include "threadData.hpp"
+#include "debugConsole.h"
+
 #include "threadFuncs.hpp"
 
 
 
 
 
-
-#if (SAVE_WEBPAGE_ON_ERROR==1)
-void SaveWebPage(const cCurlJob& curljob);
+#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(_DEBUG)
+void SAVE_WEB_PAGE(const cCurlJob& curljob);
 #else
-#define     SaveWebPage(x)      do{} while(0)
+#define     SAVE_WEB_PAGE(x)      do{} while(0)
 #endif
 
 
 
 
-extern Cslots xxSlots;
+
+
+
+extern Cslots gSlots;
 
 
 
@@ -42,11 +45,11 @@ extern Cslots xxSlots;
 UINT __cdecl thrSlotThread(LPVOID pParam)
 {
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
-	eThreadResult	retval ;
+	eThreadResult	retval;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrSlotThread created");
+	TRACK_DYNAMIC_OBJECTS(L"thrSlotThread created\n");
 
-	slot.m_thread_state = eThreadState::TS_RUNNING;
+	slot.SetThreadState(eThreadState::TS_RUNNING);
 
 	while (true)
 	{
@@ -55,18 +58,18 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
-			WriteDebugConsole(L"thrSlotThread WAIT_FAIL!");
+			WriteDebugConsole(L"thrSlotThread WAIT_FAIL!\n");
 			continue;
 		}
 
-		slot.m_slotstate = eSlotState::SS_JOB_THREAD;
+		slot.SetState(eSlotState::SS_JOB_THREAD);
 		retval = eThreadResult::TR_OK;
 
 		// Terminate flag set? Exit the thread.
-		if (slot.m_exit_thread) {
-			slot.m_slotstate = eSlotState::SS_THREAD_EXITING;
-			slot.m_thread_state = eThreadState::TS_FINISHED;
-			TRACK_DYNAMIC_OBJECTS(L"thrSlotThread exiting");
+		if (slot.GetExitFlag()) {
+			slot.SetState(eSlotState::SS_THREAD_EXITING);
+			slot.SetThreadState(eThreadState::TS_FINISHED);
+			TRACK_DYNAMIC_OBJECTS(L"thrSlotThread exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -81,7 +84,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (curl_ok == false)
 		{
 			// In debug mode, optionally save a local copy of the faulting page (see config flag).
-			SaveWebPage(curljob);
+			SAVE_WEB_PAGE(curljob);
 
 			std::ostringstream os;
 			os << "CURL code " << curljob.m_curl_result << ", HTTP response " << curljob.m_http_response;
@@ -95,8 +98,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 			slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
 			if (slot.m_xml_status != E_XPARSE_OK)
 			{
-				// In debug mode, optionally save a local copy of the faulting page (see config flag).
-				SaveWebPage(curljob);
+				// In debug mode, optionally save a local copy of the faulting page (see config.h).
+				SAVE_WEB_PAGE(curljob);
 
 				if (slot.m_xml_status == E_XPARSE_DOC_ERROR) {
 					slot.m_error_string = "xmlParse doc error";
@@ -137,7 +140,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	CslotsSem		slotslock;
 	int				freeslot;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrRequests starting");
+	TRACK_DYNAMIC_OBJECTS(L"thrRequests starting\n");
 
 	while (true)
 	{
@@ -145,37 +148,29 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theRequests Wait failed");
+			WriteDebugConsole(L"theRequests Wait failed\n");
 			continue;
 		}
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrRequests exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrRequests exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
-		ASSERT(wait_result == (WAIT_OBJECT_0 + 1));
-
-		// There is at least one URL request in the request_data struct. Find a slot for it
-		// If there's no free download slot, loop for the next timeout 
-		// Keep popping requests off the queue till all slots are full or there are no more requests
-
-		while (requests.Pending())
+		// Any requests in the queue, find a slot for the & signal a request for that slot
+		if (requests.RequestsPending() && slotslock.Lock())
 		{
-			if ((freeslot = xxSlots.FirstFreeSlot()) == -1)
-				break;
+			while (requests.RequestsPending())
+			{
+				if ((freeslot = gSlots.FirstFreeSlot()) == -1)
+					break;
 
-			std::string str = requests.Pop();		// Auto locks
-
-			if (!slotslock.Lock())
-				WriteDebugConsole(L"Can't acquire thrRequest slot semaphore");
-			else {
-				xxSlots.SetUrl(freeslot, str);
-				slotslock.Unlock();
-				xxSlots.SignalRequest(freeslot);
+				std::string str = requests.Pop();		// Auto locks the request queue
+				gSlots.SetUrl(freeslot, str);
+				gSlots.SignalRequest(freeslot);
 			}
-
+			slotslock.Unlock();
 		}
 	}
 }
@@ -198,20 +193,20 @@ UINT __cdecl thrResults( LPVOID pParam )
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theResults Wait failed");
+			WriteDebugConsole(L"theResults Wait failed\n");
 			continue;
 		}
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrResults exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrResults exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
 		DWORD slotnum = wait_result - WAIT_OBJECT_0 - 1;
 		PostMessage(results.GetMsgWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
 
-		xxSlots.SetState(slotnum, eSlotState::SS_NOTIFY_SENT);
+		gSlots.SetState(slotnum, eSlotState::SS_NOTIFY_SENT);
 	}
 }
 
@@ -230,20 +225,20 @@ UINT __cdecl thrReleases( LPVOID pParam )
 	CMultiEvents	events(releases.Handles(), releases.NumHandles());
 	CslotsSem		slotslock;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrReleases starting");
+	TRACK_DYNAMIC_OBJECTS(L"thrReleases starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theReleases Wait failed");
+			WriteDebugConsole(L"theReleases Wait failed\n");
 			continue;
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrReleases exiting");
+			TRACK_DYNAMIC_OBJECTS(L"thrReleases exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -251,13 +246,13 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock()) {
-			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore");
+			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore\n");
 		}
 		else {
 			releases.ReleaseSlot(slotnum);
 			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
 			if (!slotslock.Unlock())
-				WriteDebugConsole(L"Can't release thrRelease slots semaphore");
+				WriteDebugConsole(L"Can't release thrRelease slots semaphore\n");
 		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);
@@ -274,7 +269,7 @@ UINT __cdecl thrReleases( LPVOID pParam )
 
 #if (SAVE_WEBPAGE_ON_ERROR==1)
 
-void SaveWebPage(const cCurlJob& curljob)
+void SAVE_WEB_PAGE(const cCurlJob& curljob)
 {
 	CFile cfile;
 	cfile.Open(L"webpage.txt", CFile::modeCreate | CFile::modeWrite);

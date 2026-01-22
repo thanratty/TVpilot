@@ -8,10 +8,10 @@
 #include <string>
 
 #include "resource.h"
-#include "CDShows.hpp"
-#include "CepcheckDlg.hpp"
-
 #include "utils.hpp"
+
+#include "CDShows.hpp"
+
 
 
 

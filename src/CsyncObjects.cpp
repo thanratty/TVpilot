@@ -78,7 +78,7 @@ CslotsSem::CslotsSem()
             SyncDebugMessage(L"Can't create slots semaphore");
         }
         else
-            SyncDebugMessage(L"** Base CSlotSem semaphore created");
+            SyncDebugMessage(L"Base CSlotSem semaphore handle created");
     }
     SyncDebugMessage(m_name + L" created");
 }

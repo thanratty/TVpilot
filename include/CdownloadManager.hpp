@@ -3,14 +3,16 @@
 #include <vector>
 #include <string>
 
+#include "Cslots.hpp"
+
 #include "threadData.hpp"
-#include "Cslot.hpp"
-#include "debugConsole.h"
 
 
 
 
 
+
+extern Cslots gSlots;
 
 
 
@@ -24,13 +26,13 @@ public:
     void DownloadShow(const std::string& url);
     bool DownloadInProgress() const;
     void AbortDownload();
-    void OnSlotReleased( DWORD slotnum );
 
+    void OnSlotReleased( DWORD slotnum );
 
     void ReleaseSlot(DWORD slotnum)
     {
-        xxSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
-        xxSlots.SignalRelease(slotnum);
+        gSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
+        gSlots.SignalRelease(slotnum);
     }
 
 
@@ -39,6 +41,7 @@ private:
     // Destination of WM_DOWNLOAD_PING message
     HWND             m_hMsgWindow{ NULL };
 
+    // Thread data objects
     cRequests        requests;
     cResults         results;
     cReleases        releases;

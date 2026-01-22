@@ -4,7 +4,9 @@
 
 
 
-// Thread status & return codes.
+
+
+// Thread state & return/result codes.
 //
 enum eThreadResult : UINT
 {
@@ -31,17 +33,16 @@ enum class eThreadState : UINT
 
 
 //
-// This worker thread manages the actual downloading & parsing. One thread per slot.
+// Each slot has a worker thread manages the actual downloading & parsing.
 // 
 UINT __cdecl thrSlotThread(LPVOID pParam);
 
 
 
 //
-// Control threads to handle: download requests, results available, results processed
+// Control threads to process: download requests, results available, results processed
 //
 UINT __cdecl thrRequests(LPVOID pParam);
 UINT __cdecl thrResults(LPVOID pParam);
 UINT __cdecl thrReleases(LPVOID pParam);
-
 

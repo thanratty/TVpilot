@@ -45,3 +45,6 @@ constexpr UINT E_APP_OK = 0;
 constexpr UINT E_APP_DATABASE = 1;
 
 
+
+constexpr DWORD THREAD_EXIT_TIMEOUT = 4000;
+

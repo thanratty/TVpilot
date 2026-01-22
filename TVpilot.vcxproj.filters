@@ -87,9 +87,6 @@
     <ClInclude Include="include\CsyncObjects.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\threadData.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="res\resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
@@ -99,7 +96,10 @@
     <ClInclude Include="include\debugConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Cslot.hpp">
+    <ClInclude Include="include\Cslots.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\threadData.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -161,16 +161,16 @@
     <ClCompile Include="src\CsyncObjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\threadData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\debugConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CdataFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Cslot.cpp">
+    <ClCompile Include="src\Cslots.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\threadData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
