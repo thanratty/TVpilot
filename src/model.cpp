@@ -9,21 +9,16 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <strsafe.h>
 
 #include "boost/algorithm/string/trim.hpp"
-
-#include "Shlwapi.h"
-#include "strsafe.h"
-#include "pathcch.h"
 
 #include "common.hpp"
 
 #include "Cepisode.hpp"
 #include "Cshow.hpp"
-#include "CepcheckDlg.hpp"
-#include "threadFuncs.hpp"
-#include "xmlParse.hpp"
 #include "utils.hpp"
+#include "debugConsole.h"
 
 #include "model.hpp"
 

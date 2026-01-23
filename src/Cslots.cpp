@@ -26,7 +26,7 @@ Cslot::Cslot()
     CString str;
 
     // Object tracing
-    TRACK_DYNAMIC_OBJECTS(L"Cslot constructor\n");
+    LOG_THREAD_OBJECT(L"Cslot constructor\n");
 
     // Increment & copy the singleton variable to identify this slot instance (starts at -1)
     gSlotCount++;
@@ -52,7 +52,7 @@ Cslot::Cslot()
 
 Cslot::~Cslot()
 {
-    TRACK_DYNAMIC_OBJECTS(L"CSlot destructor\n");
+    LOG_THREAD_OBJECT(L"CSlot destructor\n");
     CloseSlot();
 }
 

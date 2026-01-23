@@ -8,11 +8,10 @@
 #include "common.hpp"
 
 #include "Cslots.hpp"
-#include "CdownloadManager.hpp"
-//#include "model.hpp"
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
+#include "threadData.hpp"
 #include "debugConsole.h"
 
 #include "threadFuncs.hpp"
@@ -47,7 +46,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrSlotThread created\n");
+	LOG_THREAD_OBJECT(L"thrSlotThread created\n");
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
@@ -58,7 +57,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
-			WriteDebugConsole(L"thrSlotThread WAIT_FAIL!\n");
+			LOG_THREAD_OBJECT(L"thrSlotThread wait file\n");
 			continue;
 		}
 
@@ -69,7 +68,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (slot.GetExitFlag()) {
 			slot.SetState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
-			TRACK_DYNAMIC_OBJECTS(L"thrSlotThread exiting\n");
+			LOG_THREAD_OBJECT(L"thrSlotThread exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -133,14 +132,14 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
  */
  UINT __cdecl thrRequests( LPVOID pParam )
 {
-	cRequests&		requests = * static_cast<cRequests*>(pParam);
+	cRequests&		requests = *static_cast<cRequests*>(pParam);
 
 	// Lock objects last the life of the thread. Only two events to watch.
 	CMultiEvents	events(requests.Handles(), 2);
 	CslotsSem		slotslock;
 	int				freeslot;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrRequests starting\n");
+	LOG_THREAD_OBJECT(L"thrRequests starting\n");
 
 	while (true)
 	{
@@ -148,13 +147,13 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theRequests Wait failed\n");
+			LOG_THREAD_OBJECT(L"theRequests Wait failed\n");
 			continue;
 		}
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrRequests exiting\n");
+			LOG_THREAD_OBJECT(L"thrRequests exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -193,13 +192,13 @@ UINT __cdecl thrResults( LPVOID pParam )
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theResults Wait failed\n");
+			LOG_THREAD_OBJECT(L"thrResults Wait failed\n");
 			continue;
 		}
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrResults exiting\n");
+			LOG_THREAD_OBJECT(L"thrResults exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -225,20 +224,20 @@ UINT __cdecl thrReleases( LPVOID pParam )
 	CMultiEvents	events(releases.Handles(), releases.NumHandles());
 	CslotsSem		slotslock;
 
-	TRACK_DYNAMIC_OBJECTS(L"thrReleases starting\n");
+	LOG_THREAD_OBJECT(L"thrReleases starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			WriteDebugConsole(L"theReleases Wait failed\n");
+			LOG_THREAD_OBJECT(L"thrReleases Wait failed\n");
 			continue;
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			TRACK_DYNAMIC_OBJECTS(L"thrReleases exiting\n");
+			LOG_THREAD_OBJECT(L"thrReleases exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -246,13 +245,13 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock()) {
-			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore\n");
+			LOG_THREAD_OBJECT(L"Can't acquire thrRelease slots lock\n");
 		}
 		else {
 			releases.ReleaseSlot(slotnum);
 			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
 			if (!slotslock.Unlock())
-				WriteDebugConsole(L"Can't release thrRelease slots semaphore\n");
+				LOG_THREAD_OBJECT(L"Can't release thrRelease slots semaphore\n");
 		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);

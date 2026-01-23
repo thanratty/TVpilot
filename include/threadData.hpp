@@ -1,13 +1,12 @@
 #pragma once
 
-#include "CsyncObjects.hpp"
-#include "threadFuncs.hpp"
-#include "debugConsole.h"
 
 
 
-
-
+/**
+ * This class is instantiated in the DownloadManager and passed to the theRequests thread.
+ * 
+ */
 class cRequests
 {
 public:
@@ -38,7 +37,8 @@ private:
 
     CWinThread*                 m_pWinThread{ nullptr };    // The thrRequests() thread
 
-    std::array<HANDLE, 2>       handles;                    // Entry #0 is the terminate event, #1 is the request event
+    // Entry #0 is the terminate event, #1 is the request event
+    std::array<HANDLE, 2>       handles = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
     std::queue<std::string>     url_queue;
 };
 
@@ -49,15 +49,11 @@ private:
 
 
 
+/**
+ * Data & methods for the thrResults thread.
+ *
+ */
 
-
-
-
-
-
-
-
-// Results data struct doesn't change, so no semaphore needed
 class cResults
 {
 public:

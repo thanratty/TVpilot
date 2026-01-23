@@ -8,7 +8,6 @@
 #include "common.hpp"
 
 #include "Cslots.hpp"
-#include "utils.hpp"
 #include "debugConsole.h"
 
 #include "threadData.hpp"
@@ -21,10 +20,10 @@ extern Cslots gSlots;
 
 cRequests::cRequests()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cRequests constructor\n");
+    LOG_THREAD_OBJECT(L"cRequests constructor\n");
 
-    handles[0] = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // AUTO reset, initial state
-    handles[1] = CREATE_EVENT(NULL, FALSE, FALSE, L"evRequest");         // AUTO reset, initial state
+    handles[0]   = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // AUTO reset, initial state
+    handles[1]   = CREATE_EVENT(NULL, FALSE, FALSE, L"evRequest");         // AUTO reset, initial state
 
     sem_requests = CREATE_SEMAPHORE(NULL, 1, 1, L"semRequestData");
 
@@ -35,9 +34,10 @@ cRequests::cRequests()
     SetThreadDescription(m_pWinThread->m_hThread, L"thrRequest");
 }
 
+
 cRequests::~cRequests()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cRequests destructor\n");
+    LOG_THREAD_OBJECT(L"cRequests destructor\n");
 
     TerminateThread();
 
@@ -139,7 +139,7 @@ void cRequests::TerminateThread()
 
 cResults::cResults()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cResults constructor\n");
+    LOG_THREAD_OBJECT(L"cResults constructor\n");
 
     sem_results = CREATE_SEMAPHORE(NULL, 1, 1, L"semResultsData");
 
@@ -149,7 +149,6 @@ cResults::cResults()
     // The gSlots global is guaranteed to be fully constructed by now. Add all the slots evResult handles.
     auto slothandles = gSlots.GetResultHandles();
     handles.insert(handles.end(), slothandles.begin(), slothandles.end());
-
 
     m_pWinThread = AfxBeginThread(thrResults, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
     ASSERT(m_pWinThread);
@@ -161,7 +160,7 @@ cResults::cResults()
 
 cResults::~cResults()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cResults destructor\n");
+    LOG_THREAD_OBJECT(L"cResults destructor\n");
 
     TerminateThread();
 
@@ -238,7 +237,7 @@ void cResults::TerminateThread()
 
 cReleases::cReleases()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cReleases constructor\n");
+    LOG_THREAD_OBJECT(L"cReleases constructor\n");
 
     // Assume these Win32 Create API calls will succeed
 
@@ -262,7 +261,7 @@ cReleases::cReleases()
 
 cReleases::~cReleases()
 {
-    TRACK_DYNAMIC_OBJECTS(L"cReleases destructor\n");
+    LOG_THREAD_OBJECT(L"cReleases destructor\n");
 
     TerminateThread();
 

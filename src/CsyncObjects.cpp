@@ -25,38 +25,14 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 #if (ENABLE_CONSOLE_WINDOW==1) && (ENABLE_SYNC_OBJECT_TRACKING==1) && defined (_DEBUG)
-#define     SyncDebugMessage(x)     Sync_Debug_Message(x)
+#define     LOG_SYNC_OBJECT(msg)     WriteDebugConsole(msg)
 #else
-#define     SyncDebugMessage(x)     do {} while(0)
+#define     LOG_SYNC_OBJECT(x,...)     do {} while(0)
 #endif
 
 
 
 
-
-/**
- * Local debugging output function tailored for sync classes to show GetLastError()
- * 
- * Don't use WriteMessageLog() because we can't safely access UI objects from worker threads
- * and this function would use SendMessage to manipulate the message window. 
- */
-#if (ENABLE_CONSOLE_WINDOW==1) && (ENABLE_SYNC_OBJECT_TRACKING==1) && defined (_DEBUG)
-
-STATIC void Sync_Debug_Message(const wchar_t* msg)
-{
-    CString str;
-    DWORD err = GetLastError();
-    if (err) {
-        str.Format(L"%s : %08X\n", msg, err);
-        Beep(750,150);
-    }
-    else
-        str.Format(L"%s\n", msg);
-
-    WriteDebugConsole(str);
-}
-
-#endif
 
 
 
@@ -68,6 +44,7 @@ CslotsSem::CslotsSem()
     // There's only one underlying semaphore object for all instances
     if (m_hSem == INVALID_HANDLE_VALUE)
     {
+        LOG_SYNC_OBJECT(L"Creating underlying slot semaphore");
         m_hSem = CREATE_SEMAPHORE(
             NULL,               // Default security attributes
             1, 1,               // Initial count, Maximum count
@@ -75,12 +52,12 @@ CslotsSem::CslotsSem()
 
         if (m_hSem == NULL) {
             m_last_error = GetLastError();
-            SyncDebugMessage(L"Can't create slots semaphore");
+            LOG_SYNC_OBJECT(L"Can't create slots semaphore");
         }
         else
-            SyncDebugMessage(L"Base CSlotSem semaphore handle created");
+            LOG_SYNC_OBJECT(L"Base CSlotSem semaphore handle created");
     }
-    SyncDebugMessage(m_name + L" created");
+    LOG_SYNC_OBJECT(m_name + L" created");
 }
 
 
@@ -88,15 +65,16 @@ CslotsSem::~CslotsSem()
 {
     CString str;
     str.Format(L"CslotsSem destructor for %s, refcount %d\n", (LPCWSTR) m_name, m_refcount);
-    SyncDebugMessage(str);
+    LOG_SYNC_OBJECT(str);
 
     // There's only ONE underlying semaphore handle, so only close the last instance
     if (m_refcount == 1)
     {
+        LOG_SYNC_OBJECT(L"Closing underlying slot semaphore");
         if (CloseHandle(m_hSem) == 0)
         {
             m_last_error = GetLastError();
-            SyncDebugMessage(L"Can't delete base slots CslotsSem semaphore.");
+            LOG_SYNC_OBJECT(L"Can't delete base slots CslotsSem semaphore.");
         }
     }
 
@@ -113,7 +91,7 @@ bool CslotsSem::Lock()
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::Lock() wait fail");
+    LOG_SYNC_OBJECT(L"CslotsSem::Lock() wait fail");
     return false;
 }
 
@@ -126,7 +104,11 @@ bool CslotsSem::Unlock()
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::Unlock() release fail");
+
+    CString str;
+    str.Format(L"CslotsSem::Unlock() release fail. Error %u. Count %lu", m_last_error, last_count);
+    LOG_SYNC_OBJECT(str);
+
     return false;
 }
 
@@ -137,16 +119,26 @@ bool CslotsSem::Unlock()
 
 
 
+CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles)
+{
+    m_handles.insert(m_handles.end(), handles.begin(), handles.end());
+
+    CString str;
+    str.Format(L"CMultiEvents created with %u handles", m_handles.size());
+    LOG_SYNC_OBJECT(str);
+}
+
+
 CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events)
 {
     for (unsigned i=0; i < num_events; i++)
     {
         m_handles.push_back(handles[i]);
-        m_bIsSignalled.push_back(false);        // TODO IsSignalled not needed with auto-reset events ???
     }
+
     CString str;
-    str.Format(L"CMultiEvents created with %d handles", num_events);
-    SyncDebugMessage(str);
+    str.Format(L"CMultiEvents created with %u handles", num_events);
+    LOG_SYNC_OBJECT(str);
 }
 
 
@@ -159,30 +151,33 @@ int CMultiEvents::Wait()
     if (!CheckWaitResult(m_handles.size(), result))
     {
         m_last_error = GetLastError();
-        SyncDebugMessage(L"CMultiEvents::Wait() failed");
+        CString str;
+        str.Format(L"CMultiEvents::Wait() failed. Error %u", m_last_error);
+        LOG_SYNC_OBJECT(str);
         return E_SO_WAIT_FAIL;
     }
 
-    m_bIsSignalled[result] = true;
     return result;
 }
 
 
 int CMultiEvents::Reset(DWORD index)
 {
-    if (index >= m_handles.size())
-        return E_SO_RESET_FAIL_INDEX;
-    if (m_bIsSignalled[ index ] == false)
-        return E_SO_RESET_FAIL_UNLOCK;
+    int retval = E_SO_OK;
 
-    if (ResetEvent(m_handles[ index ])) {
-        m_bIsSignalled[ index ] = false;
-        return E_SO_OK;
+    if (index >= m_handles.size())
+        retval = E_SO_RESET_FAIL_INDEX;
+    else if (!ResetEvent(m_handles[ index ]))
+        retval = E_SO_RESET_FAIL;
+
+    if (retval != E_SO_OK)
+    {
+        m_last_error = GetLastError();
+        CString str;
+        str.Format(L"CMultiEvents::Reset() failed. Error %u", m_last_error);
+        LOG_SYNC_OBJECT(str);
     }
 
-    m_last_error = GetLastError();
-    SyncDebugMessage(L"CMultiEvents::Reset() failed");
-
-    return E_SO_RESET_FAIL;
+    return retval;
 }
 

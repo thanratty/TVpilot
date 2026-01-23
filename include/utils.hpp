@@ -228,8 +228,8 @@ bool CheckWaitResult(unsigned numevents, DWORD result);
 
 
 #if (ENABLE_OBJECT_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-void TRACK_DYNAMIC_OBJECTS(const wchar_t* str);
+void LOG_THREAD_OBJECT(const wchar_t* str);
 #else
-#define		TRACK_DYNAMIC_OBJECTS(x)     do {} while (0)
+#define		LOG_THREAD_OBJECT(x)     do {} while (0)
 #endif
 

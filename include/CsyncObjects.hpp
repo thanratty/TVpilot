@@ -39,19 +39,13 @@ class CMultiEvents
 {
 public:
     CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events );
+    CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles);
 
     int     Wait();
     int     Reset(DWORD index);
 
-    inline bool IsSignalled(DWORD index) const
-    {
-        return m_bIsSignalled[ index ];
-    }
-
 private:
     std::vector<HANDLE>     m_handles;
-    std::vector<bool>       m_bIsSignalled;
-
     DWORD                   m_last_error{ 0 };
 };
 
