@@ -128,6 +128,10 @@ BOOL CepcheckApp::InitInstance()
 	}
 
 
+#ifdef _DEBUG
+	Sleep(2000);
+#endif
+
 
 	// Delete the shell manager created above.
 	if (pShellManager != nullptr)

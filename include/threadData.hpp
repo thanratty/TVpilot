@@ -14,7 +14,7 @@ public:
     cRequests();
     ~cRequests();
 
-    const HANDLE* Handles() const;
+    const std::vector<HANDLE>& Handles() const;
 
     bool RequestsPending() const;
     void ClearQueue();
@@ -38,7 +38,7 @@ private:
     CWinThread*                 m_pWinThread{ nullptr };    // The thrRequests() thread
 
     // Entry #0 is the terminate event, #1 is the request event
-    std::array<HANDLE, 2>       handles = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+    std::vector<HANDLE>         handles = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
     std::queue<std::string>     url_queue;
 };
 
@@ -67,7 +67,7 @@ public:
     bool Lock() const;
     bool Unlock() const;
 
-    const HANDLE* Handles() const;
+    const std::vector<HANDLE>& Handles() const;
     const unsigned NumHandles() const;
 
 
@@ -100,7 +100,7 @@ public:
     bool Lock();
     bool Unlock();
 
-    const HANDLE* Handles() const;
+    const std::vector<HANDLE>& Handles() const;
     const unsigned NumHandles() const;
 
     void SetMsgWindow(HWND hWin);

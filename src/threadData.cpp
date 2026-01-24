@@ -47,17 +47,17 @@ cRequests::~cRequests()
 }
 
 
-const HANDLE* cRequests::Handles() const
+const std::vector<HANDLE>& cRequests::Handles() const
 {
-    return handles.data();
+    return handles;
 }
 
-void cRequests::NotifyRequestThread() const     // TODO SignalRequest() ???
+void cRequests::NotifyRequestThread() const             // TODO SignalRequest() ???
 {
     SetEvent(handles[1]);
 }
 
-bool cRequests::RequestsPending() const                 // TODO RequestsPending() ???
+bool cRequests::RequestsPending() const
 {
     Lock();
     bool bPending = !url_queue.empty();
@@ -205,9 +205,9 @@ bool cResults::Unlock() const
     return (result) ? true : false;
 }
 
-const HANDLE* cResults::Handles() const
+const std::vector<HANDLE>& cResults::Handles() const
 {
-    return handles.data();
+    return handles;
 }
 
 const unsigned cResults::NumHandles() const
@@ -297,9 +297,9 @@ bool cReleases::Unlock()
     return result;
 }
 
-const HANDLE* cReleases::Handles() const
+const std::vector<HANDLE>& cReleases::Handles() const
 {
-    return handles.data();
+    return handles;
 }
 
 const unsigned cReleases::NumHandles() const

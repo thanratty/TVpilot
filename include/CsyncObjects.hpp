@@ -14,7 +14,8 @@
 
 
 
-// TODO Use a singleton class ???
+
+
 class CslotsSem
 {
 public:
@@ -29,8 +30,9 @@ private:
     CString     m_name;
 
     // Only a single instance of these two vars shared between all objects
-    inline static int    m_refcount{ 0 };
-    inline static HANDLE m_hSem{ INVALID_HANDLE_VALUE };
+    int                     m_refcount{ 0 };
+
+    inline static HANDLE    m_hSem{ INVALID_HANDLE_VALUE };
 };
 
 
@@ -38,7 +40,7 @@ private:
 class CMultiEvents
 {
 public:
-    CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events );
+    //CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events );
     CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles);
 
     int     Wait();
@@ -47,5 +49,36 @@ public:
 private:
     std::vector<HANDLE>     m_handles;
     DWORD                   m_last_error{ 0 };
+};
+
+
+
+
+
+
+class Sing
+{
+public:
+
+    static Sing& getInstance();
+
+    bool    Lock();
+    bool    Unlock();
+
+private:
+
+    Sing(Sing const&) = delete;
+    Sing& operator=(Sing const&) = delete;
+
+    Sing();
+    ~Sing();
+
+private:
+
+    inline static int   m_refcount{ 0 };
+    HANDLE              m_hSem{ INVALID_HANDLE_VALUE };
+    CString             m_name;
+    DWORD               m_last_error{ 0 };
+
 };
 

@@ -135,7 +135,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	cRequests&		requests = *static_cast<cRequests*>(pParam);
 
 	// Lock objects last the life of the thread. Only two events to watch.
-	CMultiEvents	events(requests.Handles(), 2);
+	CMultiEvents	events(requests.Handles());
 	CslotsSem		slotslock;
 	int				freeslot;
 
@@ -185,7 +185,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 UINT __cdecl thrResults( LPVOID pParam )
 {
 	cResults&		results = *static_cast<cResults*>(pParam);
-	CMultiEvents	events(results.Handles(), results.NumHandles());
+	CMultiEvents	events(results.Handles());
 
 	while (true)
 	{
@@ -221,7 +221,7 @@ UINT __cdecl thrReleases( LPVOID pParam )
 {
 	cReleases&		releases = *static_cast<cReleases*>(pParam);
 
-	CMultiEvents	events(releases.Handles(), releases.NumHandles());
+	CMultiEvents	events(releases.Handles());
 	CslotsSem		slotslock;
 
 	LOG_THREAD_OBJECT(L"thrReleases starting\n");

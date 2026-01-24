@@ -117,6 +117,7 @@ BOOL CepcheckDlg::OnInitDialog()
 #endif
 
 
+
 	// Center the text in the two counters
 	GetDlgItem(IDC_PING_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
 	GetDlgItem(IDC_ERR_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
