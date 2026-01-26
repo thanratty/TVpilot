@@ -15,28 +15,6 @@
 
 
 
-
-class CslotsSem
-{
-public:
-    CslotsSem();
-    ~CslotsSem();
-
-    bool Lock();
-    bool Unlock();
-
-private:
-    DWORD       m_last_error{ 0 };
-    CString     m_name;
-
-    // Only a single instance of these two vars shared between all objects
-    int                     m_refcount{ 0 };
-
-    inline static HANDLE    m_hSem{ INVALID_HANDLE_VALUE };
-};
-
-
-
 class CMultiEvents
 {
 public:
@@ -56,29 +34,27 @@ private:
 
 
 
-class Sing
+class CslotsSem
 {
 public:
 
-    static Sing& getInstance();
+    static CslotsSem& getInstance();
 
     bool    Lock();
     bool    Unlock();
 
 private:
 
-    Sing(Sing const&) = delete;
-    Sing& operator=(Sing const&) = delete;
+    CslotsSem(CslotsSem const&) = delete;
+    CslotsSem& operator=(CslotsSem const&) = delete;
 
-    Sing();
-    ~Sing();
+    CslotsSem();
+    ~CslotsSem();
 
 private:
-
-    inline static int   m_refcount{ 0 };
-    HANDLE              m_hSem{ INVALID_HANDLE_VALUE };
-    CString             m_name;
-    DWORD               m_last_error{ 0 };
+    const CString   m_name{ L"slotsSem" };
+    HANDLE          m_hSem{ INVALID_HANDLE_VALUE };
+    DWORD           m_last_error{ 0 };
 
 };
 

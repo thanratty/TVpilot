@@ -1207,7 +1207,7 @@ void CepcheckDlg::OnCancel()
 	 */
 
 #if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
-	while (::MessageBox(NULL, L"About to close - press OK", L"Epcheck", MB_OK) != IDOK);
+	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
 #endif
 
 	CDialog::OnCancel();

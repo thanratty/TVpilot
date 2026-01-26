@@ -6,6 +6,7 @@
 //--
 
 #include "common.hpp"
+#include "utils.hpp"
 
 #include "Cslots.hpp"
 
@@ -24,9 +25,6 @@ Cslots gSlots;
 Cslot::Cslot()
 {
     CString str;
-
-    // Object tracing
-    LOG_THREAD_OBJECT(L"Cslot constructor\n");
 
     // Increment & copy the singleton variable to identify this slot instance (starts at -1)
     gSlotCount++;
@@ -52,7 +50,6 @@ Cslot::Cslot()
 
 Cslot::~Cslot()
 {
-    LOG_THREAD_OBJECT(L"CSlot destructor\n");
     CloseSlot();
 }
 

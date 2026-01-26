@@ -466,9 +466,9 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 
 
 
-#if (ENABLE_OBJECT_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
+#if (ENABLE_THREAD_DATA_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
 
-void LOG_THREAD_OBJECT(const wchar_t* str)
+void LOG_THREAD_DATA(const wchar_t* str)
 {
 	WriteDebugConsole(str);
 }

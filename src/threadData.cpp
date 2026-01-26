@@ -8,6 +8,7 @@
 #include "common.hpp"
 
 #include "Cslots.hpp"
+#include "utils.hpp"
 #include "debugConsole.h"
 
 #include "threadData.hpp"
@@ -20,24 +21,24 @@ extern Cslots gSlots;
 
 cRequests::cRequests()
 {
-    LOG_THREAD_OBJECT(L"cRequests constructor\n");
+    LOG_THREAD_DATA(L"cRequests constructor\n");
 
     handles[0]   = CREATE_EVENT(NULL, FALSE, FALSE, L"evTermRequest");     // AUTO reset, initial state
     handles[1]   = CREATE_EVENT(NULL, FALSE, FALSE, L"evRequest");         // AUTO reset, initial state
 
     sem_requests = CREATE_SEMAPHORE(NULL, 1, 1, L"semRequestData");
 
-    m_pWinThread = AfxBeginThread(thrRequests, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
-    ASSERT(m_pWinThread);
-    m_pWinThread->m_bAutoDelete = false;
-    m_pWinThread->ResumeThread();
-    SetThreadDescription(m_pWinThread->m_hThread, L"thrRequest");
+    m_pRequestsThread = AfxBeginThread(thrRequests, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
+    ASSERT(m_pRequestsThread);
+    m_pRequestsThread->m_bAutoDelete = false;
+    m_pRequestsThread->ResumeThread();
+    SetThreadDescription(m_pRequestsThread->m_hThread, L"thrRequest");
 }
 
 
 cRequests::~cRequests()
 {
-    LOG_THREAD_OBJECT(L"cRequests destructor\n");
+    LOG_THREAD_DATA(L"cRequests destructor\n");
 
     TerminateThread();
 
@@ -114,11 +115,11 @@ bool cRequests::Unlock() const
 void cRequests::TerminateThread()
 {
     SetEvent(handles[0]);
-    DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, 5000);
+    DWORD result = WaitForSingleObject(m_pRequestsThread->m_hThread, 5000);
     VERIFY(result == WAIT_OBJECT_0);
 
-    delete m_pWinThread;
-    m_pWinThread = nullptr;
+    delete m_pRequestsThread;
+    m_pRequestsThread = nullptr;
 }
 
 
@@ -139,7 +140,7 @@ void cRequests::TerminateThread()
 
 cResults::cResults()
 {
-    LOG_THREAD_OBJECT(L"cResults constructor\n");
+    LOG_THREAD_DATA(L"cResults constructor\n");
 
     sem_results = CREATE_SEMAPHORE(NULL, 1, 1, L"semResultsData");
 
@@ -150,17 +151,17 @@ cResults::cResults()
     auto slothandles = gSlots.GetResultHandles();
     handles.insert(handles.end(), slothandles.begin(), slothandles.end());
 
-    m_pWinThread = AfxBeginThread(thrResults, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
-    ASSERT(m_pWinThread);
-    m_pWinThread->m_bAutoDelete = false;
-    m_pWinThread->ResumeThread();
-    SetThreadDescription(m_pWinThread->m_hThread, L"thrResults");
+    m_pResultsThread = AfxBeginThread(thrResults, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
+    ASSERT(m_pResultsThread);
+    m_pResultsThread->m_bAutoDelete = false;
+    m_pResultsThread->ResumeThread();
+    SetThreadDescription(m_pResultsThread->m_hThread, L"thrResults");
 }
 
 
 cResults::~cResults()
 {
-    LOG_THREAD_OBJECT(L"cResults destructor\n");
+    LOG_THREAD_DATA(L"cResults destructor\n");
 
     TerminateThread();
 
@@ -220,11 +221,11 @@ const unsigned cResults::NumHandles() const
 void cResults::TerminateThread()
 {
     SetEvent(handles[0]);
-    DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, THREAD_EXIT_TIMEOUT);
+    DWORD result = WaitForSingleObject(m_pResultsThread->m_hThread, THREAD_EXIT_TIMEOUT);
     VERIFY(result == WAIT_OBJECT_0);
 
-    delete m_pWinThread;
-    m_pWinThread = nullptr;
+    delete m_pResultsThread;
+    m_pResultsThread = nullptr;
 }
 
 
@@ -237,7 +238,7 @@ void cResults::TerminateThread()
 
 cReleases::cReleases()
 {
-    LOG_THREAD_OBJECT(L"cReleases constructor\n");
+    LOG_THREAD_DATA(L"cReleases constructor\n");
 
     // Assume these Win32 Create API calls will succeed
 
@@ -251,17 +252,17 @@ cReleases::cReleases()
     handles.insert(handles.end(), slothandles.begin(), slothandles.end());
 
 
-    m_pWinThread = AfxBeginThread(thrReleases, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
-    ASSERT(m_pWinThread);
-    m_pWinThread->m_bAutoDelete = false;
-    m_pWinThread->ResumeThread();
-    SetThreadDescription(m_pWinThread->m_hThread, L"thrReleases");
+    m_pReleasesThread = AfxBeginThread(thrReleases, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
+    ASSERT(m_pReleasesThread);
+    m_pReleasesThread->m_bAutoDelete = false;
+    m_pReleasesThread->ResumeThread();
+    SetThreadDescription(m_pReleasesThread->m_hThread, L"thrReleases");
 }
 
 
 cReleases::~cReleases()
 {
-    LOG_THREAD_OBJECT(L"cReleases destructor\n");
+    LOG_THREAD_DATA(L"cReleases destructor\n");
 
     TerminateThread();
 
@@ -321,10 +322,10 @@ HWND cReleases::GetMsgWindow() const
 void cReleases::TerminateThread()
 {
     SetEvent(handles[0]);
-    DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, THREAD_EXIT_TIMEOUT);
+    DWORD result = WaitForSingleObject(m_pReleasesThread->m_hThread, THREAD_EXIT_TIMEOUT);
     VERIFY(result == WAIT_OBJECT_0);
 
-    delete m_pWinThread;
-    m_pWinThread = nullptr;
+    delete m_pReleasesThread;
+    m_pReleasesThread = nullptr;
 }
 

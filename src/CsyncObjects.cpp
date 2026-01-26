@@ -36,89 +36,6 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
-CslotsSem::CslotsSem()
-{
-    m_refcount++;
-    m_name.Format(L"slotsSem-%-u", m_refcount);
-
-    // There's only one underlying semaphore object for all instances
-    if (m_hSem == INVALID_HANDLE_VALUE)
-    {
-        LOG_SYNC_OBJECT(L"Creating underlying slot semaphore\n");
-        m_hSem = CREATE_SEMAPHORE(
-            NULL,               // Default security attributes
-            1, 1,               // Initial count, Maximum count
-            m_name );
-
-        if (m_hSem == NULL) {
-            m_last_error = GetLastError();
-            LOG_SYNC_OBJECT(L"Can't create slots semaphore\n");
-        }
-        else
-            LOG_SYNC_OBJECT(L"Base CSlotSem semaphore handle created\n");
-    }
-    LOG_SYNC_OBJECT(m_name + L" created\n");
-}
-
-
-CslotsSem::~CslotsSem()
-{
-    CString str;
-    str.Format(L"CslotsSem destructor for %s, refcount %d\n", (LPCWSTR) m_name, m_refcount);
-    LOG_SYNC_OBJECT(str);
-
-    // There's only ONE underlying semaphore handle, so only close the last instance
-    if (m_refcount == 1)
-    {
-        LOG_SYNC_OBJECT(L"Closing underlying slot semaphore\n");
-        if (CloseHandle(m_hSem) == 0)
-        {
-            m_last_error = GetLastError();
-            LOG_SYNC_OBJECT(L"Can't delete base slots CslotsSem semaphore\n");
-        }
-    }
-
-    m_refcount--;
-}
-
-
-bool CslotsSem::Lock()
-{
-    ASSERT(m_hSem != nullptr);
-
-    DWORD result = WaitForSingleObject(m_hSem, SLOT_LOCK_TIMEOUT);
-    if (CheckWaitResult(1, result))
-        return true;
-
-    m_last_error = GetLastError();
-    LOG_SYNC_OBJECT(L"CslotsSem::Lock() wait fail\n");
-    return false;
-}
-
-
-bool CslotsSem::Unlock()
-{
-    static LONG last_count = -1;
-
-    if (ReleaseSemaphore(m_hSem, 1, &last_count) != 0)
-        return true;
-
-    m_last_error = GetLastError();
-
-    CString str;
-    str.Format(L"CslotsSem::Unlock() release fail. Error %u. Count %lu\n", m_last_error, last_count);
-    LOG_SYNC_OBJECT(str);
-
-    return false;
-}
-
-
-
-
-
-
-
-
 CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles)
 {
     m_handles.insert(m_handles.end(), handles.begin(), handles.end());
@@ -173,15 +90,12 @@ int CMultiEvents::Reset(DWORD index)
 
 
 
-Sing::Sing()
+CslotsSem::CslotsSem()
 {
-    m_refcount++;
-    m_name.Format(L"slotsSem-%-u", m_refcount);
-
     // There's only one underlying semaphore object for all instances
     if (m_hSem == INVALID_HANDLE_VALUE)
     {
-        LOG_SYNC_OBJECT(L"Creating underlying slot semaphore\n");
+        LOG_SYNC_OBJECT(L"Creating underlying slots semaphore\n");
         m_hSem = CREATE_SEMAPHORE(
             NULL,               // Default security attributes
             1, 1,               // Initial count, Maximum count
@@ -192,30 +106,30 @@ Sing::Sing()
             LOG_SYNC_OBJECT(L"Can't create slots semaphore\n");
         }
         else
-            LOG_SYNC_OBJECT(L"Base CSlotSem semaphore handle created\n");
+            LOG_SYNC_OBJECT(L"Base CslotsSem semaphore handle created\n");
     }
-    LOG_SYNC_OBJECT(m_name + L" created\n");
+    else
+        LOG_SYNC_OBJECT(m_name + L" already created\n");
 }
 
-Sing::~Sing()
+CslotsSem::~CslotsSem()
 {
-    CString str;
-    str.Format(L"Destroying Sing refcount %u\n", m_refcount);
-    LOG_SYNC_OBJECT(str);
+    LOG_SYNC_OBJECT(L"Destroying CslotsSem object\n");
 
-    m_refcount--;
-    if (m_hSem)
+    // There's only one actual semaphore
+    if (m_hSem != INVALID_HANDLE_VALUE) {
         CloseHandle(m_hSem);
-    m_hSem = INVALID_HANDLE_VALUE;
+        m_hSem = INVALID_HANDLE_VALUE;
+    }
 }
 
-Sing& Sing::getInstance()
+CslotsSem& CslotsSem::getInstance()
 {
-    static Sing instance;      // Guaranteed to be destroyed. Instantiated on first use.
+    static CslotsSem instance;      // Guaranteed to be destroyed. Instantiated on first use.
     return instance;
 }
 
-bool Sing::Lock()
+bool CslotsSem::Lock()
 {
     ASSERT(m_hSem != INVALID_HANDLE_VALUE);
 
@@ -226,13 +140,13 @@ bool Sing::Lock()
     m_last_error = GetLastError();
 
     CString str;
-    str.Format(L"CslotsSem::Lock() wait fail. Error %u. Count %lu\n", m_last_error, m_refcount);
+    str.Format(L"CslotsSem::Lock() wait fail. Error %u\n", m_last_error);
 
     LOG_SYNC_OBJECT(L"CslotsSem::Lock() wait fail\n");
     return false;
 }
 
-bool Sing::Unlock()
+bool CslotsSem::Unlock()
 {
     static LONG last_count = -1;
 

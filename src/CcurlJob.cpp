@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "curl/curl.h"
+#include "debugConsole.h"
 
 #include "CcurlJob.hpp"
 
@@ -52,7 +53,7 @@ bool cCurlJob::fetchUrl()
     struct curl_slist* headers = nullptr;
 
     // If we can't init a simple session, return an init error.
-    if ((curl_handle = curl_easy_init()) == NULL)
+    if ((curl_handle = curl_easy_init()) == nullptr)
     {
         m_curl_result = CURLE_FAILED_INIT;
         return false;
@@ -105,6 +106,10 @@ bool cCurlJob::downloadShow()
         if (--retry_counter > 0)
             Sleep( CURL_RETRY_DELAY );
     } while (retry_counter > 0);
+
+    if (retry_counter == 0) {
+        DebugBreak();
+    }
 
     return curl_ok;
 }

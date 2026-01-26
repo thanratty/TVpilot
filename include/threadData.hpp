@@ -1,6 +1,7 @@
 #pragma once
 
-
+#include <vector>
+#include <queue>
 
 
 /**
@@ -32,10 +33,8 @@ private:
 
 
 private:
-    HANDLE                      m_evRequest{ INVALID_HANDLE_VALUE };
-    HANDLE                      sem_requests{ INVALID_HANDLE_VALUE };
-
-    CWinThread*                 m_pWinThread{ nullptr };    // The thrRequests() thread
+    inline static HANDLE        sem_requests{ INVALID_HANDLE_VALUE };
+    CWinThread*                 m_pRequestsThread{ nullptr };
 
     // Entry #0 is the terminate event, #1 is the request event
     std::vector<HANDLE>         handles = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
@@ -77,8 +76,8 @@ private:
 
 private:
     inline static HANDLE    sem_results;
+    CWinThread*             m_pResultsThread{ nullptr };
 
-    CWinThread*             m_pWinThread{ nullptr };
     HWND                    m_hMsgWin{ NULL };
     DWORD                   m_last_error{ 0 };
     std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event, the rest are each slot's result event
@@ -112,8 +111,9 @@ private:
     void TerminateThread();
 
 private:
-    CWinThread*             m_pWinThread{ nullptr };
-    HANDLE                  sem_releases{ INVALID_HANDLE_VALUE };
+    inline static HANDLE    sem_releases{ INVALID_HANDLE_VALUE };
+    CWinThread*             m_pReleasesThread{ nullptr };
+
     DWORD                   m_last_error{ 0 };
     HWND                    m_hMsgWin{ 0 };
     std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event

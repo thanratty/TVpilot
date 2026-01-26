@@ -12,6 +12,7 @@
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
 #include "threadData.hpp"
+#include "utils.hpp"
 #include "debugConsole.h"
 
 #include "threadFuncs.hpp"
@@ -46,7 +47,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval;
 
-	LOG_THREAD_OBJECT(L"thrSlotThread created\n");
+	LOG_THREAD_DATA(L"thrSlotThread created\n");
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
@@ -57,7 +58,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
-			LOG_THREAD_OBJECT(L"thrSlotThread wait file\n");
+			LOG_THREAD_DATA(L"thrSlotThread wait file\n");
 			continue;
 		}
 
@@ -68,7 +69,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (slot.GetExitFlag()) {
 			slot.SetState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
-			LOG_THREAD_OBJECT(L"thrSlotThread exiting\n");
+			LOG_THREAD_DATA(L"thrSlotThread exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -136,10 +137,11 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 	// Lock objects last the life of the thread. Only two events to watch.
 	CMultiEvents	events(requests.Handles());
-	CslotsSem		slotslock;
 	int				freeslot;
 
-	LOG_THREAD_OBJECT(L"thrRequests starting\n");
+	CslotsSem&		slotslock = CslotsSem::getInstance();
+
+	LOG_THREAD_DATA(L"thrRequests starting\n");
 
 	while (true)
 	{
@@ -147,13 +149,13 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_OBJECT(L"theRequests Wait failed\n");
+			LOG_THREAD_DATA(L"theRequests Wait failed\n");
 			continue;
 		}
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_OBJECT(L"thrRequests exiting\n");
+			LOG_THREAD_DATA(L"thrRequests exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -187,18 +189,20 @@ UINT __cdecl thrResults( LPVOID pParam )
 	cResults&		results = *static_cast<cResults*>(pParam);
 	CMultiEvents	events(results.Handles());
 
+	LOG_THREAD_DATA(L"thrResults starting\n");
+
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_OBJECT(L"thrResults Wait failed\n");
+			LOG_THREAD_DATA(L"thrResults Wait failed\n");
 			continue;
 		}
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_OBJECT(L"thrResults exiting\n");
+			LOG_THREAD_DATA(L"thrResults exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -220,24 +224,24 @@ UINT __cdecl thrResults( LPVOID pParam )
 UINT __cdecl thrReleases( LPVOID pParam )
 {
 	cReleases&		releases = *static_cast<cReleases*>(pParam);
-
 	CMultiEvents	events(releases.Handles());
-	CslotsSem		slotslock;
 
-	LOG_THREAD_OBJECT(L"thrReleases starting\n");
+	CslotsSem&		slotslock = CslotsSem::getInstance();
+
+	LOG_THREAD_DATA(L"thrReleases starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_OBJECT(L"thrReleases Wait failed\n");
+			LOG_THREAD_DATA(L"thrReleases Wait failed\n");
 			continue;
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_OBJECT(L"thrReleases exiting\n");
+			LOG_THREAD_DATA(L"thrReleases exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -245,13 +249,13 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock()) {
-			LOG_THREAD_OBJECT(L"Can't acquire thrRelease slots lock\n");
+			LOG_THREAD_DATA(L"thrRelease can't acquire slots lock\n");
 		}
 		else {
 			releases.ReleaseSlot(slotnum);
 			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
 			if (!slotslock.Unlock())
-				LOG_THREAD_OBJECT(L"Can't release thrRelease slots semaphore\n");
+				LOG_THREAD_DATA(L"thrRelease can't release slots lock\n");
 		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);

@@ -227,8 +227,8 @@ bool CheckWaitResult(unsigned numevents, DWORD result);
 
 
 
-#if (ENABLE_OBJECT_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-void LOG_THREAD_OBJECT(const wchar_t* str);
+#if (ENABLE_THREAD_DATA_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
+void LOG_THREAD_DATA(const wchar_t* str);
 #else
 #define		LOG_THREAD_OBJECT(x)     do {} while (0)
 #endif

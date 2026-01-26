@@ -27,7 +27,7 @@ void WriteDebugConsole(const wchar_t* str)
 {
 DWORD dwCharsWritten;
 
-	if (hDebugConsole)
+	if (hDebugConsole != INVALID_HANDLE_VALUE)
 	{
 		int len = wcslen(str);
 		WriteConsole(hDebugConsole, str, len, &dwCharsWritten, NULL);
@@ -71,6 +71,7 @@ void OpenDebugConsole()
 
 void CloseDebugConsole()
 {
+	WriteDebugConsole(L"Closing console\n");
 	FreeConsole();
 	hDebugConsole = INVALID_HANDLE_VALUE;
 }
