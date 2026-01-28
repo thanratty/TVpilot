@@ -172,20 +172,20 @@ void EvalShowLastNextDates(show* pshow);
 
 
 #ifdef _DEBUG
-#define		DebugWriteMessageLog(x)		WriteMessageLog(x)
+#define		DebugLogMsgWindow(x)		LogMsgWindow(x)
 #else
-#define		DebugWriteMessageLog(x)		do {} while(0)
+#define		DebugLogMsgWindow(x)		do {} while(0)
 #endif
 
 
 /**
  * Set and write to the debug dialog box
  */
-void SetMessageLog(CEdit* pedit);
-void WriteMessageLog(CString& msg);
-void WriteMessageLog(const char* pchars);
-void WriteMessageLog(const wchar_t* pwchars);
-void WriteMessageLog(const std::string& str);
+void SetMsgWindow(CEdit* pedit);
+void LogMsgWindow(CString& msg);
+void LogMsgWindow(const char* pchars);
+void LogMsgWindow(const wchar_t* pwchars);
+void LogMsgWindow(const std::string& str);
 
 
 /**
@@ -224,12 +224,4 @@ void ReplaceAllSubstrings(std::string& str, const char* sub);
 
 bool CheckWaitResult(unsigned numevents, DWORD result);
 
-
-
-
-#if (ENABLE_THREAD_DATA_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-void LOG_THREAD_DATA(const wchar_t* str);
-#else
-#define		LOG_THREAD_OBJECT(x)     do {} while (0)
-#endif
 

@@ -10,8 +10,24 @@
 #include "Cslots.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
+#include "logging.hpp"
 
 #include "threadData.hpp"
+
+
+
+
+
+
+#if (ENABLE_THREAD_DATA_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
+void LOG_THREAD_DATA(const wchar_t* str);
+#else
+#define		LOG_THREAD_DATA(x)     do {} while (0)
+#endif
+
+
+
+
 
 
 
@@ -87,7 +103,7 @@ std::string cRequests::Pop()
 {
     std::string str;
     if (url_queue.empty()) {
-        WriteDebugConsole(L"cReguests Pop() on empty queue!\n");
+        LOG_THREAD_DATA(L"cReguests Pop() on empty queue!\n");
     }
     else {
         Lock();
@@ -186,11 +202,14 @@ HWND cResults::GetMsgWindow() const
 // Returns true if locked OK
 bool cResults::Lock() const
 {
-    WriteDebugConsole(L"Results::Lock Enter\n");
-    DWORD result = WaitForSingleObject(sem_results, INFINITE);
-    WriteDebugConsole(L"Results::Lock Exit\n");
+    LOG_THREAD_DATA(L"Results::Lock Enter\n");
 
-    return CheckWaitResult(1, result);
+    DWORD result = WaitForSingleObject(sem_results, INFINITE);
+    bool retval = CheckWaitResult(1, result);
+
+    LOG_THREAD_DATA(L"Results::Lock Enter\n");
+    return retval;
+
 }
 
 // Returns true if unlocked OK
@@ -198,11 +217,11 @@ bool cResults::Unlock() const
 {
     [[ maybe_unused]] LONG last_value;
 
-    WriteDebugConsole(L"Results::Unock Enter\n");
-    BOOL result = ReleaseSemaphore(sem_results, 1, &last_value);
-    VERIFY(result);
-    WriteDebugConsole(L"Results::Unlock Exit\n");
+    LOG_THREAD_DATA(L"Results::Unock Enter\n");
 
+    BOOL result = ReleaseSemaphore(sem_results, 1, &last_value);
+
+    LOG_THREAD_DATA(L"Results::Unlock Exit\n");
     return (result) ? true : false;
 }
 
@@ -279,23 +298,26 @@ void cReleases::ReleaseSlot(DWORD slotnum)
 
 bool cReleases::Lock()
 {
-    WriteDebugConsole(L"Releases::Lock Enter\n");
-    DWORD result = WaitForSingleObject(sem_releases, INFINITE);
-    WriteDebugConsole(L"Releases::Lock Exit\n");
+    LOG_THREAD_DATA(L"Releases::Lock Enter\n");
 
-    return CheckWaitResult(1, result);
+    DWORD result = WaitForSingleObject(sem_releases, INFINITE);
+    bool retval = CheckWaitResult(1, result);
+
+    LOG_THREAD_DATA(L"Releases::Lock Exit\n");
+
+    return retval;
 }
 
 bool cReleases::Unlock()
 {
     [[ maybe_unused]] LONG last_value;
 
-    WriteDebugConsole(L"Releases::Unlock Enter\n");
-    BOOL result = ReleaseSemaphore(sem_releases, 1, &last_value);
-    ASSERT(result);
-    WriteDebugConsole(L"Releases::Unlock Exit\n");
+    LOG_THREAD_DATA(L"Releases::Unlock Enter\n");
 
-    return result;
+    BOOL result = ReleaseSemaphore(sem_releases, 1, &last_value);
+
+    LOG_THREAD_DATA(L"Releases::Unlock Exit\n");
+    return (result) ? true : false;
 }
 
 const std::vector<HANDLE>& cReleases::Handles() const
@@ -329,3 +351,16 @@ void cReleases::TerminateThread()
     m_pReleasesThread = nullptr;
 }
 
+
+
+
+
+
+#if (ENABLE_THREAD_DATA_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
+
+void LOG_THREAD_DATA(const wchar_t* str)
+{
+    LOG_WRITE(eLogFlags::THREAD_DATA, str);
+}
+
+#endif

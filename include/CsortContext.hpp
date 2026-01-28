@@ -71,7 +71,7 @@ public:
 		// Not a column we can sort on? Just return.
 		if (m_sort_map->find(column) == m_sort_map->end())
 		{
-			WriteMessageLog(L"Unsortable column clicked. Ignored.");
+			LogMsgWindow(L"Unsortable column clicked. Ignored.");
 			return false;
 		}
 

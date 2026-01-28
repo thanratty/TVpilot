@@ -24,7 +24,7 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
-#if (ENABLE_CONSOLE_WINDOW==1) && (ENABLE_SYNC_OBJECT_TRACKING==1) && defined (_DEBUG)
+#if (CONSOLE_LOGGING_ENABLED==1) && (ENABLE_SYNC_OBJECT_LOGGING==1) && defined (_DEBUG)
 #define     LOG_SYNC_OBJECT(msg)     WriteDebugConsole(msg)
 #else
 #define     LOG_SYNC_OBJECT(x,...)     do {} while(0)

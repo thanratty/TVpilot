@@ -214,7 +214,7 @@ void CDShows::OnColumnClickShowList(NMHDR* pNMHDR, LRESULT* pResult)
  */
 void CDShows::OnCancel()
 {
-	WriteMessageLog(L"CDShows::OnCancel() discarded");
+	LogMsgWindow(L"CDShows::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
@@ -227,7 +227,7 @@ void CDShows::OnCancel()
  */
 void CDShows::OnOK()
 {
-	WriteMessageLog(L"CDShows::OnOK() discarded");
+	LogMsgWindow(L"CDShows::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

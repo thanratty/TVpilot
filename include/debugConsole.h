@@ -3,7 +3,7 @@
 #include "config.h"
 
 
-#if (ENABLE_CONSOLE_WINDOW==1) && defined(_DEBUG)
+#if (CONSOLE_LOGGING_ENABLED==1) && defined(_DEBUG)
 
 
 void OpenDebugConsole();

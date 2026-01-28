@@ -248,7 +248,7 @@ void CDShowZoom::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			break;
 
 		default:
-			WriteMessageLog(L"Unknown menu option selected");
+			LogMsgWindow(L"Unknown menu option selected");
 			break;
 	}
 }

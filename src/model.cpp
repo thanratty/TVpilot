@@ -146,7 +146,7 @@ show* model::FindShow(DWORD search_hash, eSHOWLIST source)
 
     if (search_hash == DWORD_MAX)
     {
-        WriteMessageLog(L"model::FindShow() bad hash");
+        LogMsgWindow(L"model::FindShow() bad hash");
     }
     else
     {
@@ -365,7 +365,7 @@ bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
     // At the end already?
     if (index > m_guide.size() - 1)
     {
-        DebugWriteMessageLog(L"GetFilteredEpisode(): All done");
+        DebugLogMsgWindow(L"GetFilteredEpisode(): All done");
         return false;
     }
 
@@ -502,7 +502,7 @@ bool model::DownloadAllShows()
         dm.DownloadShow(ashow.epguides_url);
     }
 
-    WriteMessageLog(L"All shows queued for download");
+    LogMsgWindow(L"All shows queued for download");
     return true;
 }
 
@@ -522,7 +522,7 @@ bool model::DownloadSingleShow(DWORD hash)
     // Already downloading?
     if (dm.DownloadInProgress()) {
         CString error1(L"Download already in progress!");
-        WriteMessageLog(error1);
+        LogMsgWindow(error1);
         AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
         return false;
     }
@@ -531,7 +531,7 @@ bool model::DownloadSingleShow(DWORD hash)
     show* pShow = FindShow(hash, eSHOWLIST::ACTIVE);
     if (pShow == nullptr) {
         CString error1(L"DownloadSingleShow() : Can't find show");
-        WriteMessageLog(error1);
+        LogMsgWindow(error1);
         AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
         return FALSE;
     }
@@ -549,7 +549,7 @@ bool model::DownloadSingleShow(DWORD hash)
     m_ping_received = 0;
 
     dm.DownloadShow(pShow->epguides_url);
-    WriteMessageLog(L"Download requested");
+    LogMsgWindow(L"Download requested");
 
     // NB  TODO Do I need to filter for new_show in ping handler?
 
@@ -592,7 +592,7 @@ void model::OnDownloadPing(DWORD slotnum)
     if (gSlots.IsFree(slotnum) || (gSlots.GetState(slotnum) != eSlotState::SS_NOTIFY_SENT))
     {
         const wchar_t* msg = L"ERROR! Empty slot or bad slotstate signalled.";
-        WriteMessageLog(msg);
+        LogMsgWindow(msg);
         WriteDebugConsole(msg);
         MessageBeep(MB_ICONASTERISK);
         CheckDownloadComplete();
@@ -608,7 +608,7 @@ void model::OnDownloadPing(DWORD slotnum)
     if (gSlots.GetThreadResult(slotnum) != eThreadResult::TR_OK)
     {
         gSlots.SetState(slotnum, eSlotState::SS_JOB_ERROR);
-        WriteMessageLog("DownloadPing() Download error, aborting : " + gSlots.GetErrorString(slotnum));
+        LogMsgWindow("DownloadPing() Download error, aborting : " + gSlots.GetErrorString(slotnum));
         originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
         AbortDownload();
     }
@@ -649,7 +649,7 @@ void model::OnDownloadPing(DWORD slotnum)
                 if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
                     std::ostringstream str;
                     str << "New episode " << (originalShow->title) << " " << ep.ep_num;
-                    WriteMessageLog(str.str());
+                    LogMsgWindow(str.str());
                 }
             }
         }
@@ -671,7 +671,7 @@ void model::OnDownloadPing(DWORD slotnum)
  */
 bool model::DownloadComplete()
 {
-    WriteMessageLog(L"Download Complete()");
+    LogMsgWindow(L"Download Complete()");
 
     bool bHadDownloadErrors = false;
 
@@ -689,7 +689,7 @@ bool model::DownloadComplete()
             {
                 bHadDownloadErrors = true;
                 std::string msg = "DownloadComplete(): Show download failed " + sh.epguides_url;
-                WriteMessageLog(msg);
+                LogMsgWindow(msg);
 
                 if (sh.state & showstate::SH_ST_NEW_SHOW)
                 {
@@ -814,7 +814,7 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
 
         if (ep_ref == pshow->episodes.end())
         {
-            WriteMessageLog(L"EpisodeFlagsChange(): Episode not found");
+            LogMsgWindow(L"EpisodeFlagsChange(): Episode not found");
             retval = false;
         }
         else

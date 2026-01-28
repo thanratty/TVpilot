@@ -222,7 +222,7 @@ void CDSchedule::AppendRow(const sScheduleListEntry* gle)
 
 void CDSchedule::OnOK()
 {
-	WriteMessageLog(L"CDSchedule::OnOK() discarded");
+	LogMsgWindow(L"CDSchedule::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

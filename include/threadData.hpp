@@ -119,3 +119,5 @@ private:
     std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event
 };
 
+
+

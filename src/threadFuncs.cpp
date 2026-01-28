@@ -14,6 +14,7 @@
 #include "threadData.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
+#include "logging.hpp"
 
 #include "threadFuncs.hpp"
 
@@ -29,6 +30,12 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob);
 
 
 
+
+#if (ENABLE_THREAD_FUNC_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
+STATIC void LOG_THREAD_FUNC(const wchar_t* str);
+#else
+#define		LOG_THREAD_FUNC(x)     do {} while (0)
+#endif
 
 
 
@@ -47,7 +54,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval;
 
-	LOG_THREAD_DATA(L"thrSlotThread created\n");
+	LOG_THREAD_FUNC(L"thrSlotThread created\n");
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
@@ -58,7 +65,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
-			LOG_THREAD_DATA(L"thrSlotThread wait file\n");
+			LOG_THREAD_FUNC(L"thrSlotThread wait file\n");
 			continue;
 		}
 
@@ -69,7 +76,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		if (slot.GetExitFlag()) {
 			slot.SetState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
-			LOG_THREAD_DATA(L"thrSlotThread exiting\n");
+			LOG_THREAD_FUNC(L"thrSlotThread exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -141,7 +148,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 	CslotsSem&		slotslock = CslotsSem::getInstance();
 
-	LOG_THREAD_DATA(L"thrRequests starting\n");
+	LOG_THREAD_FUNC(L"thrRequests starting\n");
 
 	while (true)
 	{
@@ -149,13 +156,13 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_DATA(L"theRequests Wait failed\n");
+			LOG_THREAD_FUNC(L"theRequests Wait failed\n");
 			continue;
 		}
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_DATA(L"thrRequests exiting\n");
+			LOG_THREAD_FUNC(L"thrRequests exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -189,20 +196,20 @@ UINT __cdecl thrResults( LPVOID pParam )
 	cResults&		results = *static_cast<cResults*>(pParam);
 	CMultiEvents	events(results.Handles());
 
-	LOG_THREAD_DATA(L"thrResults starting\n");
+	LOG_THREAD_FUNC(L"thrResults starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_DATA(L"thrResults Wait failed\n");
+			LOG_THREAD_FUNC(L"thrResults Wait failed\n");
 			continue;
 		}
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_DATA(L"thrResults exiting\n");
+			LOG_THREAD_FUNC(L"thrResults exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -228,20 +235,20 @@ UINT __cdecl thrReleases( LPVOID pParam )
 
 	CslotsSem&		slotslock = CslotsSem::getInstance();
 
-	LOG_THREAD_DATA(L"thrReleases starting\n");
+	LOG_THREAD_FUNC(L"thrReleases starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_DATA(L"thrReleases Wait failed\n");
+			LOG_THREAD_FUNC(L"thrReleases Wait failed\n");
 			continue;
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_DATA(L"thrReleases exiting\n");
+			LOG_THREAD_FUNC(L"thrReleases exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -249,13 +256,13 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock()) {
-			LOG_THREAD_DATA(L"thrRelease can't acquire slots lock\n");
+			LOG_THREAD_FUNC(L"thrRelease can't acquire slots lock\n");
 		}
 		else {
 			releases.ReleaseSlot(slotnum);
 			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
 			if (!slotslock.Unlock())
-				LOG_THREAD_DATA(L"thrRelease can't release slots lock\n");
+				LOG_THREAD_FUNC(L"thrRelease can't release slots lock\n");
 		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);
@@ -283,3 +290,13 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob)
 
 #endif
 
+
+
+#if (ENABLE_THREAD_FUNC_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
+
+STATIC void LOG_THREAD_FUNC(const wchar_t* str)
+{
+	WriteDebugConsole(str);
+}
+
+#endif

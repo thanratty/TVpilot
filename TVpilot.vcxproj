@@ -135,6 +135,7 @@
     <ClInclude Include="include\common.hpp" />
     <ClInclude Include="include\config.h" />
     <ClInclude Include="include\debugConsole.h" />
+    <ClInclude Include="include\logging.hpp" />
     <ClInclude Include="include\threadData.hpp" />
     <ClInclude Include="include\TVpilot.hpp" />
     <ClInclude Include="include\framework.h" />
@@ -163,6 +164,7 @@
     <ClCompile Include="src\Cshow.cpp" />
     <ClCompile Include="src\CsyncObjects.cpp" />
     <ClCompile Include="src\debugConsole.cpp" />
+    <ClCompile Include="src\logging.cpp" />
     <ClCompile Include="src\threadData.cpp" />
     <ClCompile Include="src\TVpilot.cpp" />
     <ClCompile Include="src\model.cpp" />

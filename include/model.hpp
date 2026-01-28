@@ -125,7 +125,7 @@ public:
             else
             {
                 CString str(L"NumShows() : Bad show list");
-                WriteMessageLog(str);
+                LogMsgWindow(str);
                 AfxMessageBox(str);
                 return 0;
             }

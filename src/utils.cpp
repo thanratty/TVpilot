@@ -244,12 +244,12 @@ void CopyOutShowInfo(sShowListEntry* sle, const show* pshow)
  * A few routines to allow writing debug/trace messages to the seperate debug
  * window.
  */
-void SetMessageLog(CEdit* pedit)
+void SetMsgWindow(CEdit* pedit)
 {
 	pLoggingWindow = pedit;
 }
 
-void WriteMessageLog(CString& msg)
+void LogMsgWindow(CString& msg)
 {
 	if (pLoggingWindow)
 	{
@@ -260,21 +260,21 @@ void WriteMessageLog(CString& msg)
 	}
 }
 
-void WriteMessageLog(const char* pchars)
+void LogMsgWindow(const char* pchars)
 {
 	CString s(pchars);
-	WriteMessageLog(s);
+	LogMsgWindow(s);
 }
 
-void WriteMessageLog(const wchar_t* pwchars)
+void LogMsgWindow(const wchar_t* pwchars)
 {
 	CString s(pwchars);
-	WriteMessageLog(s);
+	LogMsgWindow(s);
 }
 
-void WriteMessageLog(const std::string& str)
+void LogMsgWindow(const std::string& str)
 {
-	WriteMessageLog(str.c_str());
+	LogMsgWindow(str.c_str());
 }
 
 void MessageExit(const wchar_t* msg)
@@ -464,17 +464,3 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 
 
 
-
-
-#if (ENABLE_THREAD_DATA_TRACKING==1) && defined(_DEBUG) && (ENABLE_CONSOLE_WINDOW==1)
-
-void LOG_THREAD_DATA(const wchar_t* str)
-{
-	WriteDebugConsole(str);
-}
-
-#else
-
-#define		LOG_THREAD_OBJECT(x)     do {} while (0)
-
-#endif

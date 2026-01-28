@@ -20,6 +20,7 @@
 #include "CepcheckDlg.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
+#include "logging.hpp"
 
 #include "TVpilot.hpp"
 
@@ -100,6 +101,9 @@ BOOL CepcheckApp::InitInstance()
 	// Depending on config.h this creates a console for debug messages
 	OpenDebugConsole();
 
+	// Start logging thread etc
+	LOG_INIT();
+
 	/**
 	 * We used to need the CSV file for TVmaze show numbers but we now
 	 * scrape that info from epguides.com along with the IMDB url.
@@ -144,10 +148,12 @@ BOOL CepcheckApp::InitInstance()
 #endif
 
 
-	xmlCleanupParser();
-	curl_global_cleanup();
+	LOG_EXIT();
 
 	CloseDebugConsole();
+
+	xmlCleanupParser();
+	curl_global_cleanup();
 
 	// Since the dialog has been closed, return FALSE so that we exit the
 	//  application, rather than start the application's message pump.

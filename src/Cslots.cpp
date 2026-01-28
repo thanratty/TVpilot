@@ -80,7 +80,7 @@ void Cslot::SetUrl(const std::string& url)
     }
     else
     {
-        WriteMessageLog(L"SetUrl slot not free!");
+        LogMsgWindow(L"SetUrl slot not free!");
     }
 }
 
@@ -109,7 +109,7 @@ void Cslot::TerminateThread()
         if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread, THREAD_TERMINATE_TIMEOUT))
             m_slotstate = eSlotState::SS_THREAD_EXITED;
         else
-            WriteMessageLog(L"Slot thread didn't terminate within timeout");
+            LogMsgWindow(L"Slot thread didn't terminate within timeout");
 
         delete m_pWinThread;
         m_pWinThread = nullptr;

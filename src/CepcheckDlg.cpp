@@ -17,6 +17,7 @@
 #include "CdownloadManager.hpp"
 #include "utils.hpp"
 #include "debugConsole.h"
+#include "logging.hpp"
 
 #include "CepcheckDlg.hpp"
 
@@ -156,7 +157,7 @@ BOOL CepcheckDlg::OnInitDialog()
 
 	// Create the dialog box for debug messages
 	m_dlgMessages.Create(IDD_MESSAGES, this);
-	SetMessageLog(&m_dlgMessages.m_messages);
+	SetMsgWindow(&m_dlgMessages.m_messages);
 
 
 	// If this is a debug build, show the 'Break' UI button
@@ -201,6 +202,8 @@ BOOL CepcheckDlg::OnInitDialog()
 	// If we start with a new/empty database, all we can initally do is add a new show
 	if (m_data.IsNewDataFile())
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
+
+	LOG_WRITE(eLogFlags::INFO, L"LOG: Init done");
 
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
@@ -286,7 +289,7 @@ void CepcheckDlg::OnBtnClickedDownload()
 	if (m_data.DownloadAllShows())
 	{
 		// Set appropriate button states during download
-		WriteMessageLog(L"Downloading all shows...");
+		LogMsgWindow(L"Downloading all shows...");
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 
 		// Enable the 'Cancel Download' button in the massage box
@@ -307,7 +310,7 @@ void CepcheckDlg::OnBtnClickedDeleteShow()
 	// Can only delete when the Archived list is displayed, not the Schedule or Show list.
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
 	{
-		WriteMessageLog(L"Must be on 'Archive' tab to delete a show");
+		LogMsgWindow(L"Must be on 'Archive' tab to delete a show");
 		MessageBeep(UINT_MAX);
 		return;
 	}
@@ -621,7 +624,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM lParam )
 	const show* pshow = m_data.FindShow(hash, eSHOWLIST::BOTH);
 
 	if (pshow == nullptr) {
-		WriteMessageLog(L"OnZoomEpisodes() show not found");
+		LogMsgWindow(L"OnZoomEpisodes() show not found");
 		AfxMessageBox(L"Can't find show!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 	}
 	else
@@ -703,7 +706,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 		if ((INT_PTR)h <= 32) {
 			CString msg;
 			msg.Format(L"ShellExecute returned % d", (INT_PTR)h);
-			WriteMessageLog(msg);
+			LogMsgWindow(msg);
 			AfxMessageBox(L"Can't open web browser!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		}
 	}
@@ -729,7 +732,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	if (pshow == nullptr)
 	{
 		AfxMessageBox(L"Show not found for context menu.", MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL );
-		WriteMessageLog(L"CepcheckDlg::OnShowContextMenu(): hash not found");
+		LogMsgWindow(L"CepcheckDlg::OnShowContextMenu(): hash not found");
 		return 0;
 	}
 
@@ -780,7 +783,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	{
 		CStringW s{ L"Unrecognised context for right mouse button." };
 		AfxMessageBox(s, MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
-		WriteMessageLog(s);
+		LogMsgWindow(s);
 	}
 
 
@@ -866,7 +869,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			if (m_data.DownloadSingleShow(hash) == false)
 				AfxMessageBox(L"Refresh show failed", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 			else
-				WriteMessageLog(L"Refreshing show...");
+				LogMsgWindow(L"Refreshing show...");
 			break;
 
 
@@ -895,7 +898,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 
 
 		default:
-			WriteMessageLog(L"OnShowContextMenu(): Unhandled menu selection");
+			LogMsgWindow(L"OnShowContextMenu(): Unhandled menu selection");
 			return 1;
 			break;
 	}
@@ -951,6 +954,9 @@ static BOOL visible = false;
 	chkbox->SetCheck(visible);
 
 	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
+
+	LOG_WRITE(eLogFlags::INFO, L"LOG: BOING %u", visible);
+
 }
 
 
@@ -986,7 +992,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 #if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
 	CString _msg;
 	_msg.Format(L"eAppevent: %d", event);
-	WriteMessageLog(_msg);
+	LogMsgWindow(_msg);
 #endif
 
 	// Have a few useful values handy
@@ -1098,7 +1104,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 		default:
 			CString str;
 			str.Format(L"Unhandled eAppevent: %d", event);
-			WriteMessageLog(str);
+			LogMsgWindow(str);
 			break;
 	}
 
@@ -1187,7 +1193,7 @@ void CepcheckDlg::OnBtnClickedBreak()
  */
 void CepcheckDlg::OnOK()
 {
-	WriteMessageLog(L"CepcheckDlg::OnOK() discarded");
+	LogMsgWindow(L"CepcheckDlg::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

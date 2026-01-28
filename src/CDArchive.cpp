@@ -178,13 +178,13 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 
 void CDArchive::OnCancel()
 {
-	WriteMessageLog(L"CDArchive::OnCancel() discarded");
+	LogMsgWindow(L"CDArchive::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
 void CDArchive::OnOK()
 {
-	WriteMessageLog(L"CDArchive::OnOK() discarded");
+	LogMsgWindow(L"CDArchive::OnOK() discarded");
 	//CDialog::OnOK();
 }
 
