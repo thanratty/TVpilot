@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "curl/curl.h"
-#include "debugConsole.h"
 
 #include "CcurlJob.hpp"
 

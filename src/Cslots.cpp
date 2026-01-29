@@ -106,7 +106,7 @@ void Cslot::TerminateThread()
         m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
 
         SetEvent(m_hEvRequest);
-        if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread, THREAD_TERMINATE_TIMEOUT))
+        if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
             m_slotstate = eSlotState::SS_THREAD_EXITED;
         else
             LogMsgWindow(L"Slot thread didn't terminate within timeout");

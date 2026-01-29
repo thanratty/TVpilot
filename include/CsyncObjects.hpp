@@ -18,8 +18,8 @@
 class CMultiEvents
 {
 public:
-    //CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events );
-    CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles);
+    CMultiEvents(const std::vector<HANDLE>& handles);
+    ~CMultiEvents();
 
     int     Wait();
     int     Reset(DWORD index);

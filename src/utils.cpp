@@ -21,7 +21,7 @@
 #include "CDInputBox.hpp"
 #include "CsortContext.hpp"
 #include "Cslots.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
 
 #include "utils.hpp"
 
@@ -31,7 +31,6 @@ using namespace boost;
 
 
 
-STATIC CEdit* pLoggingWindow = nullptr;
 
 
 
@@ -43,9 +42,9 @@ bool CheckWaitResult(unsigned numevents, DWORD result)
 	if ((result >= WAIT_OBJECT_0) && (result < WAIT_OBJECT_0 + numevents))
 		return true;
 
-	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only)
+	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
 
-	WriteDebugConsole(L"CheckWaitResult() failed!\n");
+	LOG_WRITE( eLogFlags::INFO, L"CheckWaitResult() failed: %08X\n", result);
 	return false;
 }
 
@@ -85,7 +84,7 @@ DWORD SimpleHash(const CString& url)
 /**
  * Convert "SS-EE" formatted episode string to a number for temporal ordering
  */
-static unsigned EpisodeToNumber(const CString& epstring)
+STATIC unsigned EpisodeToNumber(const CString& epstring)
 {
 	int season{ 0 }, epnum{ 0 };
 
@@ -106,7 +105,7 @@ static unsigned EpisodeToNumber(const CString& epstring)
  */
 int EpisodeCompareFunc(const CString& episode1, const CString& episode2, bool ascending)
 {
-	int result{ 0 };
+	int result;
 
 	unsigned ep1 = EpisodeToNumber( episode1 );
 	unsigned ep2 = EpisodeToNumber( episode2 );
@@ -115,6 +114,8 @@ int EpisodeCompareFunc(const CString& episode1, const CString& episode2, bool as
 		result = -1;
 	else if (ep1 > ep2)
 		result = 1;
+	else
+		result = 0;
 
 	return (ascending) ? result : -result;
 }
@@ -240,42 +241,6 @@ void CopyOutShowInfo(sShowListEntry* sle, const show* pshow)
 
 
 
-/**
- * A few routines to allow writing debug/trace messages to the seperate debug
- * window.
- */
-void SetMsgWindow(CEdit* pedit)
-{
-	pLoggingWindow = pedit;
-}
-
-void LogMsgWindow(CString& msg)
-{
-	if (pLoggingWindow)
-	{
-		CString str = msg + CString(L"\r\n");
-		int length = pLoggingWindow->GetWindowTextLength();
-		pLoggingWindow->SetSel(length, length);
-		pLoggingWindow->ReplaceSel(str);
-	}
-}
-
-void LogMsgWindow(const char* pchars)
-{
-	CString s(pchars);
-	LogMsgWindow(s);
-}
-
-void LogMsgWindow(const wchar_t* pwchars)
-{
-	CString s(pwchars);
-	LogMsgWindow(s);
-}
-
-void LogMsgWindow(const std::string& str)
-{
-	LogMsgWindow(str.c_str());
-}
 
 void MessageExit(const wchar_t* msg)
 {
@@ -286,14 +251,13 @@ void MessageExit(const wchar_t* msg)
 
 
 
-
 bool EditUrl_Epguides(show* pshow)
 {
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title = L"Epguides";
+	dlg.m_title  = L"Epguides";
 	dlg.m_prompt = L"Enter show URL for epguides.com";
-	dlg.m_input = pshow->epguides_url.c_str();
+	dlg.m_input  = pshow->epguides_url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
@@ -309,9 +273,9 @@ bool EditUrl_TVmaze(show* pshow)
 {
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title = L"TVMaze";
+	dlg.m_title  = L"TVMaze";
 	dlg.m_prompt = L"Enter show URL for TVMaze.com";
-	dlg.m_input = pshow->tvmaze_url.c_str();
+	dlg.m_input  = pshow->tvmaze_url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
@@ -329,9 +293,9 @@ bool EditUrl_IMDB(show* pshow)
 
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title = L"IMDB";
+	dlg.m_title  = L"IMDB";
 	dlg.m_prompt = L"Enter show URL for IMDB.com";
-	dlg.m_input = pshow->imdb_url.c_str();
+	dlg.m_input  = pshow->imdb_url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
@@ -347,9 +311,9 @@ bool EditUrl_TheTVDB(show* pshow)
 {
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title = L"TheTVDB";
+	dlg.m_title  = L"TheTVDB";
 	dlg.m_prompt = L"Enter show URL for TheTVDB.com";
-	dlg.m_input = pshow->thetvdb_url.c_str();
+	dlg.m_input  = pshow->thetvdb_url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
@@ -408,7 +372,7 @@ void CopyToClipboard(const CString& str)
 {
 
 	int epname_len = str.GetLength();
-	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, epname_len + 1);
+	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, epname_len + 2);
 	if (hMem)
 	{
 		char* pdest = (char*) GlobalLock(hMem);
@@ -427,7 +391,6 @@ void CopyToClipboard(const CString& str)
 }
 
 
-
 /**
  * Copy C style string to clipboard
  */
@@ -436,7 +399,6 @@ void CopyToClipboard(const char *str)
 	const CString _str(str);
 	CopyToClipboard(_str);
 }
-
 
 
 /**
@@ -449,7 +411,6 @@ void CopyToClipboard(const std::string str)
 }
 
 
-
 /**
  * Stamp spaces over all occurances of a substring. Used to remove &nbsp; from HTML source.
  */
@@ -460,7 +421,5 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 	for (auto i = str.find(sub); i != std::string::npos; i = str.find(sub))
 		str.replace(i, len, len, ' ');
 }
-
-
 
 

@@ -19,7 +19,6 @@
 
 #include "CepcheckDlg.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
 #include "logging.hpp"
 
 #include "TVpilot.hpp"
@@ -98,10 +97,7 @@ BOOL CepcheckApp::InitInstance()
 	// Initialise libxml2 library
 	xmlInitParser();
 
-	// Depending on config.h this creates a console for debug messages
-	OpenDebugConsole();
-
-	// Start logging thread etc
+	// Start logging thread & open a console if so configured.
 	LOG_INIT();
 
 	/**
@@ -149,8 +145,6 @@ BOOL CepcheckApp::InitInstance()
 
 
 	LOG_EXIT();
-
-	CloseDebugConsole();
 
 	xmlCleanupParser();
 	curl_global_cleanup();

@@ -18,7 +18,7 @@
 #include "Cepisode.hpp"
 #include "Cshow.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
 
 #include "model.hpp"
 
@@ -593,7 +593,7 @@ void model::OnDownloadPing(DWORD slotnum)
     {
         const wchar_t* msg = L"ERROR! Empty slot or bad slotstate signalled.";
         LogMsgWindow(msg);
-        WriteDebugConsole(msg);
+        LOG_WRITE( eLogFlags::MODEL, msg);
         MessageBeep(MB_ICONASTERISK);
         CheckDownloadComplete();
         return;

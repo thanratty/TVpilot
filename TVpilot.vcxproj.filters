@@ -93,9 +93,6 @@
     <ClInclude Include="include\CdataFile.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\debugConsole.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Cslots.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,9 +159,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CsyncObjects.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\debugConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CdataFile.cpp">

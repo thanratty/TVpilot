@@ -16,7 +16,6 @@
 #include "CDInputBox.hpp"
 #include "CdownloadManager.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
 #include "logging.hpp"
 
 #include "CepcheckDlg.hpp"
@@ -202,8 +201,6 @@ BOOL CepcheckDlg::OnInitDialog()
 	// If we start with a new/empty database, all we can initally do is add a new show
 	if (m_data.IsNewDataFile())
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
-
-	LOG_WRITE(eLogFlags::INFO, L"LOG: Init done");
 
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
@@ -948,6 +945,7 @@ void CepcheckDlg::OnBtnClickedChkDebugLog()
 {
 static BOOL visible = false;
 
+	static unsigned	nCounter = 0;
 	visible = !visible;
 
 	CButton* chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
@@ -955,7 +953,7 @@ static BOOL visible = false;
 
 	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
 
-	LOG_WRITE(eLogFlags::INFO, L"LOG: BOING %u", visible);
+	LOG_WRITE(eLogFlags::INFO, L"LOG: BOING %u\n", nCounter++);
 
 }
 

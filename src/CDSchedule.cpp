@@ -48,20 +48,20 @@ STATIC constexpr int COL_SCHED_NUM_COLS = 6;
 const tSortMap CDSchedule::m_sort_map = {
 	// 1st entry is used as the default sort order
 	{ COL_SCHED_DATE_STR, {
-			{ COL_SCHED_DATE_SORT, NumberCompareFunc  },
-			{ COL_SCHED_SHOW,      AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,    EpisodeCompareFunc }
+			{ COL_SCHED_DATE_SORT,	NumberCompareFunc  },
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}},
 
 	{ COL_SCHED_SHOW, {
-			{ COL_SCHED_SHOW,	   AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,	   EpisodeCompareFunc }
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}},
 
 	{ COL_SCHED_TITLE, {
-			{ COL_SCHED_TITLE,	   AlphaCompareFunc   },
-			{ COL_SCHED_SHOW,	   AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,    EpisodeCompareFunc }
+			{ COL_SCHED_TITLE,		AlphaCompareFunc   },
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}}
 };
 

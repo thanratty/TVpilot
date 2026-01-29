@@ -9,7 +9,6 @@
 
 #include "Cslots.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
 #include "logging.hpp"
 
 #include "threadData.hpp"

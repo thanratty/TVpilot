@@ -8,7 +8,7 @@
 #include "common.hpp"
 
 #include "utils.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
 
 #include "CsyncObjects.hpp"
 
@@ -25,7 +25,7 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 #if (CONSOLE_LOGGING_ENABLED==1) && (ENABLE_SYNC_OBJECT_LOGGING==1) && defined (_DEBUG)
-#define     LOG_SYNC_OBJECT(msg)     WriteDebugConsole(msg)
+#define     LOG_SYNC_OBJECT(msg)     LOG_WRITE(eLogFlags::SYNC_OBJECTS, msg)
 #else
 #define     LOG_SYNC_OBJECT(x,...)     do {} while(0)
 #endif
@@ -36,13 +36,21 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
-CMultiEvents::CMultiEvents(const std::vector<HANDLE>& handles)
+CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
 {
+    LOG_SYNC_OBJECT(L"CMultiEvents constructor\n");
+
     m_handles.insert(m_handles.end(), handles.begin(), handles.end());
 
     CString str;
     str.Format(L"CMultiEvents created with %u handles\n", m_handles.size());
     LOG_SYNC_OBJECT(str);
+}
+
+
+CMultiEvents::~CMultiEvents()
+{
+    LOG_SYNC_OBJECT(L"CMultiEvents destructor\n");
 }
 
 
@@ -92,6 +100,8 @@ int CMultiEvents::Reset(DWORD index)
 
 CslotsSem::CslotsSem()
 {
+    LOG_SYNC_OBJECT(L"CslotSem constructor\n");
+
     // There's only one underlying semaphore object for all instances
     if (m_hSem == INVALID_HANDLE_VALUE)
     {
@@ -114,7 +124,7 @@ CslotsSem::CslotsSem()
 
 CslotsSem::~CslotsSem()
 {
-    LOG_SYNC_OBJECT(L"Destroying CslotsSem object\n");
+    LOG_SYNC_OBJECT(L"CslotsSem descturcot\n");
 
     // There's only one actual semaphore
     if (m_hSem != INVALID_HANDLE_VALUE) {
@@ -141,8 +151,8 @@ bool CslotsSem::Lock()
 
     CString str;
     str.Format(L"CslotsSem::Lock() wait fail. Error %u\n", m_last_error);
-
     LOG_SYNC_OBJECT(L"CslotsSem::Lock() wait fail\n");
+
     return false;
 }
 

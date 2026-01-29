@@ -13,7 +13,6 @@
 #include "CsyncObjects.hpp"
 #include "threadData.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
 #include "logging.hpp"
 
 #include "threadFuncs.hpp"
@@ -296,7 +295,7 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob)
 
 STATIC void LOG_THREAD_FUNC(const wchar_t* str)
 {
-	WriteDebugConsole(str);
+	LOG_WRITE( eLogFlags::THREAD_FUNC, str);
 }
 
 #endif
