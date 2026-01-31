@@ -581,7 +581,7 @@ void model::CheckDownloadComplete()
 
 
  /**
- * One show has completed it's download. Update the show information in the model.
+ * One slot has completed it's download. Update the show information in the model.
  * Existing episode flags must be copied over as that's not in the reveived data
  * 
  */
@@ -591,10 +591,10 @@ void model::OnDownloadPing(DWORD slotnum)
 
     if (gSlots.IsFree(slotnum) || (gSlots.GetState(slotnum) != eSlotState::SS_NOTIFY_SENT))
     {
-        const wchar_t* msg = L"ERROR! Empty slot or bad slotstate signalled.";
+        const wchar_t* msg = L"ERROR! Pinged on an empty slot or bad slotstate.";
         LogMsgWindow(msg);
-        LOG_WRITE( eLogFlags::MODEL, msg);
-        MessageBeep(MB_ICONASTERISK);
+        LOG_PRINT( eLogFlags::MODEL, msg);
+        dm.ReleaseSlot(slotnum);
         CheckDownloadComplete();
         return;
     }
@@ -655,7 +655,7 @@ void model::OnDownloadPing(DWORD slotnum)
         }
 
         // Notify the thrRelease thread we're done
-        dm.ReleaseSlot( slotnum );  
+        dm.ReleaseSlot( slotnum );
     }
 
     // Time to send WM_DOWNLOAD_COMPLETE ?

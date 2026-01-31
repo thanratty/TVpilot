@@ -14,12 +14,13 @@ enum class eSlotState
 {
     SS_FREE,
     SS_URL_SET,
-    SS_JOB_THREAD,
+    SS_JOB_AWAKE,
+    SS_DOWNLOAD_ERROR,
     SS_RESULTS_READY,
     SS_RESULTS_THREAD,
     SS_NOTIFY_SENT,
-    SS_PROCESSING,
     SS_JOB_ERROR,
+    SS_PROCESSING,
     SS_PROCESSED,
     SS_THREAD_EXIT_FLAGGED,
     SS_THREAD_EXITING,
@@ -37,7 +38,7 @@ class CslotData
 public:
 
     // This slot's instance number
-    int             m_SlotNumber{ -1 };
+    unsigned        m_SlotNumber{ 0 };
 
     show            m_show;
 
@@ -114,9 +115,12 @@ public:
     void SignalResult() const;
     void SignalRelease() const;
 
+    void StartThread();
+
 private:
     // One instance of this variable is shared between all Cslot objects
-    inline static int gSlotCount{ -1 };
+    inline static LONG gSlotCount{ -1 };
+    CString     m_SlotName;
 };
 
 
@@ -131,6 +135,8 @@ public:
 
     Cslots::Cslots();
     Cslots::~Cslots();
+
+    void TerminateSlotThreads();
 
     bool IsFree(unsigned slotnum) const;
     bool IsBusy(unsigned slotnum) const;

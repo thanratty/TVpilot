@@ -13,21 +13,15 @@
 
 #include "boost/algorithm/string/find.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
+using namespace boost;
 
 #include "common.hpp"
 
-#include "CDShows.hpp"
-#include "CDSchedule.hpp"
 #include "CDInputBox.hpp"
-#include "CsortContext.hpp"
-#include "Cslots.hpp"
 #include "logging.hpp"
 
 #include "utils.hpp"
 
-
-
-using namespace boost;
 
 
 
@@ -44,7 +38,7 @@ bool CheckWaitResult(unsigned numevents, DWORD result)
 
 	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
 
-	LOG_WRITE( eLogFlags::INFO, L"CheckWaitResult() failed: %08X\n", result);
+	LOG_PRINT( eLogFlags::INFO, L"CheckWaitResult() failed: %08X\n", result);
 	return false;
 }
 
@@ -251,77 +245,22 @@ void MessageExit(const wchar_t* msg)
 
 
 
-bool EditUrl_Epguides(show* pshow)
+bool EditUrl(const CString&		title,
+			 std::string&		url )
 {
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title  = L"Epguides";
-	dlg.m_prompt = L"Enter show URL for epguides.com";
-	dlg.m_input  = pshow->epguides_url.c_str();
+	dlg.m_title  = title;
+	dlg.m_prompt = CString(L"Enter URL for ") + title + L".com";
+	dlg.m_input  = url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
 	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->epguides_url) == 0)
+	if (new_url.compare(url) == 0)
 		return false;
 
-	pshow->epguides_url = new_url;
-	return true;
-}
-
-bool EditUrl_TVmaze(show* pshow)
-{
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title  = L"TVMaze";
-	dlg.m_prompt = L"Enter show URL for TVMaze.com";
-	dlg.m_input  = pshow->tvmaze_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->tvmaze_url) == 0)
-		return false;
-
-	pshow->tvmaze_url = new_url;
-	return true;
-}
-
-bool EditUrl_IMDB(show* pshow)
-{
-	std::string new_url;
-
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title  = L"IMDB";
-	dlg.m_prompt = L"Enter show URL for IMDB.com";
-	dlg.m_input  = pshow->imdb_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->imdb_url) == 0)
-		return false;
-
-	pshow->imdb_url = new_url;
-	return true;
-}
-
-bool EditUrl_TheTVDB(show* pshow)
-{
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title  = L"TheTVDB";
-	dlg.m_prompt = L"Enter show URL for TheTVDB.com";
-	dlg.m_input  = pshow->thetvdb_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->thetvdb_url) == 0)
-		return false;
-
-	pshow->thetvdb_url = new_url;
+	url = new_url;
 	return true;
 }
 

@@ -7,6 +7,7 @@
 
 #include "common.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "Cslots.hpp"
 
@@ -24,11 +25,13 @@ Cslots gSlots;
 
 Cslot::Cslot()
 {
+    // NB The logging thread has not started at this point
+
     CString str;
 
     // Increment & copy the singleton variable to identify this slot instance (starts at -1)
-    gSlotCount++;
-    m_SlotNumber = gSlotCount;
+    m_SlotNumber = InterlockedIncrement(&gSlotCount);
+    m_SlotName.Format(L"slot-%02u", m_SlotNumber);
 
     str.Format(L"evRequest-%-d", m_SlotNumber);
     m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state
@@ -39,24 +42,57 @@ Cslot::Cslot()
     str.Format(L"evRelease-%-d", m_SlotNumber);
     m_hEvRelease = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state
 
+    StartThread();
+}
 
+
+Cslot::~Cslot()
+{
+    // NB The logging thread has been shutdown by now
+    CloseSlot();
+}
+
+
+void Cslot::StartThread()
+{
     m_pWinThread = AfxBeginThread(thrSlotThread, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
     ASSERT(m_pWinThread);
     m_pWinThread->m_bAutoDelete = false;
     m_pWinThread->ResumeThread();
-    str.Format(L"slot-%02u", m_SlotNumber);
-    SetThreadDescription(m_pWinThread->m_hThread, str);
+    SetThreadDescription(m_pWinThread->m_hThread, m_SlotName);
 }
 
-Cslot::~Cslot()
+
+void Cslot::TerminateThread()
 {
-    CloseSlot();
+    LOG_PRINT(eLogFlags::DL_THREADS,L"Slot %u TerminateThread()\n", m_SlotNumber);
+
+    if (m_pWinThread)
+    {
+        // Terminates the worker thread for this slot
+        m_exit_thread = true;
+        m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
+        SetEvent(m_hEvRequest);
+
+        if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
+            m_slotstate = eSlotState::SS_THREAD_EXITED;
+        else
+            LogMsgWindow(L"Slot thread didn't terminate within timeout");
+
+        delete m_pWinThread;
+        m_pWinThread = nullptr;
+    }
 }
 
 
 void Cslot::CloseSlot()
 {
-    TerminateThread();
+    LOG_PRINT(eLogFlags::DL_THREADS, L"Slot %u CloseSlot()\n", m_SlotNumber);
+
+    if (m_pWinThread != nullptr) {
+        LOG_PRINT(eLogFlags::DL_THREADS, L"Slot %u thread still running\n", m_SlotNumber);
+        TerminateThread();
+    }
 
     CloseHandle(m_hEvRequest);
     CloseHandle(m_hEvResult);
@@ -95,25 +131,6 @@ void Cslot::ResetAndFree()
     m_xml_status = 0;
 
     m_slotstate = eSlotState::SS_FREE;
-}
-
-void Cslot::TerminateThread()
-{
-    if (m_pWinThread)
-    {
-        // Terminates the worker thread for this slot
-        m_exit_thread = true;
-        m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
-
-        SetEvent(m_hEvRequest);
-        if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
-            m_slotstate = eSlotState::SS_THREAD_EXITED;
-        else
-            LogMsgWindow(L"Slot thread didn't terminate within timeout");
-
-        delete m_pWinThread;
-        m_pWinThread = nullptr;
-    }
 }
 
 void Cslot::SetExitFlag() {
@@ -207,6 +224,18 @@ Cslots::Cslots()
 
 
 Cslots::~Cslots() {}
+
+
+void Cslots::TerminateSlotThreads()
+{
+    for (auto slot : m_slots)
+    {
+        slot.CloseSlot();
+        while (slot.GetThreadState() != eThreadState::TS_FINISHED);
+    }
+}
+
+
 
 bool Cslots::IsFree(unsigned slotnum) const {
     return m_slots.at(slotnum).GetState() == eSlotState::SS_FREE;

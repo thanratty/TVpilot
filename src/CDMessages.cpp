@@ -32,8 +32,8 @@ void CDmessages::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDmessages, CDialogEx)
-	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtnClickedClear)
-	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtnClickedAbortDownload)
+	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtnClicked_Clear)
+	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtnClicked_AbortDownload)
 END_MESSAGE_MAP()
 
 
@@ -42,7 +42,7 @@ END_MESSAGE_MAP()
 //
 
 
-void CDmessages::OnBtnClickedClear()
+void CDmessages::OnBtnClicked_Clear()
 {
 	GetDlgItem(IDC_MESSAGES)->SetWindowText(L"");
 }
@@ -66,7 +66,7 @@ void CDmessages::OnCancel()
 }
 
 
-void CDmessages::OnBtnClickedAbortDownload()
+void CDmessages::OnBtnClicked_AbortDownload()
 {
 	GetParent()->PostMessage(WM_TVP_ABORT_DOWNLOAD);
 }

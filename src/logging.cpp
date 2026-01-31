@@ -13,26 +13,37 @@
 #include "common.hpp"
 #include "logging.hpp"
 
-#include "logging.hpp"
+
+
+
+/**
+ * The control in the message Dialog window for debug/log text.
+ */
+STATIC CEdit* pMsgWindow = nullptr;
 
 
 
 
-constexpr unsigned LOG_BUFFER_LEN = 128;
+#if (ENABLE_CONSOLE_LOGGING==1)
 
+constexpr unsigned LOG_BUFFER_LEN = 256;
 
-STATIC wchar_t	pLogBuffer[ LOG_BUFFER_LEN ];
 STATIC HANDLE	hLogHandle { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogEvent  { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
 
 
 STATIC std::queue<const wchar_t*>	myQueue;				// FIFO of ptrs to message strings
-STATIC std::mutex					queueMutex;				// To control Lock/Unlock access to the queue
+//STATIC std::mutex					queueMutex;				// To control Lock/Unlock access to the queue
+
+STATIC CSemaphore*   semQueue{nullptr};
+bool bConsoleReady{ false };
 
 STATIC DWORD bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
 
-static eLogFlags gLogFlags = static_cast<eLogFlags>(0xFFFFFFFF);
+STATIC eLogFlags LogEnableFlags = eLogFlags::THREAD_FUNC;
+
+#endif	// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
@@ -41,32 +52,17 @@ static eLogFlags gLogFlags = static_cast<eLogFlags>(0xFFFFFFFF);
 
 
 
-/**
- * Console logging is available in RELASE & DEBUG builds, but must
- * be specifically enabled in config.h
- */
 
-#if (CONSOLE_LOGGING_ENABLED==1)
-
-static void LogConsoleCreate(void);
-static void LogConsoleClose(void);
-
-#else
-
-#define     LogConsoleCreate()        do{} while(0)
-#define     LogConsoleClose()         do{} while(0)
-
-#endif
-
-
-
-
-
+#if (ENABLE_CONSOLE_LOGGING==1)
 
 STATIC void PushToMsgQueue(const wchar_t* str)
 {
-	std::unique_lock<std::mutex> lock(queueMutex);
+//	std::unique_lock<std::mutex> lock(queueMutex);
+
+	CSingleLock lock(semQueue);
+	lock.Lock();
 	myQueue.push(str);
+	lock.Unlock();
 }
 
 
@@ -74,39 +70,51 @@ STATIC const wchar_t*  PopFromMsgQueue()
 {
 	const wchar_t* val = nullptr;
 	
-	std::unique_lock<std::mutex> lock(queueMutex);
-	if (!myQueue.empty()) {
+//	std::unique_lock<std::mutex> lock(queueMutex);
+
+	CSingleLock lock(semQueue);
+	lock.Lock();
+
+	if (!myQueue.empty()){
 		val = myQueue.front();
 		myQueue.pop();
 	}
 
+	lock.Unlock();
 	return val;
 }
 
+#endif		// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
 
-
+#if (ENABLE_CONSOLE_LOGGING==1)
 
 DWORD WINAPI LogThread([[maybe_unused]] LPVOID pParam)
 {
 DWORD	dwCharsWritten;
+const	wchar_t* msg;
+
+	bConsoleReady = true;
 
 	while (true)
 	{
 		DWORD dwResult = WaitForSingleObject(hLogEvent, INFINITE);
 		if (dwResult == WAIT_OBJECT_0)
 		{
-			while (true)
+			msg = PopFromMsgQueue();
+			while (msg != nullptr)
 			{
-				const wchar_t* msg = PopFromMsgQueue();
-				if (msg == nullptr)
-					break;
-
 				WriteConsole(hLogHandle, msg, wcslen(msg), &dwCharsWritten, NULL);
-				::delete[] msg;
+				delete[] msg;
+
+				msg = PopFromMsgQueue();
 			}
+		}
+		else
+		{
+			MessageBox(NULL, L"Wait error!\n", L"Console Thread", MB_OK | MB_ICONEXCLAMATION);
 		}
 
 		if (bExitThreadFlag != 0)
@@ -114,24 +122,60 @@ DWORD	dwCharsWritten;
 	}
 }
 
+#endif		// (ENABLE_CONSOLE_LOGGING==1)
+
+
+
+
+#if (ENABLE_CONSOLE_LOGGING==1)
+
+STATIC void LogConsoleCreate(void)
+{
+	// Create a new console window
+	if (0 == AllocConsole()) {
+		AfxMessageBox(L"Can't create console. Logging disabled.", MB_OK);
+		return;
+	}
+
+
+	hLogHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (INVALID_HANDLE_VALUE == hLogHandle) {
+		AfxMessageBox(L"Can't get console handle. Logging disabled.", MB_OK);
+		FreeConsole();
+		return;
+	}
+
+	SetConsoleTitle(L"TV Pilot Console Output");
+}
+
+
+STATIC void LogConsoleClose(void)
+{
+	LOG_PRINT(eLogFlags::SYSTEM, L"Closing console\n");
+
+	FreeConsole();
+	hLogHandle = INVALID_HANDLE_VALUE;
+}
+
+#endif		// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
 
 
 
-
-
-
+#if (ENABLE_CONSOLE_LOGGING==1)
 
 void LOG_INIT()
 {
 	LogConsoleCreate();
 
+	semQueue   = new CSemaphore(1,1,L"semQueue", NULL);
 	hLogEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hLogEvent");         // NOT manual reset, initial state
 	hLogThread = CreateThread(NULL, 0, LogThread, NULL, 0, NULL);
 
-	LOG_WRITE(eLogFlags::INFO, L"Console Ready\n\n");
+	LOG_PRINT(eLogFlags::INFO, L"Console Ready\n\n");
+
 	return;
 }
 
@@ -141,41 +185,50 @@ void LOG_EXIT()
 	bExitThreadFlag = 1;
 	SetEvent(hLogEvent);
 	WaitForSingleObject(hLogThread, THREAD_EXIT_TIMEOUT);
+	
+	delete semQueue;
+	semQueue = nullptr;
+
 	CloseHandle(hLogThread);
 	CloseHandle(hLogEvent);
 }
 
 
-
-
-void LOG_WRITE([[maybe_unused]] eLogFlags type, const wchar_t* format, ...)
+void LOG_PRINT( eLogFlags type, const wchar_t* format, ...)
 {
-	va_list args;
+	while(!bConsoleReady) SwitchToThread();
 
-	va_start(args, format);
-	vswprintf_s(pLogBuffer, LOG_BUFFER_LEN-1, format, args);
-	va_end(args);
-	pLogBuffer[LOG_BUFFER_LEN-1] = L'\0';
+	// Can't print anything once we're shutting down. This is a task sequence issue.
+	// TODO - thread manager
+	if (bExitThreadFlag==1)
+		return;
 
-	size_t len = wcslen(pLogBuffer);
-	if (len > 0)
+	// Only print enable messages
+	if (flags(LogEnableFlags & type))
 	{
-		wchar_t* newstr = ::new wchar_t[len+1]();
-		wcsncpy(newstr, pLogBuffer, len);
-		PushToMsgQueue(newstr);
-		SetEvent(hLogEvent);
+		wchar_t* newstr = new wchar_t[ LOG_BUFFER_LEN ]();
+
+		va_list args;
+		va_start(args, format);
+		vswprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
+		va_end(args);
+
+		newstr[ LOG_BUFFER_LEN - 1 ] = L'\0';
+
+		size_t len = wcslen(newstr);
+		if (len > 0)
+		{
+			PushToMsgQueue(newstr);
+			SetEvent(hLogEvent);
+		}
 	}
 }
 
+#endif		// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
 
-
-/**
- * The control in the message Dialog window for debug/log text.
- */
-STATIC CEdit* pMsgWindow = nullptr;
 
 
 /**
@@ -216,39 +269,5 @@ void LogMsgWindow(const std::string& str)
 }
 
 
-
-
-
-
-
-
-
-static void LogConsoleCreate(void)
-{
-	// Create a new console window
-	if (0 == AllocConsole()) {
-		AfxMessageBox(L"Can't create console. Logging disabled.", MB_OK);
-		return;
-	}
-
-
-	hLogHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (INVALID_HANDLE_VALUE == hLogHandle) {
-		AfxMessageBox(L"Can't get console handle. Logging disabled.", MB_OK);
-		FreeConsole();
-		return;
-	}
-
-	SetConsoleTitle(L"TV Pilot Console Output");
-}
-
-
-static void LogConsoleClose(void)
-{
-	LOG_WRITE(eLogFlags::SYSTEM, L"Closing console\n");
-
-	FreeConsole();
-	hLogHandle = INVALID_HANDLE_VALUE;
-}
 
 

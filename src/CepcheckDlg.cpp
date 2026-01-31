@@ -65,16 +65,16 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_NOTIFY( TCN_SELCHANGE, IDC_TAB1,				&CepcheckDlg::OnTcnSelchangeTab1)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_PRE,	&CepcheckDlg::OnDeltaPosSpinDays)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_POST,	&CepcheckDlg::OnDeltaPosSpinDays)
-	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtnClickedResetDays)
-	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtnClickedLoad)
-	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtnClickedSave)
-	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtnClickedDownload)
-	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtnClickedDeleteShow)
-	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClickedNewShow)
-	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClickedBreak)
-	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClickedExplorer)
-	ON_BN_CLICKED(IDC_CHK_MISSED_ONLY,              &CepcheckDlg::OnBtnClickedChkMissedOnly)
-	ON_BN_CLICKED(IDC_CHK_DEBUG_LOG,                &CepcheckDlg::OnBtnClickedChkDebugLog)
+	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtnClicked_ResetDays)
+	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtnClicked_Load)
+	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtnClicked_Save)
+	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtnClicked_Download)
+	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtnClicked_DeleteShow)
+	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClicked_NewShow)
+	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClicked_Break)
+	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClicked_Explorer)
+	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtnClicked_ChkMissedOnly)
+	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtnClicked_ShowLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
 	ON_MESSAGE( WM_TVP_SLOT_RELEASED,				&CepcheckDlg::OnSlotReleased)
@@ -234,7 +234,7 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
  * Load the database from disk
  *
  */
-void CepcheckDlg::OnBtnClickedLoad()
+void CepcheckDlg::OnBtnClicked_Load()
 {
 	m_data.LoadFile();
 
@@ -255,7 +255,7 @@ void CepcheckDlg::OnBtnClickedLoad()
  * Save the database to disk
  *
  */
-void CepcheckDlg::OnBtnClickedSave()
+void CepcheckDlg::OnBtnClicked_Save()
 {
 	if (!m_data.SaveFile())
 		AfxMessageBox(L"Error saving data file!", MB_ICONERROR | MB_OK | MB_APPLMODAL );
@@ -273,7 +273,7 @@ void CepcheckDlg::OnBtnClickedSave()
  * Download/Update all episodes for all shows in the model
  *
  */
-void CepcheckDlg::OnBtnClickedDownload()
+void CepcheckDlg::OnBtnClicked_Download()
 {
 	if (IDYES != AfxMessageBox(L"Confirm download all shows from epguides.com?", MB_YESNO | MB_APPLMODAL))
 		return;
@@ -302,7 +302,7 @@ void CepcheckDlg::OnBtnClickedDownload()
  * A show can only be deleted from the archive dialog.
  * 
  */
-void CepcheckDlg::OnBtnClickedDeleteShow()
+void CepcheckDlg::OnBtnClicked_DeleteShow()
 {
 	// Can only delete when the Archived list is displayed, not the Schedule or Show list.
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
@@ -347,7 +347,7 @@ void CepcheckDlg::OnBtnClickedDeleteShow()
  * Enter a URL for epguides.com & add a new show to the database
  *
  */
-void CepcheckDlg::OnBtnClickedNewShow()
+void CepcheckDlg::OnBtnClicked_NewShow()
 {
 	// Popup the dialog box to enter the URL
 	CDnewShow	dbox(this);
@@ -696,13 +696,16 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 		url = CString(L"https://thetvdb.com/search?query=") + CString(ashow->title.c_str());
 		url.Replace(' ', '+');
 	}
+	else
+		// Invalid selection!
+		return 0;
 
 	if (url.GetLength() > 0)
 	{
 		HINSTANCE h = ::ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
 		if ((INT_PTR)h <= 32) {
 			CString msg;
-			msg.Format(L"ShellExecute returned % d", (INT_PTR)h);
+			msg.Format(L"ShellExecute returned %08X\n", (INT_PTR) h);
 			LogMsgWindow(msg);
 			AfxMessageBox(L"Can't open web browser!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		}
@@ -750,14 +753,14 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	if (pcontext->dialog_id == IDD_SCHEDULE)
 	{
 		// Add episode highlight menu entries
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_GOT_IT, L"&Got It");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_NOT_GOT_IT, L"&Not Got It");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_CLEAR, L"&Clear Flags");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_GOT_IT,		L"&Got It");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_NOT_GOT_IT,	L"&Not Got It");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_CLEAR,		L"Clear Flags");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_REFRESH_SHOW, L"Refresh Show");
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE, L"Copy &Show Title");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE_NUM, L"Copy Show Title + Number");
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EP_TITLE, L"Copy Episode &Title");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE,		L"Copy Show &Title");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_SHOW_TITLE_NUM,	L"&Copy Show Title + Number");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, ID_MNU_COPY_EP_TITLE,		L"Copy &Episode Title");
 
 		// Enable them appropriately
 		menu.EnableMenuItem(ID_MNU_GOT_IT,     (pcontext->ep_flags & episodeflags::EP_FL_GOT)     ? MF_GRAYED : MF_ENABLED);
@@ -778,7 +781,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	}
 	else
 	{
-		CStringW s{ L"Unrecognised context for right mouse button." };
+		CString s{ L"Unrecognised context for right mouse button." };
 		AfxMessageBox(s, MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
 		LogMsgWindow(s);
 	}
@@ -806,16 +809,16 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			break;
 
 		case ID_MNU_EPGUIDES_EDIT:
-			url_edited = EditUrl_Epguides(pshow);
+			url_edited = EditUrl(L"epguides", pshow->epguides_url);
 			break;
 		case ID_MNU_TVMAZE_EDIT:
-			url_edited = EditUrl_TVmaze(pshow);
+			url_edited = EditUrl(L"TVMaze",   pshow->tvmaze_url);
 			break;
 		case ID_MNU_IMDB_EDIT:
-			url_edited = EditUrl_IMDB(pshow);
+			url_edited = EditUrl(L"IMDB",     pshow->imdb_url);
 			break;
 		case ID_MNU_THETVDB_EDIT:
-			url_edited = EditUrl_TheTVDB(pshow);
+			url_edited = EditUrl(L"TheTVDB",  pshow->thetvdb_url);
 			break;
 
 		case ID_MNU_ARCHIVE:
@@ -926,7 +929,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
  * 'Missed only' checkbox clicked in the top level dialog.
  * Notify the model of the new state & rebuild the schedule accordingly
  */
-void CepcheckDlg::OnBtnClickedChkMissedOnly()
+void CepcheckDlg::OnBtnClicked_ChkMissedOnly()
 {
 	UpdateData();
 	m_data.ShowMissedOnly(m_missed_only);
@@ -941,7 +944,7 @@ void CepcheckDlg::OnBtnClickedChkMissedOnly()
  * Show/Hide the logging messages window
  *
  */
-void CepcheckDlg::OnBtnClickedChkDebugLog()
+void CepcheckDlg::OnBtnClicked_ShowLog()
 {
 static BOOL visible = false;
 
@@ -953,7 +956,7 @@ static BOOL visible = false;
 
 	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
 
-	LOG_WRITE(eLogFlags::INFO, L"LOG: BOING %u\n", nCounter++);
+	LOG_PRINT(eLogFlags::INFO, L"LOG: BOING %u\n", nCounter++);
 
 }
 
@@ -964,7 +967,7 @@ static BOOL visible = false;
  * Reset the +/- days interval for the schedule list to their defaults.
  *
  */
-void CepcheckDlg::OnBtnClickedResetDays()
+void CepcheckDlg::OnBtnClicked_ResetDays()
 {
 	m_spin_pre_val  = DEFAULT_DAYS_PRE;
 	m_spin_post_val = DEFAULT_DAYS_POST;
@@ -1169,7 +1172,7 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
  * Open up file explorer in the data file location
  *
  */
-void CepcheckDlg::OnBtnClickedExplorer()
+void CepcheckDlg::OnBtnClicked_Explorer()
 {
 	m_data.OpenDataFileFolder();
 }
@@ -1181,7 +1184,7 @@ void CepcheckDlg::OnBtnClickedExplorer()
  * Break into the debugger
  *
  */
-void CepcheckDlg::OnBtnClickedBreak()
+void CepcheckDlg::OnBtnClicked_Break()
 {
 	AfxDebugBreak();
 }
@@ -1202,7 +1205,7 @@ void CepcheckDlg::OnCancel()
 {
 	if (m_data.DownloadInProgress())
 	{
-		AfxMessageBox(L"Download in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		AfxMessageBox(L"Download in progress. Abort it first.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return;
 	}
 

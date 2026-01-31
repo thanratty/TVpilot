@@ -16,7 +16,19 @@
 
 
 
+CdownloadManager::~CdownloadManager()
+{
+	// Stop the slot threads first
 
+	gSlots.TerminateSlotThreads();
+
+	// Wait for the cRequests, cResults, cReleases thread to shut down
+	// so we can capture their logging messages.
+
+	while (requests.ThreadRunning());
+	while (results.ThreadRunning());
+	while (releases.ThreadRunning());
+}
 
 
 /**

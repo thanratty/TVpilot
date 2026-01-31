@@ -12,8 +12,6 @@ using namespace boost;
 #include "Cshow.hpp"
 
 
-class CslotData;
-
 
 enum class eAppevent
 {
@@ -170,7 +168,7 @@ void EvalShowLastNextDates(show* pshow);
 
 
 
-
+// TODO Move ????
 #ifdef _DEBUG
 #define		DebugLogMsgWindow(x)		LogMsgWindow(x)
 #else
@@ -194,18 +192,9 @@ void LogMsgWindow(const std::string& str);
 void MessageExit(const wchar_t* msg);
 
 
-/**
- * Website URLs might need different validation.
- */
-bool EditUrl_Epguides(show* pshow);
-bool EditUrl_TVmaze(show* pshow);
-bool EditUrl_IMDB(show* pshow);
-bool EditUrl_TheTVDB(show* pshow);
 
 void SetListHeaderFont(CListCtrl* plist);
 int  GetSelectedListItem(CListCtrl& pctrl);
-
-
 
 
 /**
@@ -222,6 +211,14 @@ void CopyToClipboard(const std::string str);
 void ReplaceAllSubstrings(std::string& str, const char* sub);
 
 
+/**
+ * Check the return from WaitForMultipleObjects is in range
+ */
 bool CheckWaitResult(unsigned numevents, DWORD result);
 
+
+/**
+ * Edit a website URL from the main context menu
+ */
+bool EditUrl(const CString& title, std::string& url);
 

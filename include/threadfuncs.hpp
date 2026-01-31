@@ -24,9 +24,11 @@ enum class eThreadState : UINT
 {
     TS_UNKNOWN,
     TS_RUNNING,
+    TS_WAITING,
+    TS_CURLING,
+    TS_SCANNING,
     TS_FINISHED
 };
-
 
 
 

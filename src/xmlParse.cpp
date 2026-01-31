@@ -20,14 +20,15 @@
 #include "Cshow.hpp"
 #include "CcurlJob.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "xmlParse.hpp"
 
 
 
 
-STATIC const char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
-STATIC const char* DEFAULT_EPISODE_NUMBER = "00-00";
+STATIC constexpr char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
+STATIC constexpr char* DEFAULT_EPISODE_NUMBER = "00-00";
 
 
 
@@ -189,10 +190,10 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		ep_number = getNodeText(nodeset->nodeTab[i + 1]);
 		ep_date   = getNodeText(nodeset->nodeTab[i + 2]);
 
-		bool bGoodDate = std::regex_match(ep_date, epdate_regex);
+		bool bGoodDate   = std::regex_match(ep_date, epdate_regex);
 		bool bGoodNumber = std::regex_match(ep_number, epnum_regex);
 
-		// If they're both bad - just skip this node. A few epguides.com pages had different formatting.
+		// If either are bad skip this node. A few epguides.com pages had different formatting.
 		if (!bGoodDate || !bGoodNumber)
 			continue;
 
@@ -261,7 +262,7 @@ bool extractEpisodeTitles( xmlXPathObjectPtr nodes, sMyXpathResults& results)
 /**********************************************************************************
  * 
  * E_XPARSE_OK			Success
- * E_XPARSE_DOC_ERROR	
+ * E_XPARSE_DOC_FORMAT_ERROR	
  * Anything else = XML parse error
  *
  **********************************************************************************/
@@ -278,7 +279,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 	show.hash         = SimpleHash(curljob.Url());
 
 
-	// Create a thread-safe parser context
+	// Create a thread-safe XML-parser context
 	htmlParserCtxtPtr context = htmlNewParserCtxt();
 
 	// Parse the web page into an HTML DOM
@@ -302,7 +303,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 			xml_error_info.xmlErrorCol    = perror->int2;
 		}
 		xmlCtxtResetLastError(context);
-		retval = E_XPARSE_DOC_ERROR;
+		retval = E_XPARSE_DOC_FORMAT_ERROR;
 	}
 	else
 	{
@@ -331,7 +332,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		if (!bGotTitles || !bGotDetails || (show.title.length() == 0))
 		{
 			show.state |= showstate::SH_ST_UPDATE_FAILED;
-			retval = E_XPARSE_PAGE_ERROR;
+			retval = E_XPARSE_PAGE_FORMAT_ERROR;
 		}
 		else
 		{
@@ -350,8 +351,12 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		}
 	}
 
+	// Cleanup
 	htmlFreeParserCtxt(context);
 	xmlFreeDoc(doc);
+
+	if (retval != E_XPARSE_OK)
+		LOG_PRINT(eLogFlags::XML, L"xmlParse error %u", retval);
 
 	return retval;
 }

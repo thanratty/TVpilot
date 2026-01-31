@@ -1,15 +1,14 @@
 #pragma once
 
 
-#define         PAUSE_BEFORE_EXIT               1       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
-#define         ENABLE_CRT_DUMP                 0       // Enables CRT memory leak check dump (useless!)
+#define         PAUSE_BEFORE_EXIT               0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
 
 #define         USE_TEST_DATAFILE               1       // Use alternative datafile for debugging/testing
 #define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG build only ]
 #define         KEEP_BUTTONS_ENABLED            0       // Keep all dialog buttons enabled for ease of testing/debugging
 #define			SAVE_WEBPAGE_ON_ERROR		    0		// Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]
 
-#define			NUMBER_OF_CURL_TRIES            5       // ie once with four retries
+#define			CURL_MAX_TRIES                  3       // Max # curl download attempts including retries
 #define			CURL_RETRY_DELAY                2000    // Delay 2 seconds after a Curl download error
 #define         CURL_REPLY_TIMEOUT              8000    // Allow 8 seconds for https transaction to complete
 
@@ -17,7 +16,7 @@
 
 #define         NUMBER_OF_DOWNLOAD_THREADS      15      // Number of worker threads created to do the actual downloading
 
-#define         CONSOLE_LOGGING_ENABLED         1       // Create a console window for log messages [DEBUG build only]
+#define         ENABLE_CONSOLE_LOGGING          1       // Create a console window for log messages. Finer control in logging.hpp
 #define         ECHO_MSG_WINDOW_TO_CONSOLE      0
 
 

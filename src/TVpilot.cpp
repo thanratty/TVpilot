@@ -5,13 +5,6 @@
 
 //--
 
-#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
-#define _CRTDBG_MAP_ALLOC
-#include <crtdebug.h>
-#endif
-
-//--
-
 #include "curl/curl.h"
 #include "libxml/HTMLparser.h"
 
@@ -45,12 +38,11 @@ CepcheckApp::CepcheckApp()
 CepcheckApp theApp;
 
 
+
+// Can use for debugging programme termination state.
+//
 int CepcheckApp::ExitInstance()
 {
-#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
-	_CrtDumpMemoryLeaks();
-#endif
-
 	return CWinApp::ExitInstance();
 }
 
@@ -70,12 +62,6 @@ BOOL CepcheckApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
-
-
-#if (ENABLE_CRT_DUMP==1) && defined(_DEBUG)
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); 
-#endif
-
 
 	AfxEnableControlContainer();
 
@@ -97,7 +83,8 @@ BOOL CepcheckApp::InitInstance()
 	// Initialise libxml2 library
 	xmlInitParser();
 
-	// Start logging thread & open a console if so configured.
+	// If enabled, start the logging thread & open a console. Logging functionality must
+	// be available before the main dialog & its member objects are instantiated.
 	LOG_INIT();
 
 	/**
@@ -108,6 +95,8 @@ BOOL CepcheckApp::InitInstance()
 #if DOWNLOAD_ALL_SHOWS_CSV==1
 	ReadAllShowsCsvFile();
 #endif
+
+	// TODO - do Thread startup/shudown in the dialog's init/exit instance functions.
 
 
 	CepcheckDlg dlg;
@@ -126,11 +115,6 @@ BOOL CepcheckApp::InitInstance()
 		TRACE(traceAppMsg, 0, "Warning: dialog creation failed, so application is terminating unexpectedly.\n");
 		TRACE(traceAppMsg, 0, "Warning: if you are using MFC controls on the dialog, you cannot #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS.\n");
 	}
-
-
-#ifdef _DEBUG
-	Sleep(2000);
-#endif
 
 
 	// Delete the shell manager created above.

@@ -15,21 +15,23 @@ public:
     cRequests();
     ~cRequests();
 
-    const std::vector<HANDLE>& Handles() const;
-
-    bool RequestsPending() const;
-    void ClearQueue();
+    void StartThread();
+    void TerminateThread();
+    bool ThreadRunning() const;
 
     void Push(const std::string url);
     std::string Pop();
+    bool RequestsPending() const;
+    void ClearQueue();
+
     void NotifyRequestThread() const;
 
+    const std::vector<HANDLE>& Handles() const;
 
 private:
 
     bool Lock() const;
     bool Unlock() const;
-    void TerminateThread();
 
 
 private:
@@ -60,19 +62,17 @@ public:
     cResults();
     ~cResults();
 
-    void SetMsgWindow(HWND hWin);
-    HWND GetMsgWindow() const;
+    void StartThread();
+    void TerminateThread();
+    bool ThreadRunning() const;
 
     bool Lock() const;
     bool Unlock() const;
 
+    void SetMsgWindow(HWND hWin);
+    HWND GetMsgWindow() const;
     const std::vector<HANDLE>& Handles() const;
     const unsigned NumHandles() const;
-
-
-private:
-
-    void TerminateThread();
 
 private:
     inline static HANDLE    sem_results;
@@ -91,32 +91,31 @@ private:
 class cReleases
 {
 public:
-    cReleases();
-    ~cReleases();
+        cReleases();
+        ~cReleases();
 
-    void ReleaseSlot(DWORD slotnum);
+        void StartThread();
+        void TerminateThread();
+        bool ThreadRunning() const;
 
-    bool Lock();
-    bool Unlock();
+        bool Lock();
+        bool Unlock();
 
-    const std::vector<HANDLE>& Handles() const;
-    const unsigned NumHandles() const;
+        void ReleaseSlot(DWORD slotnum);
 
-    void SetMsgWindow(HWND hWin);
-    HWND GetMsgWindow() const;
+        const std::vector<HANDLE>& Handles() const;
+        const unsigned NumHandles() const;
 
+        void SetMsgWindow(HWND hWin);
+        HWND GetMsgWindow() const;
 
-private:
+    private:
+        inline static HANDLE    sem_releases{ INVALID_HANDLE_VALUE };
+        CWinThread*             m_pReleasesThread{ nullptr };
 
-    void TerminateThread();
-
-private:
-    inline static HANDLE    sem_releases{ INVALID_HANDLE_VALUE };
-    CWinThread*             m_pReleasesThread{ nullptr };
-
-    DWORD                   m_last_error{ 0 };
-    HWND                    m_hMsgWin{ 0 };
-    std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event
+        DWORD                   m_last_error{ 0 };
+        HWND                    m_hMsgWin{ 0 };
+        std::vector<HANDLE>     handles;                    // Entry 0 is always the terminate event handle
 };
 
 

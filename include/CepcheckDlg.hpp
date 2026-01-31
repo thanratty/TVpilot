@@ -60,16 +60,16 @@ protected:
 
 public:
 	// Dialog control event handlers
-	afx_msg void	OnBtnClickedLoad();
-	afx_msg void	OnBtnClickedSave();
-	afx_msg void	OnBtnClickedDownload();
-	afx_msg void	OnBtnClickedDeleteShow();
-	afx_msg void	OnBtnClickedNewShow();
-	afx_msg void	OnBtnClickedBreak();
-	afx_msg void    OnBtnClickedChkMissedOnly();
-	afx_msg void    OnBtnClickedChkDebugLog();
-	afx_msg void	OnBtnClickedResetDays();
-	afx_msg void	OnBtnClickedExplorer();
+	afx_msg void	OnBtnClicked_Load();
+	afx_msg void	OnBtnClicked_Save();
+	afx_msg void	OnBtnClicked_Download();
+	afx_msg void	OnBtnClicked_DeleteShow();
+	afx_msg void	OnBtnClicked_NewShow();
+	afx_msg void	OnBtnClicked_Break();
+	afx_msg void    OnBtnClicked_ChkMissedOnly();
+	afx_msg void    OnBtnClicked_ShowLog();
+	afx_msg void	OnBtnClicked_ResetDays();
+	afx_msg void	OnBtnClicked_Explorer();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void	OnTimer(UINT_PTR nIDEvent);

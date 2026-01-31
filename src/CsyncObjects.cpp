@@ -24,33 +24,20 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
-#if (CONSOLE_LOGGING_ENABLED==1) && (ENABLE_SYNC_OBJECT_LOGGING==1) && defined (_DEBUG)
-#define     LOG_SYNC_OBJECT(msg)     LOG_WRITE(eLogFlags::SYNC_OBJECTS, msg)
-#else
-#define     LOG_SYNC_OBJECT(x,...)     do {} while(0)
-#endif
-
-
-
-
-
-
 
 CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
 {
-    LOG_SYNC_OBJECT(L"CMultiEvents constructor\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents constructor\n");
 
     m_handles.insert(m_handles.end(), handles.begin(), handles.end());
 
-    CString str;
-    str.Format(L"CMultiEvents created with %u handles\n", m_handles.size());
-    LOG_SYNC_OBJECT(str);
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents created with %u handles\n", m_handles.size());
 }
 
 
 CMultiEvents::~CMultiEvents()
 {
-    LOG_SYNC_OBJECT(L"CMultiEvents destructor\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents destructor\n");
 }
 
 
@@ -63,9 +50,7 @@ int CMultiEvents::Wait()
     if (!CheckWaitResult(m_handles.size(), result))
     {
         m_last_error = GetLastError();
-        CString str;
-        str.Format(L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
-        LOG_SYNC_OBJECT(str);
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
         return E_SO_WAIT_FAIL;
     }
 
@@ -85,9 +70,7 @@ int CMultiEvents::Reset(DWORD index)
     if (retval != E_SO_OK)
     {
         m_last_error = GetLastError();
-        CString str;
-        str.Format(L"CMultiEvents::Reset() failed. Error %u\n", m_last_error);
-        LOG_SYNC_OBJECT(str);
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Reset() failed. Error %u\n", m_last_error);
     }
 
     return retval;
@@ -100,31 +83,29 @@ int CMultiEvents::Reset(DWORD index)
 
 CslotsSem::CslotsSem()
 {
-    LOG_SYNC_OBJECT(L"CslotSem constructor\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotSem constructor\n");
 
     // There's only one underlying semaphore object for all instances
     if (m_hSem == INVALID_HANDLE_VALUE)
     {
-        LOG_SYNC_OBJECT(L"Creating underlying slots semaphore\n");
-        m_hSem = CREATE_SEMAPHORE(
-            NULL,               // Default security attributes
-            1, 1,               // Initial count, Maximum count
-            m_name);
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Creating underlying slots semaphore\n");
+        m_hSem = CREATE_SEMAPHORE( NULL, 1, 1, m_name);     // Initial count 1, max count 1
 
         if (m_hSem == NULL) {
             m_last_error = GetLastError();
-            LOG_SYNC_OBJECT(L"Can't create slots semaphore\n");
+            LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Can't create slots semaphore\n");
         }
-        else
-            LOG_SYNC_OBJECT(L"Base CslotsSem semaphore handle created\n");
     }
     else
-        LOG_SYNC_OBJECT(m_name + L" already created\n");
+    {
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Slots semaphore already created\n");
+    }
 }
+
 
 CslotsSem::~CslotsSem()
 {
-    LOG_SYNC_OBJECT(L"CslotsSem descturcot\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor\n");
 
     // There's only one actual semaphore
     if (m_hSem != INVALID_HANDLE_VALUE) {
@@ -133,11 +114,13 @@ CslotsSem::~CslotsSem()
     }
 }
 
+
 CslotsSem& CslotsSem::getInstance()
 {
     static CslotsSem instance;      // Guaranteed to be destroyed. Instantiated on first use.
     return instance;
 }
+
 
 bool CslotsSem::Lock()
 {
@@ -151,10 +134,11 @@ bool CslotsSem::Lock()
 
     CString str;
     str.Format(L"CslotsSem::Lock() wait fail. Error %u\n", m_last_error);
-    LOG_SYNC_OBJECT(L"CslotsSem::Lock() wait fail\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem::Lock() wait fail\n");
 
     return false;
 }
+
 
 bool CslotsSem::Unlock()
 {
@@ -167,9 +151,7 @@ bool CslotsSem::Unlock()
 
     m_last_error = GetLastError();
 
-    CString str;
-    str.Format(L"CslotsSem::Unlock() release fail. Error %u. Count %lu\n", m_last_error, last_count);
-    LOG_SYNC_OBJECT(str);
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem::Unlock() release fail. Error %u. Count %lu\n", m_last_error, last_count);
 
     return false;
 }

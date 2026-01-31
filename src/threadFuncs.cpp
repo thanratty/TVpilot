@@ -29,18 +29,9 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob);
 
 
 
-
-#if (ENABLE_THREAD_FUNC_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
-STATIC void LOG_THREAD_FUNC(const wchar_t* str);
-#else
-#define		LOG_THREAD_FUNC(x)     do {} while (0)
-#endif
-
-
-
-
+// _THE_ global slots array object
+//
 extern Cslots gSlots;
-
 
 
 
@@ -53,33 +44,41 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	Cslot&			slot   = * static_cast<Cslot*>(pParam);
 	eThreadResult	retval;
 
-	LOG_THREAD_FUNC(L"thrSlotThread created\n");
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u created\n", slot.m_SlotNumber);
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
 	while (true)
 	{
+		retval = eThreadResult::TR_OK;
+		slot.SetThreadState(eThreadState::TS_WAITING);
+
 		// Wait for a new request event
 		DWORD wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
+		slot.SetThreadState(eThreadState::TS_RUNNING);
 		if (wait_result != WAIT_OBJECT_0)
 		{
 			// If the Wait fails - just loop & try again.
-			LOG_THREAD_FUNC(L"thrSlotThread wait file\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread wait failed\n");
 			continue;
 		}
 
-		slot.SetState(eSlotState::SS_JOB_THREAD);
-		retval = eThreadResult::TR_OK;
-
+		// We own this slot, no need to lock it
+		slot.SetState(eSlotState::SS_JOB_AWAKE);
+	
 		// Terminate flag set? Exit the thread.
-		if (slot.GetExitFlag()) {
+		if (slot.GetExitFlag())
+		{
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
+
 			slot.SetState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
-			LOG_THREAD_FUNC(L"thrSlotThread exiting\n");
+			slot.SetThreadResult(eThreadResult::TR_NORMAL_EXIT);
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
 		// Download the webpage from the show URL
+		slot.SetThreadState(eThreadState::TS_CURLING);
 		cCurlJob  curljob(slot.m_show.epguides_url);
 		bool curl_ok = curljob.downloadShow();
 
@@ -89,7 +88,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 		if (curl_ok == false)
 		{
-			// In debug mode, optionally save a local copy of the faulting page (see config flag).
+			slot.SetState(eSlotState::SS_DOWNLOAD_ERROR);
 			SAVE_WEB_PAGE(curljob);
 
 			std::ostringstream os;
@@ -99,6 +98,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		}
 		else
 		{
+			slot.SetThreadState(eThreadState::TS_SCANNING);
+
 			// No download errors. Parse the HTML into the show object
 			sXmlErrorInfo xml_error_info;
 			slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
@@ -107,15 +108,18 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 				// In debug mode, optionally save a local copy of the faulting page (see config.h).
 				SAVE_WEB_PAGE(curljob);
 
-				if (slot.m_xml_status == E_XPARSE_DOC_ERROR) {
+				if (slot.m_xml_status == E_XPARSE_DOC_FORMAT_ERROR) {
+					LOG_PRINT(eLogFlags::XML, L"E_XPARSE_DOC_FORMAT_ERROR: %s\n", slot.m_show.epguides_url.c_str());
 					slot.m_error_string = "xmlParse doc error";
 					retval = eThreadResult::TR_DOC_ERROR;
 				}
-				else if (slot.m_xml_status == E_XPARSE_PAGE_ERROR) {
+				else if (slot.m_xml_status == E_XPARSE_PAGE_FORMAT_ERROR) {
+					LOG_PRINT(eLogFlags::XML, L"E_XPARSE_PAGE_FORMAT_ERROR: %s\n", slot.m_show.epguides_url.c_str());
 					slot.m_error_string = "xmlParse page format error";
 					retval = eThreadResult::TR_PARSE_ERROR;
 				}
 				else {
+					LOG_PRINT(eLogFlags::XML, L"xmlParse() returned %d\n", slot.m_xml_status);
 					slot.m_error_string = "xmlParse unknown error";
 					retval = eThreadResult::TR_XML_ERROR;
 				}
@@ -126,7 +130,6 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		slot.SetThreadResult(retval);
 		slot.SetState(eSlotState::SS_RESULTS_READY);
 		slot.SignalResult();
-
 	}
 }
 
@@ -144,10 +147,9 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 	// Lock objects last the life of the thread. Only two events to watch.
 	CMultiEvents	events(requests.Handles());
 	int				freeslot;
-
 	CslotsSem&		slotslock = CslotsSem::getInstance();
 
-	LOG_THREAD_FUNC(L"thrRequests starting\n");
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrRequests starting\n");
 
 	while (true)
 	{
@@ -155,13 +157,13 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_FUNC(L"theRequests Wait failed\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"theRequests Wait failed\n");
 			continue;
 		}
 
 		// Terminate event? (auto-reset)
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_FUNC(L"thrRequests exiting\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrRequests exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -173,6 +175,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 				if ((freeslot = gSlots.FirstFreeSlot()) == -1)
 					break;
 
+				// TODO What's the locking story here?
 				std::string str = requests.Pop();		// Auto locks the request queue
 				gSlots.SetUrl(freeslot, str);
 				gSlots.SignalRequest(freeslot);
@@ -195,23 +198,24 @@ UINT __cdecl thrResults( LPVOID pParam )
 	cResults&		results = *static_cast<cResults*>(pParam);
 	CMultiEvents	events(results.Handles());
 
-	LOG_THREAD_FUNC(L"thrResults starting\n");
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrResults starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_FUNC(L"thrResults Wait failed\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrResults Wait failed\n");
 			continue;
 		}
 
 		// Terminate thread event?
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_FUNC(L"thrResults exiting\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrResults exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
+		// Notify the app the download is done, good or bad.
 		DWORD slotnum = wait_result - WAIT_OBJECT_0 - 1;
 		PostMessage(results.GetMsgWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
 
@@ -231,23 +235,22 @@ UINT __cdecl thrReleases( LPVOID pParam )
 {
 	cReleases&		releases = *static_cast<cReleases*>(pParam);
 	CMultiEvents	events(releases.Handles());
-
 	CslotsSem&		slotslock = CslotsSem::getInstance();
 
-	LOG_THREAD_FUNC(L"thrReleases starting\n");
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrReleases starting\n");
 
 	while (true)
 	{
 		DWORD wait_result = events.Wait();
 
 		if (wait_result == E_SO_WAIT_FAIL) {
-			LOG_THREAD_FUNC(L"thrReleases Wait failed\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrReleases Wait failed\n");
 			continue;
 		}
 
 		// 1st handle is the terminate event. The remainder are worker thread events
 		if (wait_result == WAIT_OBJECT_0) {
-			LOG_THREAD_FUNC(L"thrReleases exiting\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrReleases exiting\n");
 			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
@@ -255,13 +258,13 @@ UINT __cdecl thrReleases( LPVOID pParam )
 		DWORD slotnum = (wait_result - WAIT_OBJECT_0 - 1);
 
 		if (!slotslock.Lock()) {
-			LOG_THREAD_FUNC(L"thrRelease can't acquire slots lock\n");
+			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrRelease slots lock fail\n");
 		}
 		else {
 			releases.ReleaseSlot(slotnum);
 			PostMessage(releases.GetMsgWindow(), WM_TVP_SLOT_RELEASED, slotnum, 0);
 			if (!slotslock.Unlock())
-				LOG_THREAD_FUNC(L"thrRelease can't release slots lock\n");
+				LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrRelease slots unlock fail\n");
 		}
 
 		VERIFY(events.Reset(wait_result) == E_SO_OK);
@@ -285,17 +288,9 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob)
 	cfile.Write(&curljob.m_page[0], curljob.m_page.size());
 	cfile.Flush();
 	cfile.Close();
+
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
 }
 
 #endif
 
-
-
-#if (ENABLE_THREAD_FUNC_LOGGING==1) && defined(_DEBUG) && (CONSOLE_LOGGING_ENABLED==1)
-
-STATIC void LOG_THREAD_FUNC(const wchar_t* str)
-{
-	LOG_WRITE( eLogFlags::THREAD_FUNC, str);
-}
-
-#endif

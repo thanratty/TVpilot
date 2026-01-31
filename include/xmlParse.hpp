@@ -5,9 +5,9 @@
 
 
 
-constexpr int E_XPARSE_OK			= 0;
-constexpr int E_XPARSE_DOC_ERROR	= 1;
-constexpr int E_XPARSE_PAGE_ERROR	= 2;
+constexpr int E_XPARSE_OK					= 0;
+constexpr int E_XPARSE_DOC_FORMAT_ERROR			= 1;
+constexpr int E_XPARSE_PAGE_FORMAT_ERROR	= 2;
 
 
 

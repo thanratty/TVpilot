@@ -9,6 +9,9 @@
 
 #include "curl/curl.h"
 
+#include "common.hpp"
+#include "logging.hpp"
+
 #include "CcurlJob.hpp"
 
 
@@ -89,26 +92,31 @@ bool cCurlJob::fetchUrl()
 
 bool cCurlJob::downloadShow()
 {
-    unsigned retry_counter = NUMBER_OF_CURL_TRIES;
+    unsigned attempt_number = 1;
     bool     curl_ok;
+    bool     success = false;
 
     // Download the webpage from the show URL with retries
     do
     {
+        // Reset error flags etc & (re)try the download
         Reset();
         curl_ok = fetchUrl();
+
         // All good? Break out.
         if ((curl_ok) && (m_http_response == HTTP_STATUS_OK))
+        {
+            success = true;
             break;
+        }
 
-        // Curl failed or webserver complained? Delay before retrying.
-        if (--retry_counter > 0)
+        LOG_PRINT(eLogFlags::CURL, L"Curl fail, error %d : HTTp response %d\n", m_curl_result, m_http_response);
+
+        // Delay before retrying if any retries left
+        if (attempt_number++ < CURL_MAX_TRIES)
             Sleep( CURL_RETRY_DELAY );
-    } while (retry_counter > 0);
 
-    if (retry_counter == 0) {
-        DebugBreak();
-    }
+    } while (attempt_number <= CURL_MAX_TRIES);
 
-    return curl_ok;
+    return success;
 }

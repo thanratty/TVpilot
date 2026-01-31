@@ -20,7 +20,7 @@ class CdownloadManager
 {
 public:
     CdownloadManager() {};
-    ~CdownloadManager() {};
+    ~CdownloadManager();
 
     void SetMsgWindow(HWND hMsgWindow);
     void DownloadShow(const std::string& url);
