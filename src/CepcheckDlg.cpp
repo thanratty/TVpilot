@@ -65,16 +65,16 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_NOTIFY( TCN_SELCHANGE, IDC_TAB1,				&CepcheckDlg::OnTcnSelchangeTab1)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_PRE,	&CepcheckDlg::OnDeltaPosSpinDays)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_POST,	&CepcheckDlg::OnDeltaPosSpinDays)
-	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtnClicked_ResetDays)
-	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtnClicked_Load)
-	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtnClicked_Save)
-	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtnClicked_Download)
-	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtnClicked_DeleteShow)
-	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtnClicked_NewShow)
-	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtnClicked_Break)
-	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtnClicked_Explorer)
-	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtnClicked_ChkMissedOnly)
-	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtnClicked_ShowLog)
+	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtn_ResetDays)
+	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtn_Load)
+	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtn_Save)
+	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtn_Download)
+	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtn_DeleteShow)
+	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtn_NewShow)
+	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtn_Break)
+	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtn_Explorer)
+	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtn_ChkMissedOnly)
+	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtn_ShowLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
 	ON_MESSAGE( WM_TVP_SLOT_RELEASED,				&CepcheckDlg::OnSlotReleased)
@@ -234,7 +234,7 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
  * Load the database from disk
  *
  */
-void CepcheckDlg::OnBtnClicked_Load()
+void CepcheckDlg::OnBtn_Load()
 {
 	m_data.LoadFile();
 
@@ -255,7 +255,7 @@ void CepcheckDlg::OnBtnClicked_Load()
  * Save the database to disk
  *
  */
-void CepcheckDlg::OnBtnClicked_Save()
+void CepcheckDlg::OnBtn_Save()
 {
 	if (!m_data.SaveFile())
 		AfxMessageBox(L"Error saving data file!", MB_ICONERROR | MB_OK | MB_APPLMODAL );
@@ -269,31 +269,6 @@ void CepcheckDlg::OnBtnClicked_Save()
 
 
 
-/**
- * Download/Update all episodes for all shows in the model
- *
- */
-void CepcheckDlg::OnBtnClicked_Download()
-{
-	if (IDYES != AfxMessageBox(L"Confirm download all shows from epguides.com?", MB_YESNO | MB_APPLMODAL))
-		return;
-
-	// Reset & update on-screen counters
-	m_ping_count = m_err_count = 0;
-	UpdateOnscreenCounters();
-
-	// Tell the data model to start the download everything & update everything
-	if (m_data.DownloadAllShows())
-	{
-		// Set appropriate button states during download
-		LogMsgWindow(L"Downloading all shows...");
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
-
-		// Enable the 'Cancel Download' button in the massage box
-		m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
-	}
-}
-
 
 
 
@@ -302,7 +277,7 @@ void CepcheckDlg::OnBtnClicked_Download()
  * A show can only be deleted from the archive dialog.
  * 
  */
-void CepcheckDlg::OnBtnClicked_DeleteShow()
+void CepcheckDlg::OnBtn_DeleteShow()
 {
 	// Can only delete when the Archived list is displayed, not the Schedule or Show list.
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
@@ -347,7 +322,7 @@ void CepcheckDlg::OnBtnClicked_DeleteShow()
  * Enter a URL for epguides.com & add a new show to the database
  *
  */
-void CepcheckDlg::OnBtnClicked_NewShow()
+void CepcheckDlg::OnBtn_NewShow()
 {
 	// Popup the dialog box to enter the URL
 	CDnewShow	dbox(this);
@@ -391,20 +366,10 @@ void CepcheckDlg::OnBtnClicked_NewShow()
 	m_ping_count = m_err_count = 0;
 	UpdateOnscreenCounters();
 
-	// Add it to the model
-	DWORD hash = m_data.AddNewShow(new_url);
-
-
 	// Start downloading the new show's info
-	if (m_data.DownloadSingleShow(hash) == false)
-	{
-		AfxMessageBox(L"Add new show failed", MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL);
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
-	}
-	else
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
-
-	// If there was no error, the model has successfully started a download thread for the new show
+	CW2A asciiz(new_url);
+	m_dlm.DownloadShow(asciiz.m_psz);
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 }
 
 
@@ -532,14 +497,10 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 	UNREFERENCED_PARAMETER( wParam );
 	UNREFERENCED_PARAMETER( lParam );
 
-	// Tell the model to check all received show data
-	bool bDownloadErrors = m_data.DownloadComplete();
-
-	if (bDownloadErrors || (m_err_count > 0))
+	if (m_err_count > 0)
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
-		bDownloadErrors = false;
 		m_err_count = 0;
 	}
 	else if (m_abort_download)
@@ -566,38 +527,14 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
 
 
 /**
- * Handler for the WM_TVP_DOWNLOAD_PING message sent after a shows info has been downloaded.
- * This local function just updates the UI counters. Call into the model to actually process the response.
- *
- */
-afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-
-	// Bump ping counter and update the UI
-	m_ping_count++;
-	UpdateOnscreenCounters();
-
-	// Notify the model
-	m_data.OnDownloadPing(slotnum);
-
-	return 0;
-}
-
-
-
-
-/**
  * Handler for the WM_TVP_SLOW_RELEASED message, sent from the thrRelase thread after the model has finished with the slot.
  * This local function just calls into the model.
  *
  */
-afx_msg LRESULT CepcheckDlg::OnSlotReleased(WPARAM slotnum, LPARAM lParam)
+afx_msg LRESULT CepcheckDlg::OnSlotReleased( [[maybe_unused]] WPARAM slotnum, 
+											 [[maybe_unused]] LPARAM lParam )
 {
-	UNREFERENCED_PARAMETER(lParam);
-
-	// Notify the model
-	m_data.OnSlotReleased(slotnum);
+	// Nothing to do? TODO
 
 	return 0;
 }
@@ -866,12 +803,10 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 		case ID_MNU_REFRESH_SHOW:
 			// Reset ping & download counter
 			ResetOnscreenCounters();
-			if (m_data.DownloadSingleShow(hash) == false)
-				AfxMessageBox(L"Refresh show failed", MB_ICONERROR | MB_APPLMODAL | MB_OK);
-			else
-				LogMsgWindow(L"Refreshing show...");
+			m_ping_expected = 1;
+			m_dlm.DownloadShow(pshow->epguides_url);
+			LogMsgWindow(L"Refreshing show...");
 			break;
-
 
 		// Copy the show title or episode title from the Schedule List to the system clipboard
 		case ID_MNU_COPY_SHOW_TITLE:
@@ -929,7 +864,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
  * 'Missed only' checkbox clicked in the top level dialog.
  * Notify the model of the new state & rebuild the schedule accordingly
  */
-void CepcheckDlg::OnBtnClicked_ChkMissedOnly()
+void CepcheckDlg::OnBtn_ChkMissedOnly()
 {
 	UpdateData();
 	m_data.ShowMissedOnly(m_missed_only);
@@ -944,7 +879,7 @@ void CepcheckDlg::OnBtnClicked_ChkMissedOnly()
  * Show/Hide the logging messages window
  *
  */
-void CepcheckDlg::OnBtnClicked_ShowLog()
+void CepcheckDlg::OnBtn_ShowLog()
 {
 static BOOL visible = false;
 
@@ -967,7 +902,7 @@ static BOOL visible = false;
  * Reset the +/- days interval for the schedule list to their defaults.
  *
  */
-void CepcheckDlg::OnBtnClicked_ResetDays()
+void CepcheckDlg::OnBtn_ResetDays()
 {
 	m_spin_pre_val  = DEFAULT_DAYS_PRE;
 	m_spin_post_val = DEFAULT_DAYS_POST;
@@ -1172,7 +1107,7 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
  * Open up file explorer in the data file location
  *
  */
-void CepcheckDlg::OnBtnClicked_Explorer()
+void CepcheckDlg::OnBtn_Explorer()
 {
 	m_data.OpenDataFileFolder();
 }
@@ -1184,7 +1119,7 @@ void CepcheckDlg::OnBtnClicked_Explorer()
  * Break into the debugger
  *
  */
-void CepcheckDlg::OnBtnClicked_Break()
+void CepcheckDlg::OnBtn_Break()
 {
 	AfxDebugBreak();
 }
@@ -1203,7 +1138,7 @@ void CepcheckDlg::OnOK()
  */
 void CepcheckDlg::OnCancel()
 {
-	if (m_data.DownloadInProgress())
+	if (m_dlm.DownloadInProgress())
 	{
 		AfxMessageBox(L"Download in progress. Abort it first.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return;
@@ -1228,7 +1163,7 @@ int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	m_data.SetMsgWindow(m_hWnd);
+	m_dlm.SetMsgWindow(m_hWnd);
 
 	return 0;
 }
@@ -1243,8 +1178,7 @@ afx_msg LRESULT CepcheckDlg::OnAbortDownload( WPARAM wParam, LPARAM lParam )
 
 	// Gets reset by the WM_DOWNLOAD_COMPLETE handler
 	m_abort_download = true;
-
-	m_data.AbortDownload();
+	m_dlm.AbortDownload();
 
 	return 0;
 }
@@ -1280,5 +1214,195 @@ static int day = 0;
 	}
 
 	CDialog::OnTimer(nTimerID);
+}
+
+
+
+
+
+
+
+
+
+/**
+ * Download from the internet. Update all shows / episodes.
+ *
+ * Return:  true    Download started
+ *          false   Error, or nothing to download
+ *
+ */
+void CepcheckDlg::OnBtn_Download()
+{
+	// No shows to download?
+	if (m_data.NumActiveShows() == 0) {
+		AfxMessageBox(L"No shows in database!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		return;
+	}
+
+	// Already downloading?
+	if (m_dlm.DownloadInProgress()) {
+		AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		return;
+	}
+
+	if (IDYES != AfxMessageBox(L"Confirm download all shows from epguides.com?", MB_YESNO | MB_APPLMODAL))
+		return;
+
+	// Reset counters
+	m_ping_received = m_ping_count = m_err_count = 0;
+	m_ping_expected = m_data.NumActiveShows();
+
+	eGETACTION action = eGETACTION::GET_FIRST;
+	sShowListEntry  sle;
+
+	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
+
+	m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
+
+	while (m_data.GetShow(eSHOWLIST::ACTIVE, action, &sle))
+	{
+		m_dlm.DownloadShow(sle.epguides_url);
+		action = eGETACTION::GET_NEXT;
+	}
+
+	LogMsgWindow(L"All shows queued for download");
+}
+
+
+
+
+/**
+ * Download a show's information from the URL and create a new database entry.
+ *
+ * Currently only called when adding a new show.
+ *
+ */
+bool CepcheckDlg::DownloadSingleShow(DWORD hash)
+{
+	bool retval = true;
+
+	// Already downloading?
+	if (m_dlm.DownloadInProgress()) {
+		CString error1(L"Download already in progress!");
+		LogMsgWindow(error1);
+		LOG_PRINT(eLogFlags::INFO, error1);
+		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		return false;
+	}
+
+
+	show* pShow = m_data.FindShow(hash, eSHOWLIST::ACTIVE);
+	if (pShow == nullptr) {
+		CString error1(L"DownloadSingleShow() : Can't find show");
+		LogMsgWindow(error1);
+		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		return FALSE;
+	}
+
+	pShow->state |= showstate::SH_ST_WAITING;
+
+	// Setup the ping counters
+	m_ping_expected = 1;
+	m_ping_received = 0;
+
+	m_dlm.DownloadShow(pShow->epguides_url);
+	LogMsgWindow(L"Download requested");
+
+	return retval;
+}
+
+
+
+
+
+
+
+
+/**
+* If all shows are downloaded *OR* the download has been sucessfully
+* aborted, send WM_DOWNLOAD_COMPLETE to the main dialog window.
+*
+* TODO Shouldn't CdownloadManager determine when the download's complete? Not the model/database?
+*
+*/
+void CepcheckDlg::CheckDownloadComplete()
+{
+	if (
+		((m_abort_download == true) && (m_dlm.DownloadInProgress() == false)) ||
+		(m_ping_expected == m_ping_received)
+		)
+	{
+		PostMessage(WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
+	}
+}
+
+
+
+
+
+
+/**
+ * Handler for the WM_TVP_DOWNLOAD_PING message sent after a shows info has been downloaded.
+ * 
+ * One slot has completed it's download. Update the show information in the model.
+ * Existing episode flags must be copied over as that's not in the reveived data
+ *
+ */
+afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+
+	// Bump ping counter and update the UI
+	m_ping_count++;
+	UpdateOnscreenCounters();
+
+	const show& resultShow = m_dlm.GetShow(slotnum);
+
+	// Move to DLM ?
+	if (m_dlm.GetSlotState(slotnum) != eSlotState::SS_NOTIFY_SENT)
+	{
+		const wchar_t* msg = L"ERROR! Pinged on an empty slot or bad slotstate.";
+		LogMsgWindow(msg);
+		LOG_PRINT(eLogFlags::MODEL, msg);
+		m_dlm.ReleaseSlot(slotnum);
+		CheckDownloadComplete();
+		return 0;
+	}
+
+	m_ping_received++;
+	m_dlm.SetSlotState(slotnum, eSlotState::SS_PROCESSING);
+
+	// If this is for a new show, there will be no database entry for it. [TODO of check showstate flags? ]
+	show* originalShow = m_data.FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
+
+
+	// Any problems?
+	if (m_dlm.GetThreadResult(slotnum) != eThreadResult::TR_OK)
+	{
+		m_dlm.SetSlotState(slotnum, eSlotState::SS_JOB_ERROR);
+		LogMsgWindow("DownloadPing() Download error, aborting : " + m_dlm.GetErrorString(slotnum));
+		if (originalShow)
+			originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
+
+		return -1;
+	}
+
+	//resultShow.state = showstate::SH_ST_UPDATED;
+
+
+	if (originalShow)
+		m_data.UpdateShow(m_dlm.GetShow(slotnum));
+	else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
+		m_data.AddNewShow(m_dlm.GetShow(slotnum));
+	else
+		LogMsgWindow(L"Unexpected showstate\n");
+
+	// Notify the thrRelease thread we're done
+	m_dlm.ReleaseSlot(slotnum);
+
+	// Time to send WM_DOWNLOAD_COMPLETE ?
+	CheckDownloadComplete();
+
+	return 0;
 }
 

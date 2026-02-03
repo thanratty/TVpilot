@@ -333,7 +333,7 @@ CopyGuideEntryToScheduleListEntry(const sGuideEntry* ge, sScheduleListEntry* sle
 
 
 /**
- * Populate the sGuideListEntry structure with NEXT episode within the filter range
+ * Populate the sGuideListEntry structure with FIRST or NEXT episode within the filter range
  *
  */
 bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
@@ -421,312 +421,64 @@ bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Create an "empty" show object from a URL & add it to the "database"
- *
- * Only called when adding a new show, doesn't start a download
- * 
- * RETURN:      Hash of the new show object
- *
- */
-DWORD model::AddNewShow(const CString& url)
+void model::AddNewShow(const show& showtoadd)
 {
-
-    // Prepare a new Show object
-    show	new_show;
-    new_show.epguides_url = CW2A(url, CP_UTF8);
-    new_show.hash = SimpleHash(new_show.epguides_url);
-    new_show.title = "--NEW SHOW--";
-    new_show.state = showstate::SH_ST_NEW_SHOW | showstate::SH_ST_WAITING;
-    new_show.flags = showflags::SH_FL_NONE;
-
-    // Add it to the shows vector (can't fail)
-    m_active_shows.push_back(new_show);
-
-    return new_show.hash;
+    m_active_shows.push_back(showtoadd);        // Use std::move ? TODO
 }
 
 
-
-
-/**
- * Download from the internet. Update all shows / episodes.
- * 
- * Return:  true    Download started
- *          false   Error, or nothing to download
- * 
- */
-bool model::DownloadAllShows()
+bool model::UpdateShow(const show& showtoupdate)
 {
-    // No shows to download?
-    if (m_active_shows.size() == 0)
-        return false;
-
-    // Already downloading?
-    if (dm.DownloadInProgress()) {
-        AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+    show* originalShow = FindShow(showtoupdate.hash, eSHOWLIST::ACTIVE);
+    if (originalShow == nullptr) {
+        LOG_PRINT(eLogFlags::MODEL, L"UpdateShow() hash not found!\n");
         return false;
     }
 
-    // Reset counters
-    m_ping_expected = m_active_shows.size();
-    m_ping_received = 0;
+    // Save all current episode flags in a map with the episode number as the key
+    std::map<std::string, episodeflags> ep_flags_map;
+    for (const auto& ep : originalShow->episodes)
+        ep_flags_map[ep.ep_num] = ep.ep_flags;
 
-    // Flag all shows 'WAITING' for download and queue for download
-    for (auto& ashow : m_active_shows)
+    // Put the show's episodes in the database - lock the 'database' while we're twiddling.
+    CSingleLock dbLock(&m_critical);
+    VERIFY(dbLock.Lock());
+
+    // Copy over URLs and stuff from the downloaded show into the original show. Preserve the original show flags.
+    originalShow->episodes = showtoupdate.episodes;
+    originalShow->title = showtoupdate.title;
+    originalShow->imdb_url = showtoupdate.imdb_url;
+    // This URL is 'guessed' from the show title - don't do it twice or you'll overwrite any manual corrections.
+    if (originalShow->tvmaze_url.empty())
+        originalShow->tvmaze_url = showtoupdate.tvmaze_url;
+    originalShow->thetvdb_url = showtoupdate.thetvdb_url;
+    originalShow->state |= showstate::SH_ST_UPDATED;
+    EvalShowLastNextDates(originalShow);
+
+    VERIFY(dbLock.Unlock());
+
+    // Now restore saved episode flags (Original_show is captured in the lambda only for the log message)
+    for (auto& ep : originalShow->episodes)
     {
-        ashow.state |= showstate::SH_ST_WAITING;
-        dm.DownloadShow(ashow.epguides_url);
+        auto iter = ep_flags_map.find(ep.ep_num);
+        if (iter != ep_flags_map.end()) {
+            ep.ep_flags = iter->second;
+        }
+        else {
+            // If we didn't have that episode's flags, it's either a completely new show or a new episode. for
+            // an existing show. (Only notify about new episodes for existing shows, otherwise it gets too noisy.)
+            if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
+                std::ostringstream str;
+                str << "New episode " << (originalShow->title) << " " << ep.ep_num;
+                LogMsgWindow(str.str());
+            }
+        }
     }
 
-    LogMsgWindow(L"All shows queued for download");
     return true;
 }
 
 
-
-
-/**
- * Download a show's information from the URL and create a new database entry.
- *
- * Currently only called when adding a new show.
- *
- */
-bool model::DownloadSingleShow(DWORD hash)
-{
-    bool retval = true;
-
-    // Already downloading?
-    if (dm.DownloadInProgress()) {
-        CString error1(L"Download already in progress!");
-        LogMsgWindow(error1);
-        AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-        return false;
-    }
-
-
-    show* pShow = FindShow(hash, eSHOWLIST::ACTIVE);
-    if (pShow == nullptr) {
-        CString error1(L"DownloadSingleShow() : Can't find show");
-        LogMsgWindow(error1);
-        AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-        return FALSE;
-    }
-
-
-    // Clear all other shows 'WAITING' flag so they aren't downloaded.
-    std::for_each(m_active_shows.begin(), m_active_shows.end(), [hash](show& show) {
-        if (show.hash != hash)
-            show.state &= ~showstate::SH_ST_WAITING;
-        });
-    pShow->state |= showstate::SH_ST_WAITING;
-
-    // Setup the ping counters
-    m_ping_expected = 1;
-    m_ping_received = 0;
-
-    dm.DownloadShow(pShow->epguides_url);
-    LogMsgWindow(L"Download requested");
-
-    // NB  TODO Do I need to filter for new_show in ping handler?
-
-    return retval;
-}
-
-
-
-
-/**
-* If all shows are downloaded *OR* the download has been sucessfully
-* aborted, send WM_DOWNLOAD_COMPLETE to the main dialog window.
-*
-* TODO Shouldn't CdownloadManager determine when the download's complete? Not the model/database?
-* 
-*/
-void model::CheckDownloadComplete()
-{
-    if (
-        ((m_abort_download == true) && (dm.DownloadInProgress() == false)) ||
-        (m_ping_expected == m_ping_received)
-       )
-    {
-        ::PostMessage(m_hMsgWin, WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
-    }
-}
-
-
-
-
- /**
- * One slot has completed it's download. Update the show information in the model.
- * Existing episode flags must be copied over as that's not in the reveived data
- * 
- */
-void model::OnDownloadPing(DWORD slotnum)
-{
-    const show& resultShow = gSlots.GetShow(slotnum);
-
-    if (gSlots.IsFree(slotnum) || (gSlots.GetState(slotnum) != eSlotState::SS_NOTIFY_SENT))
-    {
-        const wchar_t* msg = L"ERROR! Pinged on an empty slot or bad slotstate.";
-        LogMsgWindow(msg);
-        LOG_PRINT( eLogFlags::MODEL, msg);
-        dm.ReleaseSlot(slotnum);
-        CheckDownloadComplete();
-        return;
-    }
-
-    m_ping_received++;
-    gSlots.SetState(slotnum, eSlotState::SS_PROCESSING);
-
-    // If this is for a new show, a dummy database entry was added so this pointer will always be valid
-    show* originalShow = FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
-
-    if (gSlots.GetThreadResult(slotnum) != eThreadResult::TR_OK)
-    {
-        gSlots.SetState(slotnum, eSlotState::SS_JOB_ERROR);
-        LogMsgWindow("DownloadPing() Download error, aborting : " + gSlots.GetErrorString(slotnum));
-        originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
-        AbortDownload();
-    }
-    else
-    {
-        // Save all current episode flags in a map with the episode number as the key
-        std::map<std::string, episodeflags> ep_flags_map;
-        for (const auto& ep : originalShow->episodes)
-            ep_flags_map[ep.ep_num] = ep.ep_flags;
-
-        // Put the show's episodes in the database - lock the 'database' while we're twiddling.
-        CSingleLock dbLock(&m_critical);
-        VERIFY(dbLock.Lock());
-
-        // Copy over URLs and stuff from the downloaded show into the original show. Preserve the original show flags.
-        originalShow->episodes    = resultShow.episodes;
-        originalShow->title       = resultShow.title;
-        originalShow->imdb_url    = resultShow.imdb_url;
-        // This URL is 'guessed' from the show title - don't do it twice or you'll overwrite any manual corrections.
-        if (originalShow->tvmaze_url.empty())
-            originalShow->tvmaze_url = resultShow.tvmaze_url;
-        originalShow->thetvdb_url = resultShow.thetvdb_url;
-        originalShow->state      |= showstate::SH_ST_UPDATED;
-        EvalShowLastNextDates(originalShow);
-
-        VERIFY(dbLock.Unlock());
-
-        // Now restore saved episode flags (Original_show is captured in the lambda only for the log message)
-        for (auto& ep : originalShow->episodes)
-        {
-            auto iter = ep_flags_map.find(ep.ep_num);
-            if (iter != ep_flags_map.end()) {
-                ep.ep_flags = iter->second;
-            }
-            else {
-                // If we didn't have that episode's flags, it's either a completely new show or a new episode. for
-                // an existing show. (Only notify about new episodes for existing shows, otherwise it gets too noisy.)
-                if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
-                    std::ostringstream str;
-                    str << "New episode " << (originalShow->title) << " " << ep.ep_num;
-                    LogMsgWindow(str.str());
-                }
-            }
-        }
-
-        // Notify the thrRelease thread we're done
-        dm.ReleaseSlot( slotnum );
-    }
-
-    // Time to send WM_DOWNLOAD_COMPLETE ?
-    CheckDownloadComplete();
-}
-
-
-
-
-/**
- * >ALL< shows have completed downloading.
- *
- */
-bool model::DownloadComplete()
-{
-    LogMsgWindow(L"Download Complete()");
-
-    bool bHadDownloadErrors = false;
-
-    // Purge episodes for SH_ST_UPDATE_FAILED shows. Delete New Shows that failed too.
-    // If we delete a show we must start again from the beginning as iterators are invalidated.
-
-    bool finished;
-    do
-    {
-        finished = true;
-        for (unsigned i = 0; i < m_active_shows.size(); ++i)
-        {
-            show& sh = m_active_shows[i];
-            if (sh.state & showstate::SH_ST_UPDATE_FAILED)
-            {
-                bHadDownloadErrors = true;
-                std::string msg = "DownloadComplete(): Show download failed " + sh.epguides_url;
-                LogMsgWindow(msg);
-
-                if (sh.state & showstate::SH_ST_NEW_SHOW)
-                {
-                    // Adding a new show failed. Delete it & restart the scan.
-                    m_active_shows.erase(m_active_shows.begin() + i);
-                    finished = false;
-                    break;
-                }
-            }
-            else if (sh.state & showstate::SH_ST_UPDATED)
-            {
-                // No error, good download. Reset show state to something sensible (ie clear other flags)
-                sh.state = showstate::SH_ST_UPDATED;
-            }
-        }
-    } while (!finished);
-
-    // Reset flag
-    m_abort_download = false;
-
-    BuildEpisodeList();
-
-    return bHadDownloadErrors;
-}
-
-
-
-
-/**
- * thrReleases thread send a WM_TVP_SLOT_RELEASED msg whenever a slot is freed.
- * That ends up here where we check if there are URLs in the queue & retrigger a evRequest if there are.
- *
- */
-void model::OnSlotReleased(DWORD slotnum)
-{
-    dm.OnSlotReleased( slotnum );
-}
 
 
 
@@ -827,18 +579,6 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
     return retval;
 }
 
-
-
-
-/**
- * DownloadAllShows() can be aborted.
- *
- */
-void model::AbortDownload(void)
-{
-    m_abort_download = true;
-    dm.AbortDownload();
-}
 
 
 

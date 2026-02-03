@@ -60,16 +60,16 @@ protected:
 
 public:
 	// Dialog control event handlers
-	afx_msg void	OnBtnClicked_Load();
-	afx_msg void	OnBtnClicked_Save();
-	afx_msg void	OnBtnClicked_Download();
-	afx_msg void	OnBtnClicked_DeleteShow();
-	afx_msg void	OnBtnClicked_NewShow();
-	afx_msg void	OnBtnClicked_Break();
-	afx_msg void    OnBtnClicked_ChkMissedOnly();
-	afx_msg void    OnBtnClicked_ShowLog();
-	afx_msg void	OnBtnClicked_ResetDays();
-	afx_msg void	OnBtnClicked_Explorer();
+	afx_msg void	OnBtn_Load();
+	afx_msg void	OnBtn_Save();
+	afx_msg void	OnBtn_Download();
+	afx_msg void	OnBtn_DeleteShow();
+	afx_msg void	OnBtn_NewShow();
+	afx_msg void	OnBtn_Break();
+	afx_msg void    OnBtn_ChkMissedOnly();
+	afx_msg void    OnBtn_ShowLog();
+	afx_msg void	OnBtn_ResetDays();
+	afx_msg void	OnBtn_Explorer();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void	OnTimer(UINT_PTR nIDEvent);
@@ -86,10 +86,14 @@ private:
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
 			//
-			model			m_data;
+			model				m_data;
+			CdownloadManager	m_dlm;
 			//
+			unsigned		m_ping_expected{ 0 };
+			unsigned		m_ping_received{ 0 };
 			unsigned		m_ping_count{ 0 };
 			unsigned		m_err_count{ 0 };
+
 			int				m_spin_pre_val{ DEFAULT_DAYS_PRE };
 			int				m_spin_post_val{ DEFAULT_DAYS_POST };
 			bool			m_abort_download{ false };
@@ -106,4 +110,10 @@ private:
 			void		UpdateScheduleList();
 			void		UpdateArchiveList();
 			void		UpdateSchedulePeriod();
+
+
+			bool		DownloadAllShows();
+			bool		DownloadSingleShow(DWORD hash);
+			void		CheckDownloadComplete();
+
 };

@@ -12,9 +12,6 @@
 
 
 
-extern Cslots gSlots;
-
-
 
 class CdownloadManager
 {
@@ -23,17 +20,18 @@ public:
     ~CdownloadManager();
 
     void SetMsgWindow(HWND hMsgWindow);
+
     void DownloadShow(const std::string& url);
     bool DownloadInProgress() const;
     void AbortDownload();
 
-    void OnSlotReleased( DWORD slotnum );
+    const show& GetShow(UINT slotnum) const;
+    void ReleaseSlot(DWORD slotnum);
 
-    void ReleaseSlot(DWORD slotnum)
-    {
-        gSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
-        gSlots.SignalRelease(slotnum);
-    }
+    eSlotState GetSlotState(UINT slotnum) const;
+    void SetSlotState(UINT slotnum, eSlotState state);
+    eThreadResult GetThreadResult(UINT slotnum) const;
+    const std::string& GetErrorString(UINT slotnum) const;
 
 
 private:

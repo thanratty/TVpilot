@@ -94,20 +94,13 @@ public:
         void        SetDateInterval(int lower, int upper);
         void        SetTodaysDate();
         bool        GetFilteredEpisode(eGETACTION locus, sScheduleListEntry* sle);
-
-
-        // Download from internet
-        void        OnDownloadPing(DWORD slotnum);
-        void        OnSlotReleased(DWORD slotnum);
-        bool        DownloadAllShows();
-        bool        DownloadSingleShow(DWORD hash);
-        bool        DownloadComplete();
-        void        AbortDownload(void);
-
         void        BuildEpisodeList();
-        void        DeleteShow(DWORD hash);
-        DWORD       AddNewShow(const CString& url);
 
+        void        AddNewShow(const show& showtoadd);
+        bool        UpdateShow(const show& showtoupdate);
+
+
+        void        DeleteShow(DWORD hash);
         bool        ArchiveShow(DWORD hash);
         bool        UnarchiveShow(DWORD hash);
 
@@ -131,20 +124,10 @@ public:
             }
         }
 
-        void SetMsgWindow(HWND hMsgWin)
-        {
-            m_hMsgWin = hMsgWin;
-            dm.SetMsgWindow( m_hMsgWin );
-        }
 
 inline  void ShowMissedOnly(bool missed_only)
         {
             m_missed_edpisodes_only = missed_only;
-        }
-
-inline  bool DownloadInProgress() const
-        {
-            return dm.DownloadInProgress();
         }
 
 inline  bool IsNewDataFile() const
@@ -152,10 +135,16 @@ inline  bool IsNewDataFile() const
             return m_datafile.IsNewFile();
         }
 
+inline bool NumActiveShows() const
+        {
+            return m_active_shows.size();
+        }
+
+
+
 
 private:
         void        EvalScheduleDateRange();
-        void        CheckDownloadComplete();
 
 
         std::vector<show>           m_active_shows;
@@ -163,7 +152,6 @@ private:
         std::vector<sGuideEntry>    m_guide;
 
         CCriticalSection            m_critical;
-        CdownloadManager	        dm;
         CdataFile                   m_datafile;
 
         // Where to post 'ping' and 'complete' msgs to.
@@ -177,7 +165,5 @@ private:
         BOOL                        m_missed_edpisodes_only { FALSE };
         bool                        m_abort_download { false };
 
-        unsigned int                m_ping_expected{ 0 };
-        unsigned int                m_ping_received{ 0 };
 };
 

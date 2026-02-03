@@ -127,8 +127,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		}
 
 		// Save the status & Signal that we're all done
-		slot.SetThreadResult(retval);
-		slot.SetState(eSlotState::SS_RESULTS_READY);
+		slot.SetThreadResult(retval);					// Bad name. 'LastJobResult' maybe? etc
+		slot.SetState(eSlotState::SS_RESULTS_READY);	// Expand name... SetSlotState(...)
 		slot.SignalResult();
 	}
 }
@@ -175,7 +175,6 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 				if ((freeslot = gSlots.FirstFreeSlot()) == -1)
 					break;
 
-				// TODO What's the locking story here?
 				std::string str = requests.Pop();		// Auto locks the request queue
 				gSlots.SetUrl(freeslot, str);
 				gSlots.SignalRequest(freeslot);

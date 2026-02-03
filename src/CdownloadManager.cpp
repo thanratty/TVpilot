@@ -8,9 +8,14 @@
 #include "common.hpp"
 
 #include "CsyncObjects.hpp"
+#include "Cslots.hpp"
 #include "utils.hpp"
 
 #include "CdownloadManager.hpp"
+
+
+
+extern Cslots gSlots;
 
 
 
@@ -78,13 +83,36 @@ void CdownloadManager::AbortDownload()
 }
 
 
-
-void CdownloadManager::OnSlotReleased(DWORD slotnum)
+void CdownloadManager::ReleaseSlot(DWORD slotnum)
 {
-	UNREFERENCED_PARAMETER(slotnum);
-
-	if (requests.RequestsPending())
-		requests.NotifyRequestThread();
+	gSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
+	gSlots.SignalRelease(slotnum);
 }
 
 
+const show& CdownloadManager::GetShow(UINT slotnum) const
+{
+	return gSlots.GetShow(slotnum);
+}
+
+
+eSlotState CdownloadManager::GetSlotState(UINT slotnum) const
+{
+	return gSlots.GetState(slotnum);
+}
+
+
+void CdownloadManager::SetSlotState(UINT slotnum, eSlotState state)
+{
+	gSlots.SetState(slotnum, state);
+}
+
+eThreadResult CdownloadManager::GetThreadResult(UINT slotnum) const
+{
+	return gSlots.GetThreadResult(slotnum);
+}
+
+const std::string& CdownloadManager::GetErrorString(UINT slotnum) const
+{
+	return gSlots.GetErrorString(slotnum);
+}
