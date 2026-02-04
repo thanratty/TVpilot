@@ -1359,7 +1359,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 	const show& resultShow = m_dlm.GetShow(slotnum);
 
 	// Move to DLM ?
-	if (m_dlm.GetSlotState(slotnum) != eSlotState::SS_NOTIFY_SENT)
+	if (m_dlm.GetSlotState(slotnum) != eSlotState::SS_RESULTS_READY)
 	{
 		const wchar_t* msg = L"ERROR! Pinged on an empty slot or bad slotstate.";
 		LogMsgWindow(msg);

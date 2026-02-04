@@ -143,8 +143,8 @@ public:
 
     const show& GetShow(unsigned slotnum) const;
 
-    eSlotState GetState(unsigned slotnum) const;
-    void SetState(unsigned slotnum, eSlotState state);
+    eSlotState GetSlotState(unsigned slotnum) const;
+    void SetSlotState(unsigned slotnum, eSlotState state);
 
     void SetUrl(unsigned slotnum, const std::string& url);
 

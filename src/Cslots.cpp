@@ -13,11 +13,6 @@
 
 
 
-//
-// The global slot 'manager'
-//
-
-Cslots gSlots;
 
 
 
@@ -249,11 +244,11 @@ const show& Cslots::GetShow(unsigned slotnum) const {
     return m_slots.at(slotnum).GetShow();
 }
 
-eSlotState Cslots::GetState(unsigned slotnum) const {
+eSlotState Cslots::GetSlotState(unsigned slotnum) const {
     return m_slots.at(slotnum).GetState();
 }
 
-void Cslots::SetState(unsigned slotnum, eSlotState state) {
+void Cslots::SetSlotState(unsigned slotnum, eSlotState state) {
     m_slots.at(slotnum).SetState(state);
 }
 

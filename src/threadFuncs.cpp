@@ -31,7 +31,7 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob);
 
 // _THE_ global slots array object
 //
-extern Cslots gSlots;
+Cslots gSlots;	// tstst TODO 
 
 
 
@@ -98,7 +98,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		}
 		else
 		{
-			slot.SetThreadState(eThreadState::TS_SCANNING);
+			slot.SetThreadState(eThreadState::TS_PARSING);
 
 			// No download errors. Parse the HTML into the show object
 			sXmlErrorInfo xml_error_info;
@@ -170,15 +170,13 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		// Any requests in the queue, find a slot for the & signal a request for that slot
 		if (requests.RequestsPending() && slotslock.Lock())
 		{
-			while (requests.RequestsPending())
-			{
-				if ((freeslot = gSlots.FirstFreeSlot()) == -1)
-					break;
+			if ((freeslot = gSlots.FirstFreeSlot()) == -1)
+				break;
 
-				std::string str = requests.Pop();		// Auto locks the request queue
-				gSlots.SetUrl(freeslot, str);
-				gSlots.SignalRequest(freeslot);
-			}
+			std::string str = requests.Pop();		// Auto locks the request queue
+			gSlots.SetUrl(freeslot, str);
+			gSlots.SignalRequest(freeslot);			// Wake the slot thread
+
 			slotslock.Unlock();
 		}
 	}
@@ -218,7 +216,7 @@ UINT __cdecl thrResults( LPVOID pParam )
 		DWORD slotnum = wait_result - WAIT_OBJECT_0 - 1;
 		PostMessage(results.GetMsgWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
 
-		gSlots.SetState(slotnum, eSlotState::SS_NOTIFY_SENT);
+//		gSlots.SetState(slotnum, eSlotState::SS_NOTIFY_SENT);
 	}
 }
 

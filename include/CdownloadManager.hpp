@@ -13,7 +13,7 @@
 
 
 
-class CdownloadManager
+class CdownloadManager : public Cslots
 {
 public:
     CdownloadManager() {};
@@ -28,8 +28,8 @@ public:
     const show& GetShow(UINT slotnum) const;
     void ReleaseSlot(DWORD slotnum);
 
-    eSlotState GetSlotState(UINT slotnum) const;
-    void SetSlotState(UINT slotnum, eSlotState state);
+//    eSlotState GetSlotState(UINT slotnum) const;
+//    void SetSlotState(UINT slotnum, eSlotState state);
     eThreadResult GetThreadResult(UINT slotnum) const;
     const std::string& GetErrorString(UINT slotnum) const;
 

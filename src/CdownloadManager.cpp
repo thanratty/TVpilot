@@ -85,8 +85,8 @@ void CdownloadManager::AbortDownload()
 
 void CdownloadManager::ReleaseSlot(DWORD slotnum)
 {
-	gSlots.SetState(slotnum, eSlotState::SS_PROCESSED);
-	gSlots.SignalRelease(slotnum);
+	SetSlotState(slotnum, eSlotState::SS_PROCESSED);
+	SignalRelease(slotnum);
 }
 
 
@@ -95,17 +95,6 @@ const show& CdownloadManager::GetShow(UINT slotnum) const
 	return gSlots.GetShow(slotnum);
 }
 
-
-eSlotState CdownloadManager::GetSlotState(UINT slotnum) const
-{
-	return gSlots.GetState(slotnum);
-}
-
-
-void CdownloadManager::SetSlotState(UINT slotnum, eSlotState state)
-{
-	gSlots.SetState(slotnum, state);
-}
 
 eThreadResult CdownloadManager::GetThreadResult(UINT slotnum) const
 {
