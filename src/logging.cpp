@@ -235,12 +235,12 @@ void LOG_PRINT( eLogFlags type, const wchar_t* format, ...)
  * A few routines to allow writing debug/trace messages to the seperate debug
  * window.
  */
-void SetMsgWindow(CEdit* pedit)
+void LogSetMsgWin(CEdit* pedit)
 {
 	pMsgWindow = pedit;
 }
 
-void LogMsgWindow(CString& msg)
+void LogMsgWin(CString& msg)
 {
 	if (pMsgWindow)
 	{
@@ -251,21 +251,21 @@ void LogMsgWindow(CString& msg)
 	}
 }
 
-void LogMsgWindow(const char* pchars)
+void LogMsgWin(const char* pchars)
 {
 	CString s(pchars);
-	LogMsgWindow(s);
+	LogMsgWin(s);
 }
 
-void LogMsgWindow(const wchar_t* pwchars)
+void LogMsgWin(const wchar_t* pwchars)
 {
 	CString s(pwchars);
-	LogMsgWindow(s);
+	LogMsgWin(s);
 }
 
-void LogMsgWindow(const std::string& str)
+void LogMsgWin(const std::string& str)
 {
-	LogMsgWindow(str.c_str());
+	LogMsgWin(str.c_str());
 }
 
 

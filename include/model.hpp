@@ -15,19 +15,19 @@ using namespace boost;
 
 
 // Which show list selector
-typedef enum class SHOWLIST_tag : unsigned {
+typedef enum class ShowList_tag : UINT32 {
     ACTIVE,
     ARCHIVE,
     BOTH
-} eSHOWLIST;
+} eShowList;
 
 
 
 // When iterating a vector, which object to return
-typedef enum class GET_ACTION_tag : unsigned {
+typedef enum class GetActiontag : UINT32 {
     GET_FIRST,
     GET_NEXT
-} eGETACTION;
+} eGetAction;
 
 
 
@@ -88,12 +88,12 @@ public:
 
         bool        EpisodeFlagsChange(const sPopupContext* pcontext);
  
-        bool        GetShow(eSHOWLIST list, eGETACTION action, sShowListEntry* sle) const;
+        bool        GetShow(eShowList list, eGetAction action, sShowListEntry* sle) const;
 
         // To step through episodes within the date filter & return info
         void        SetDateInterval(int lower, int upper);
         void        SetTodaysDate();
-        bool        GetFilteredEpisode(eGETACTION locus, sScheduleListEntry* sle);
+        bool        GetFilteredEpisode(eGetAction locus, sScheduleListEntry* sle);
         void        BuildEpisodeList();
 
         void        AddNewShow(const show& showtoadd);
@@ -104,22 +104,20 @@ public:
         bool        ArchiveShow(DWORD hash);
         bool        UnarchiveShow(DWORD hash);
 
-        show* FindShow(DWORD searchhash, eSHOWLIST source);
-        show* FindShow(const CString& url, eSHOWLIST source);
+        show* FindShow(DWORD searchhash, eShowList source);
+        show* FindShow(const CString& url, eShowList source);
 
-        unsigned NumShows(eSHOWLIST list) const
+        unsigned NumShows(eShowList list) const
         { 
-            if (list == eSHOWLIST::ACTIVE)
+            if (list == eShowList::ACTIVE)
                 return m_active_shows.size();
-            else if (list == eSHOWLIST::ARCHIVE)
+            else if (list == eShowList::ARCHIVE)
                 return m_archive_shows.size();
-            else if (list == eSHOWLIST::BOTH)
+            else if (list == eShowList::BOTH)
                 return m_active_shows.size() + m_archive_shows.size();
             else
             {
-                CString str(L"NumShows() : Bad show list");
-                LogMsgWindow(str);
-                AfxMessageBox(str);
+                // Bad list?
                 return 0;
             }
         }

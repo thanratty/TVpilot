@@ -45,53 +45,7 @@ enum class eLogFlags : UINT32
     NONE         = 0x00000000
 };
 
-
-
-inline constexpr eLogFlags
-operator&(eLogFlags x, eLogFlags y) {
-    return static_cast<eLogFlags>
-        (static_cast<UINT32>(x) & static_cast<UINT32>(y));
-}
-
-inline constexpr eLogFlags
-operator|(eLogFlags x, eLogFlags y) {
-    return static_cast<eLogFlags>
-        (static_cast<UINT32>(x) | static_cast<UINT32>(y));
-}
-
-inline constexpr eLogFlags
-operator^(eLogFlags x, eLogFlags y) {
-    return static_cast<eLogFlags>
-        (static_cast<UINT32>(x) ^ static_cast<UINT32>(y));
-}
-
-inline constexpr eLogFlags
-operator~(eLogFlags x) {
-    return static_cast<eLogFlags>(~static_cast<UINT32>(x));
-}
-
-inline eLogFlags&
-operator&=(eLogFlags& x, eLogFlags y) {
-    x = x & y;
-    return x;
-}
-
-inline eLogFlags&
-operator|=(eLogFlags& x, eLogFlags y) {
-    x = x | y;
-    return x;
-}
-
-inline eLogFlags&
-operator^=(eLogFlags& x, eLogFlags y) {
-    x = x ^ y;
-    return x;
-}
-
-inline bool
-flags(eLogFlags f) {
-    return (static_cast<UINT32>(f) != 0);
-}
+ENUM_FLAGS(eLogFlags)
 
 
 
@@ -122,12 +76,12 @@ void        LOG_EXIT( void );
  * Routines for writing debug/trace messages to the message window. This window is always
  * available in both RELEASE & DEBUG builds.
  */
-void SetMsgWindow(CEdit* pedit);
 
-void LogMsgWindow(CString& msg);
-void LogMsgWindow(const char* pchars);
-void LogMsgWindow(const wchar_t* pwchars);
-void LogMsgWindow(const std::string& str);
+void LogSetMsgWin(CEdit* pedit);
+void LogMsgWin(CString& msg);
+void LogMsgWin(const char* pchars);
+void LogMsgWin(const wchar_t* pwchars);
+void LogMsgWin(const std::string& str);
 
 
 

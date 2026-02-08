@@ -50,42 +50,6 @@ private:
 
 
 
-/**
- * Data & methods for the thrResults thread.
- *
- */
-
-class cResults
-{
-public:
-
-    cResults();
-    ~cResults();
-
-    void StartThread();
-    void TerminateThread();
-    bool ThreadRunning() const;
-
-    bool Lock() const;
-    bool Unlock() const;
-
-    void SetMsgWindow(HWND hWin);
-    HWND GetMsgWindow() const;
-    const std::vector<HANDLE>& Handles() const;
-    const unsigned NumHandles() const;
-
-private:
-    inline static HANDLE    sem_results;
-    CWinThread*             m_pResultsThread{ nullptr };
-
-    HWND                    m_hMsgWin{ NULL };
-    DWORD                   m_last_error{ 0 };
-    std::vector<HANDLE>     handles;                    // Entry 0 is the terminate event, the rest are each slot's result event
-};
-
-
-
-
 
 
 class cReleases
@@ -106,8 +70,8 @@ public:
         const std::vector<HANDLE>& Handles() const;
         const unsigned NumHandles() const;
 
-        void SetMsgWindow(HWND hWin);
-        HWND GetMsgWindow() const;
+        void SetMsgWin(HWND hWin);
+        HWND GetMsgWin() const;
 
     private:
         inline static HANDLE    sem_releases{ INVALID_HANDLE_VALUE };

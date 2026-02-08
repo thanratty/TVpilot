@@ -8,6 +8,7 @@
 #include "common.hpp"
 
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "CDarchive.hpp"
 
@@ -178,13 +179,13 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 
 void CDArchive::OnCancel()
 {
-	LogMsgWindow(L"CDArchive::OnCancel() discarded");
+	LogMsgWin(L"CDArchive::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
 void CDArchive::OnOK()
 {
-	LogMsgWindow(L"CDArchive::OnOK() discarded");
+	LogMsgWin(L"CDArchive::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

@@ -2,32 +2,24 @@
 
 #include "pch.h"
 
+#include "common.hpp"
 
 
-
-
-// Thread state & return/result codes.
-//
-enum eThreadResult : UINT
+enum class eThreadState : UINT32
 {
-    TR_UNKNOWN,
-    TR_OK,
-    TR_NORMAL_EXIT,
-    TR_CURL_ERROR,
-    TR_XML_ERROR,
-    TR_PARSE_ERROR,
-    TR_DOC_ERROR
+    TS_NOT_STARTED,
+    TS_WAITING,
+    TS_RUNNING,
+    TS_FINISHED
 };
 
 
-enum class eThreadState : UINT
+
+enum eThreadResult : UINT32
 {
-    TS_UNKNOWN,
-    TS_RUNNING,
-    TS_WAITING,
-    TS_CURLING,
-    TS_PARSING,
-    TS_FINISHED
+    TR_UNKNOWN,
+    TR_NORMAL_EXIT,
+    TR_ERROR_STALL
 };
 
 
@@ -39,12 +31,4 @@ enum class eThreadState : UINT
 // 
 UINT __cdecl thrSlotThread(LPVOID pParam);
 
-
-
-//
-// Control threads to process: download requests, results available, results processed
-//
-UINT __cdecl thrRequests(LPVOID pParam);
-UINT __cdecl thrResults(LPVOID pParam);
-UINT __cdecl thrReleases(LPVOID pParam);
 

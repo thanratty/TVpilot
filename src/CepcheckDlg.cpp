@@ -156,7 +156,7 @@ BOOL CepcheckDlg::OnInitDialog()
 
 	// Create the dialog box for debug messages
 	m_dlgMessages.Create(IDD_MESSAGES, this);
-	SetMsgWindow(&m_dlgMessages.m_messages);
+	LogSetMsgWin(&m_dlgMessages.m_messages);
 
 
 	// If this is a debug build, show the 'Break' UI button
@@ -282,7 +282,7 @@ void CepcheckDlg::OnBtn_DeleteShow()
 	// Can only delete when the Archived list is displayed, not the Schedule or Show list.
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
 	{
-		LogMsgWindow(L"Must be on 'Archive' tab to delete a show");
+		LogMsgWin(L"Must be on 'Archive' tab to delete a show");
 		MessageBeep(UINT_MAX);
 		return;
 	}
@@ -355,7 +355,7 @@ void CepcheckDlg::OnBtn_NewShow()
 	}
 
 	// Search both active & archive lists for the show
-	if ( m_data.FindShow(new_url, eSHOWLIST::BOTH) != nullptr )
+	if ( m_data.FindShow(new_url, eShowList::BOTH) != nullptr )
 	{
 		AfxMessageBox(L"That show is already in the database", MB_ICONEXCLAMATION | MB_OK);
 		return;
@@ -382,19 +382,19 @@ void CepcheckDlg::OnBtn_NewShow()
 void CepcheckDlg::UpdateShowList()
 {
 	sShowListEntry	sle;
-	eGETACTION		action{ eGETACTION::GET_FIRST };
+	eGetAction		action{ eGetAction::GET_FIRST };
 
 	// Get the dialog box to do a few things
 	m_dlgShows.SaveTopIndex();
 	m_dlgShows.DeleteAllItems();
 
-	while (m_data.GetShow(eSHOWLIST::ACTIVE, action, &sle))
+	while (m_data.GetShow(eShowList::ACTIVE, action, &sle))
 	{
 		// Add this show to the list
 		ShowListStringsToLocal(&sle);
 		m_dlgShows.AppendRow(&sle);
 
-		action = eGETACTION::GET_NEXT;
+		action = eGetAction::GET_NEXT;
 	}
 
 	// Sort the list & redraw it
@@ -416,7 +416,7 @@ void CepcheckDlg::UpdateShowList()
 void CepcheckDlg::UpdateScheduleList()
 {
 	sScheduleListEntry		sle;
-	eGETACTION				action{ eGETACTION::GET_FIRST };
+	eGetAction				action{ eGetAction::GET_FIRST };
 
 	// Clear the CtrlList
 	m_dlgSchedule.DeleteAllItems();
@@ -426,7 +426,7 @@ void CepcheckDlg::UpdateScheduleList()
 		ScheduleListStringsToLocal(&sle);
 		m_dlgSchedule.AppendRow(&sle);
 
-		action = eGETACTION::GET_NEXT;
+		action = eGetAction::GET_NEXT;
 	}
 
 	m_dlgSchedule.SortList();
@@ -438,17 +438,17 @@ void CepcheckDlg::UpdateScheduleList()
 void CepcheckDlg::UpdateArchiveList()
 {
 	sShowListEntry	sle;
-	eGETACTION		action { eGETACTION::GET_FIRST };
+	eGetAction		action { eGetAction::GET_FIRST };
 
 	// Clear the CtrlList
 	m_dlgArchive.DeleteAllItems();
 
-	while (m_data.GetShow(eSHOWLIST::ARCHIVE, action, &sle))
+	while (m_data.GetShow(eShowList::ARCHIVE, action, &sle))
 	{
 		ShowListStringsToLocal(&sle);
 		m_dlgArchive.AppendRow(&sle);
 
-		action = eGETACTION::GET_NEXT;
+		action = eGetAction::GET_NEXT;
 	}
 
 	m_dlgArchive.Invalidate();
@@ -492,10 +492,9 @@ void CepcheckDlg::ResetOnscreenCounters(void)
  * Handler for WM_DOWNLOAD_COMPLETE message sent by the dispatch thread when all shows have completed downloading & been processed
  *
  */
-afx_msg LRESULT CepcheckDlg::OnDownloadComplete(WPARAM wParam, LPARAM lParam)
+afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum,
+												 [[maybe_unused]] LPARAM lParam )
 {
-	UNREFERENCED_PARAMETER( wParam );
-	UNREFERENCED_PARAMETER( lParam );
 
 	if (m_err_count > 0)
 	{
@@ -550,15 +549,13 @@ afx_msg LRESULT CepcheckDlg::OnSlotReleased( [[maybe_unused]] WPARAM slotnum,
  * A row on the Shows or Schedule tab was double-clicked. Popup a modal dialog listing all episodes for that Show.
  *
  */
-afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, LPARAM lParam )
+afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
 {
-	UNREFERENCED_PARAMETER( lParam );
-
 	DWORD hash = static_cast<DWORD>(wParam);
-	const show* pshow = m_data.FindShow(hash, eSHOWLIST::BOTH);
+	const show* pshow = m_data.FindShow(hash, eShowList::BOTH);
 
 	if (pshow == nullptr) {
-		LogMsgWindow(L"OnZoomEpisodes() show not found");
+		LogMsgWin(L"OnZoomEpisodes() show not found");
 		AfxMessageBox(L"Can't find show!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 	}
 	else
@@ -581,7 +578,7 @@ void CepcheckDlg::UpdateTabTotals(void)
 {
 	// Put # Shows in the Show tab text
 	CString str;
-	str.Format(L"Shows (%d)", m_data.NumShows(eSHOWLIST::ACTIVE));
+	str.Format(L"Shows (%d)", m_data.NumShows(eShowList::ACTIVE));
 
 	TCITEM ltag;
 	ltag.mask = TCIF_TEXT;
@@ -589,7 +586,7 @@ void CepcheckDlg::UpdateTabTotals(void)
 	m_tabctrl.SetItem(TAB_NUM_SHOWS, &ltag);
 	str.UnlockBuffer();
 
-	str.Format(L"Archive (%d)", m_data.NumShows(eSHOWLIST::ARCHIVE));
+	str.Format(L"Archive (%d)", m_data.NumShows(eShowList::ARCHIVE));
 	ltag.pszText = str.LockBuffer();
 	m_tabctrl.SetItem(TAB_NUM_ARCHIVE, &ltag);
 	str.UnlockBuffer();
@@ -610,7 +607,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 	DWORD hash = static_cast<DWORD>(wParam);
 	unsigned selection = static_cast<unsigned>(lParam);
 
-	const show* ashow = m_data.FindShow(hash, eSHOWLIST::BOTH);
+	const show* ashow = m_data.FindShow(hash, eShowList::BOTH);
 	if (ashow == nullptr)
 		return 0;
 
@@ -643,7 +640,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 		if ((INT_PTR)h <= 32) {
 			CString msg;
 			msg.Format(L"ShellExecute returned %08X\n", (INT_PTR) h);
-			LogMsgWindow(msg);
+			LogMsgWin(msg);
 			AfxMessageBox(L"Can't open web browser!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		}
 	}
@@ -665,11 +662,11 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	DWORD  hash  = pcontext->show_hash;
 	CPoint point = pcontext->click_point;
 	
-	show* pshow  = m_data.FindShow(hash, eSHOWLIST::BOTH);
+	show* pshow  = m_data.FindShow(hash, eShowList::BOTH);
 	if (pshow == nullptr)
 	{
 		AfxMessageBox(L"Show not found for context menu.", MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL );
-		LogMsgWindow(L"CepcheckDlg::OnShowContextMenu(): hash not found");
+		LogMsgWin(L"CepcheckDlg::OnShowContextMenu(): hash not found");
 		return 0;
 	}
 
@@ -720,7 +717,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	{
 		CString s{ L"Unrecognised context for right mouse button." };
 		AfxMessageBox(s, MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
-		LogMsgWindow(s);
+		LogMsgWin(s);
 	}
 
 
@@ -805,7 +802,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			ResetOnscreenCounters();
 			m_ping_expected = 1;
 			m_dlm.DownloadShow(pshow->epguides_url);
-			LogMsgWindow(L"Refreshing show...");
+			LogMsgWin(L"Refreshing show...");
 			break;
 
 		// Copy the show title or episode title from the Schedule List to the system clipboard
@@ -833,7 +830,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 
 
 		default:
-			LogMsgWindow(L"OnShowContextMenu(): Unhandled menu selection");
+			LogMsgWin(L"OnShowContextMenu(): Unhandled menu selection");
 			return 1;
 			break;
 	}
@@ -928,12 +925,12 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 #if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
 	CString _msg;
 	_msg.Format(L"eAppevent: %d", event);
-	LogMsgWindow(_msg);
+	LogMsgWin(_msg);
 #endif
 
 	// Have a few useful values handy
-	unsigned numActiveShows  = m_data.NumShows(eSHOWLIST::ACTIVE);
-	unsigned numArchiveShows = m_data.NumShows(eSHOWLIST::ARCHIVE);
+	unsigned numActiveShows  = m_data.NumShows(eShowList::ACTIVE);
+	unsigned numArchiveShows = m_data.NumShows(eShowList::ARCHIVE);
 	int selectedTab = m_tabctrl.GetCurSel();
 
 	switch (event)
@@ -1040,7 +1037,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 		default:
 			CString str;
 			str.Format(L"Unhandled eAppevent: %d", event);
-			LogMsgWindow(str);
+			LogMsgWin(str);
 			break;
 	}
 
@@ -1129,7 +1126,7 @@ void CepcheckDlg::OnBtn_Break()
  */
 void CepcheckDlg::OnOK()
 {
-	LogMsgWindow(L"CepcheckDlg::OnOK() discarded");
+	LogMsgWin(L"CepcheckDlg::OnOK() discarded");
 	//CDialog::OnOK();
 }
 
@@ -1163,7 +1160,7 @@ int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	m_dlm.SetMsgWindow(m_hWnd);
+	m_dlm.SetMsgWin(m_hWnd);
 
 	return 0;
 }
@@ -1249,23 +1246,23 @@ void CepcheckDlg::OnBtn_Download()
 		return;
 
 	// Reset counters
-	m_ping_received = m_ping_count = m_err_count = 0;
+	m_ping_count = m_err_count = 0;
 	m_ping_expected = m_data.NumActiveShows();
 
-	eGETACTION action = eGETACTION::GET_FIRST;
+	eGetAction action = eGetAction::GET_FIRST;
 	sShowListEntry  sle;
 
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 
 	m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
 
-	while (m_data.GetShow(eSHOWLIST::ACTIVE, action, &sle))
+	while (m_data.GetShow(eShowList::ACTIVE, action, &sle))
 	{
 		m_dlm.DownloadShow(sle.epguides_url);
-		action = eGETACTION::GET_NEXT;
+		action = eGetAction::GET_NEXT;
 	}
 
-	LogMsgWindow(L"All shows queued for download");
+	LogMsgWin(L"All shows queued for download");
 }
 
 
@@ -1284,17 +1281,17 @@ bool CepcheckDlg::DownloadSingleShow(DWORD hash)
 	// Already downloading?
 	if (m_dlm.DownloadInProgress()) {
 		CString error1(L"Download already in progress!");
-		LogMsgWindow(error1);
+		LogMsgWin(error1);
 		LOG_PRINT(eLogFlags::INFO, error1);
 		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return false;
 	}
 
 
-	show* pShow = m_data.FindShow(hash, eSHOWLIST::ACTIVE);
+	show* pShow = m_data.FindShow(hash, eShowList::ACTIVE);
 	if (pShow == nullptr) {
 		CString error1(L"DownloadSingleShow() : Can't find show");
-		LogMsgWindow(error1);
+		LogMsgWin(error1);
 		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return FALSE;
 	}
@@ -1303,10 +1300,10 @@ bool CepcheckDlg::DownloadSingleShow(DWORD hash)
 
 	// Setup the ping counters
 	m_ping_expected = 1;
-	m_ping_received = 0;
+	m_ping_count    = 0;
 
 	m_dlm.DownloadShow(pShow->epguides_url);
-	LogMsgWindow(L"Download requested");
+	LogMsgWin(L"Download requested");
 
 	return retval;
 }
@@ -1329,7 +1326,7 @@ void CepcheckDlg::CheckDownloadComplete()
 {
 	if (
 		((m_abort_download == true) && (m_dlm.DownloadInProgress() == false)) ||
-		(m_ping_expected == m_ping_received)
+		(m_ping_expected == m_ping_count)
 		)
 	{
 		PostMessage(WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
@@ -1356,49 +1353,37 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 	m_ping_count++;
 	UpdateOnscreenCounters();
 
-	const show& resultShow = m_dlm.GetShow(slotnum);
-
-	// Move to DLM ?
-	if (m_dlm.GetSlotState(slotnum) != eSlotState::SS_RESULTS_READY)
-	{
-		const wchar_t* msg = L"ERROR! Pinged on an empty slot or bad slotstate.";
-		LogMsgWindow(msg);
-		LOG_PRINT(eLogFlags::MODEL, msg);
-		m_dlm.ReleaseSlot(slotnum);
-		CheckDownloadComplete();
-		return 0;
-	}
-
-	m_ping_received++;
-	m_dlm.SetSlotState(slotnum, eSlotState::SS_PROCESSING);
-
+	const show& resultShow = m_dlm.GetSlotShow(slotnum);
 	// If this is for a new show, there will be no database entry for it. [TODO of check showstate flags? ]
-	show* originalShow = m_data.FindShow(resultShow.hash, eSHOWLIST::ACTIVE);
+	show* originalShow = m_data.FindShow(resultShow.hash, eShowList::ACTIVE);
 
+	
+	eSlotState slotstate = m_dlm.GetSlotState(slotnum);
 
-	// Any problems?
-	if (m_dlm.GetThreadResult(slotnum) != eThreadResult::TR_OK)
+	if (slotstate != eSlotState::SS_RESULTS_READY)
 	{
-		m_dlm.SetSlotState(slotnum, eSlotState::SS_JOB_ERROR);
-		LogMsgWindow("DownloadPing() Download error, aborting : " + m_dlm.GetErrorString(slotnum));
 		if (originalShow)
 			originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
 
-		return -1;
+		CString msg;
+		msg.Format(L"ERROR! Pinged on an slot %u results not ready : %u\n", slotnum, m_dlm.GetSlotState(slotnum));
+		LogMsgWin(msg);
+		LOG_PRINT(eLogFlags::MODEL, msg);
 	}
-
-	//resultShow.state = showstate::SH_ST_UPDATED;
-
-
-	if (originalShow)
-		m_data.UpdateShow(m_dlm.GetShow(slotnum));
-	else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
-		m_data.AddNewShow(m_dlm.GetShow(slotnum));
 	else
-		LogMsgWindow(L"Unexpected showstate\n");
+	{
+		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSING);
 
-	// Notify the thrRelease thread we're done
-	m_dlm.ReleaseSlot(slotnum);
+		if (originalShow)
+			m_data.UpdateShow(m_dlm.GetSlotShow(slotnum));
+		else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
+			m_data.AddNewShow(m_dlm.GetSlotShow(slotnum));
+		else
+			LogMsgWin(L"Unexpected showstate\n");
+
+		// Notify the thrRelease thread we're done
+		m_dlm.ResetAndFree(slotnum);
+	}
 
 	// Time to send WM_DOWNLOAD_COMPLETE ?
 	CheckDownloadComplete();

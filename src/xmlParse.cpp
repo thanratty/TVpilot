@@ -143,13 +143,13 @@ std::string extractUniqueNode(xmlXPathObjectPtr nodes)
 	{
 		int size = nodeset->nodeNr;
 		if (size != 1)
-			LogMsgWindow(L"ERROR! XPATH query returned more than one node");
+			LogMsgWin(L"ERROR! XPATH query returned more than one node");
 
 		// The webpage should have exactly one element
 		if ((nodeset->nodeTab[0]->type == XML_ELEMENT_NODE) || (nodeset->nodeTab[0]->type == XML_ATTRIBUTE_NODE))
 			str = getNodeText(nodeset->nodeTab[0]);
 		else
-			LogMsgWindow(L"ERROR! Unexpected XML node type.");
+			LogMsgWin(L"ERROR! Unexpected XML node type.");
 	}
 
 	return str;
@@ -173,7 +173,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 	// Sanity check on results set
 	if ((nodeset == nullptr) || (nodeset->nodeNr == 0))
 	{
-		LogMsgWindow("extractEpisodeDetails() Error. Empty results set!");
+		LogMsgWin("extractEpisodeDetails() Error. Empty results set!");
 		return false;
 	}
 
@@ -201,7 +201,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		if (!bGoodDate)
 		{
 			std::string msg = "extractEpisodeDetails() Bad episode date format. Defaulted. [" + ep_date + "]";
-			LogMsgWindow(msg);
+			LogMsgWin(msg);
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -217,7 +217,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		if (!bGoodNumber)
 		{
 			std::string msg = "extractEpisodeDetails() Bad episode number format. Defaulted. [" + ep_number + "]";
-			LogMsgWindow(msg);
+			LogMsgWin(msg);
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 
@@ -303,6 +303,8 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 			xml_error_info.xmlErrorCol    = perror->int2;
 		}
 		xmlCtxtResetLastError(context);
+
+		LOG_PRINT(eLogFlags::XML, L"E_XPARSE_DOC_FORMAT_ERROR: %s\n", curljob.Url().c_str());
 		retval = E_XPARSE_DOC_FORMAT_ERROR;
 	}
 	else
@@ -332,6 +334,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		if (!bGotTitles || !bGotDetails || (show.title.length() == 0))
 		{
 			show.state |= showstate::SH_ST_UPDATE_FAILED;
+			LOG_PRINT(eLogFlags::XML, L"E_XPARSE_PAGE_FORMAT_ERROR: %s\n", curljob.Url().c_str());
 			retval = E_XPARSE_PAGE_FORMAT_ERROR;
 		}
 		else
@@ -354,9 +357,6 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 	// Cleanup
 	htmlFreeParserCtxt(context);
 	xmlFreeDoc(doc);
-
-	if (retval != E_XPARSE_OK)
-		LOG_PRINT(eLogFlags::XML, L"xmlParse error %u", retval);
 
 	return retval;
 }

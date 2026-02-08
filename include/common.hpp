@@ -1,6 +1,9 @@
 #pragma once
 
-#include "resource.h"		// main symbols
+#include "resource.h"		// Need the resource symbols
+#include "enum_flags.h"     // Define bitwose operators for enums
+
+
 
 
 #if (NAMED_SYNC_OBJECTS==1)

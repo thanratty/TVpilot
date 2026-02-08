@@ -134,6 +134,7 @@
     <ClInclude Include="include\CsyncObjects.hpp" />
     <ClInclude Include="include\common.hpp" />
     <ClInclude Include="include\config.h" />
+    <ClInclude Include="include\enum_flags.h" />
     <ClInclude Include="include\logging.hpp" />
     <ClInclude Include="include\threadData.hpp" />
     <ClInclude Include="include\TVpilot.hpp" />

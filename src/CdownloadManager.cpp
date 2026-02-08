@@ -15,24 +15,21 @@
 
 
 
-extern Cslots gSlots;
+//extern Cslots gSlots;
 
 
 
+CdownloadManager::CdownloadManager()
+{
+}
 
 
 CdownloadManager::~CdownloadManager()
 {
 	// Stop the slot threads first
 
-	gSlots.TerminateSlotThreads();
+	TerminateSlotThreads();
 
-	// Wait for the cRequests, cResults, cReleases thread to shut down
-	// so we can capture their logging messages.
-
-	while (requests.ThreadRunning());
-	while (results.ThreadRunning());
-	while (releases.ThreadRunning());
 }
 
 
@@ -42,18 +39,30 @@ CdownloadManager::~CdownloadManager()
  */
 void CdownloadManager::DownloadShow(const std::string& url)
 {
-	requests.Push(url);
+	CslotsSem& slotslock = CslotsSem::getInstance();
+	int freeslot;
+
+	// Any requests in the queue, find a slot for the & signal a request for that slot
+	if (slotslock.Lock())
+	{
+		if ((freeslot = FirstFreeSlot()) != -1)
+		{
+			SetUrl(freeslot, url);
+			SetSlotState(freeslot, eSlotState::SS_URL_SET);
+			SignalRequest(freeslot);
+		}
+		slotslock.Unlock();
+	}
 }
 
 
 
 
-void CdownloadManager::SetMsgWindow(HWND hMsgWindow)
+void CdownloadManager::SetMsgWin(HWND hMsgWin)
 {
-	m_hMsgWindow = hMsgWindow;
+	m_hMsgWin = hMsgWin;
 
-	results.SetMsgWindow(hMsgWindow);
-	releases.SetMsgWindow(hMsgWindow);
+	Cslots::SetMsgWin( hMsgWin );
 }
 
 
@@ -63,7 +72,7 @@ bool CdownloadManager::DownloadInProgress() const
 {
 bool retval = false;
 
-	if (requests.RequestsPending() || (gSlots.FirstBusySlot() != -1))
+	if (FirstBusySlot() != -1)
 			retval = true;
 
 	return retval;
@@ -79,29 +88,7 @@ void CdownloadManager::AbortDownload()
 	// Clear all queued URLs then wait in the
 	// ping handler till all slots are free.
 
-	requests.ClearQueue();	// TODO Separate abort function ???
+	// TODO - Lock reset all slots with SS_URL
 }
 
 
-void CdownloadManager::ReleaseSlot(DWORD slotnum)
-{
-	SetSlotState(slotnum, eSlotState::SS_PROCESSED);
-	SignalRelease(slotnum);
-}
-
-
-const show& CdownloadManager::GetShow(UINT slotnum) const
-{
-	return gSlots.GetShow(slotnum);
-}
-
-
-eThreadResult CdownloadManager::GetThreadResult(UINT slotnum) const
-{
-	return gSlots.GetThreadResult(slotnum);
-}
-
-const std::string& CdownloadManager::GetErrorString(UINT slotnum) const
-{
-	return gSlots.GetErrorString(slotnum);
-}

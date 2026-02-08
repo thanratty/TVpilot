@@ -47,7 +47,7 @@ typedef struct PopupContext_tag
 	CListCtrl*		pList{ nullptr };		// Dialog objecy pointer
 	int				list_index{ 0 };		// Item # in the list control
 	DWORD			show_hash{ DWORD_MAX };
-	CPoint			click_point;
+	CPoint			click_point{ (0,0) };
 	episodeflags	ep_flags{ episodeflags::EP_FL_NONE };			// If present - episode flags. Schedule list only?
 	CString			ep_num;
 } sPopupContext;
@@ -170,20 +170,10 @@ void EvalShowLastNextDates(show* pshow);
 
 // TODO Move ????
 #ifdef _DEBUG
-#define		DebugLogMsgWindow(x)		LogMsgWindow(x)
+#define		DebugLogMsgWin(x)		LogMsgWin(x)
 #else
-#define		DebugLogMsgWindow(x)		do {} while(0)
+#define		DebugLogMsgWin(x)		do {} while(0)
 #endif
-
-
-/**
- * Set and write to the debug dialog box
- */
-void SetMsgWindow(CEdit* pedit);
-void LogMsgWindow(CString& msg);
-void LogMsgWindow(const char* pchars);
-void LogMsgWindow(const wchar_t* pwchars);
-void LogMsgWindow(const std::string& str);
 
 
 /**

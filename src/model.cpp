@@ -26,10 +26,6 @@
 
 
 
-extern Cslots gSlots;
-
-
-
 
 /**
  *  Useful function objects (functors).
@@ -139,25 +135,25 @@ std::istream& operator>>(std::istream& istream, model& model)
  * Search the active and/or the archived lists for a show with the given hash
  *
  */
-show* model::FindShow(DWORD search_hash, eSHOWLIST source) 
+show* model::FindShow(DWORD search_hash, eShowList source) 
 {
     show* retval = nullptr;
     auto funcObject = fnoMatchShowHash(search_hash);
 
     if (search_hash == DWORD_MAX)
     {
-        LogMsgWindow(L"model::FindShow() bad hash");
+        LogMsgWin(L"model::FindShow() bad hash");
     }
     else
     {
-        if ((source == eSHOWLIST::ACTIVE) || (source == eSHOWLIST::BOTH))
+        if ((source == eShowList::ACTIVE) || (source == eShowList::BOTH))
         {
             auto it = std::find_if(m_active_shows.begin(), m_active_shows.end(), funcObject);
             if (it != m_active_shows.end())
                 retval = &*it;
         }
 
-        if ((retval == nullptr) && ((source == eSHOWLIST::ARCHIVE) || (source == eSHOWLIST::BOTH)))
+        if ((retval == nullptr) && ((source == eShowList::ARCHIVE) || (source == eShowList::BOTH)))
         {
             auto it = std::find_if(m_archive_shows.begin(), m_archive_shows.end(), funcObject);
             if (it != m_archive_shows.end())
@@ -170,7 +166,7 @@ show* model::FindShow(DWORD search_hash, eSHOWLIST source)
 
 
 
-show* model::FindShow(const CString& url, eSHOWLIST source) 
+show* model::FindShow(const CString& url, eShowList source) 
 {
     return FindShow(SimpleHash(url), source);
 }
@@ -286,21 +282,21 @@ void model::BuildEpisodeList()
 
 
 
-bool model::GetShow(eSHOWLIST list, eGETACTION action, sShowListEntry* sle) const
+bool model::GetShow(eShowList list, eGetAction action, sShowListEntry* sle) const
 {
     static unsigned index{ 0 };
     const std::vector<show>* pVec;
 
     // Makes no sense to iterate through both lists at once
-    if (list == eSHOWLIST::BOTH)
+    if (list == eShowList::BOTH)
         return false;
 
-    pVec = (list == eSHOWLIST::ACTIVE) ? &m_active_shows : &m_archive_shows;
+    pVec = (list == eShowList::ACTIVE) ? &m_active_shows : &m_archive_shows;
 
     if (pVec->size() == 0)
         return false;
 
-    if (action == eGETACTION::GET_FIRST)
+    if (action == eGetAction::GET_FIRST)
         index = 0;
 
     // At the end already?
@@ -336,7 +332,7 @@ CopyGuideEntryToScheduleListEntry(const sGuideEntry* ge, sScheduleListEntry* sle
  * Populate the sGuideListEntry structure with FIRST or NEXT episode within the filter range
  *
  */
-bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
+bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
 {
     sGuideEntry ge;
     static unsigned index{ 0 },
@@ -345,7 +341,7 @@ bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
     if (m_guide.size() == 0)
         return false;
 
-    if (action == eGETACTION::GET_FIRST)
+    if (action == eGetAction::GET_FIRST)
     {
         // If we're using date filters, set them up here. sGuideEntry has an operator<() & is used as a functor.
         if (!m_missed_edpisodes_only)
@@ -365,7 +361,7 @@ bool model::GetFilteredEpisode(eGETACTION action, sScheduleListEntry* sle)
     // At the end already?
     if (index > m_guide.size() - 1)
     {
-        DebugLogMsgWindow(L"GetFilteredEpisode(): All done");
+        DebugLogMsgWin(L"GetFilteredEpisode(): All done");
         return false;
     }
 
@@ -429,7 +425,7 @@ void model::AddNewShow(const show& showtoadd)
 
 bool model::UpdateShow(const show& showtoupdate)
 {
-    show* originalShow = FindShow(showtoupdate.hash, eSHOWLIST::ACTIVE);
+    show* originalShow = FindShow(showtoupdate.hash, eShowList::ACTIVE);
     if (originalShow == nullptr) {
         LOG_PRINT(eLogFlags::MODEL, L"UpdateShow() hash not found!\n");
         return false;
@@ -470,7 +466,7 @@ bool model::UpdateShow(const show& showtoupdate)
             if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
                 std::ostringstream str;
                 str << "New episode " << (originalShow->title) << " " << ep.ep_num;
-                LogMsgWindow(str.str());
+                LogMsgWin(str.str());
             }
         }
     }
@@ -558,7 +554,7 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
     DWORD hash = pcontext->show_hash;
     bool retval = true;
 
-    show* pshow = FindShow(hash, eSHOWLIST::ACTIVE);
+    show* pshow = FindShow(hash, eShowList::ACTIVE);
     if (pshow != nullptr)
     {
         fnoMatchEpisodeNumber  fnoMatchEpNum(pcontext->ep_num);
@@ -566,7 +562,7 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
 
         if (ep_ref == pshow->episodes.end())
         {
-            LogMsgWindow(L"EpisodeFlagsChange(): Episode not found");
+            LogMsgWin(L"EpisodeFlagsChange(): Episode not found");
             retval = false;
         }
         else

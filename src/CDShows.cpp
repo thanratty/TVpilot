@@ -8,7 +8,7 @@
 #include <string>
 
 #include "resource.h"
-#include "utils.hpp"
+#include "logging.hpp"
 
 #include "CDShows.hpp"
 
@@ -214,7 +214,7 @@ void CDShows::OnColumnClickShowList(NMHDR* pNMHDR, LRESULT* pResult)
  */
 void CDShows::OnCancel()
 {
-	LogMsgWindow(L"CDShows::OnCancel() discarded");
+	LogMsgWin(L"CDShows::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
@@ -227,7 +227,7 @@ void CDShows::OnCancel()
  */
 void CDShows::OnOK()
 {
-	LogMsgWindow(L"CDShows::OnOK() discarded");
+	LogMsgWin(L"CDShows::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

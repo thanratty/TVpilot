@@ -11,6 +11,7 @@ using namespace boost;
 #include "common.hpp"
 
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "CDSchedule.hpp"
 
@@ -222,7 +223,7 @@ void CDSchedule::AppendRow(const sScheduleListEntry* gle)
 
 void CDSchedule::OnOK()
 {
-	LogMsgWindow(L"CDSchedule::OnOK() discarded");
+	LogMsgWin(L"CDSchedule::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

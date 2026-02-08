@@ -31,12 +31,6 @@ Cslot::Cslot()
     str.Format(L"evRequest-%-d", m_SlotNumber);
     m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state
 
-    str.Format(L"evResults-%-d", m_SlotNumber);
-    m_hEvResult = CREATE_EVENT(NULL, FALSE, FALSE, str);          // AUTO reset, initial state
-
-    str.Format(L"evRelease-%-d", m_SlotNumber);
-    m_hEvRelease = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state
-
     StartThread();
 }
 
@@ -72,7 +66,7 @@ void Cslot::TerminateThread()
         if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
             m_slotstate = eSlotState::SS_THREAD_EXITED;
         else
-            LogMsgWindow(L"Slot thread didn't terminate within timeout");
+            LogMsgWin(L"Slot thread didn't terminate within timeout");
 
         delete m_pWinThread;
         m_pWinThread = nullptr;
@@ -90,10 +84,7 @@ void Cslot::CloseSlot()
     }
 
     CloseHandle(m_hEvRequest);
-    CloseHandle(m_hEvResult);
-    CloseHandle(m_hEvRelease);
-
-    m_hEvRelease = m_hEvResult = m_hEvRequest = INVALID_HANDLE_VALUE;
+    m_hEvRequest = INVALID_HANDLE_VALUE;
 }
 
 
@@ -104,14 +95,14 @@ void Cslot::SetUrl(const std::string& url)
 {
     if (IsFree())
     {
-        SetState(eSlotState::SS_URL_SET);
+        SetSlotState(eSlotState::SS_URL_SET);
 
         m_show.epguides_url = url;
         m_show.hash = SimpleHash(url);
     }
     else
     {
-        LogMsgWindow(L"SetUrl slot not free!");
+        LogMsgWin(L"SetUrl slot not free!");
     }
 }
 
@@ -144,24 +135,16 @@ bool Cslot::IsFree() const {
     return m_slotstate == eSlotState::SS_FREE;
 }
 
-void Cslot::SetState(eSlotState state) {
+void Cslot::SetSlotState(eSlotState state) {
     m_slotstate = state;
 }
 
-eSlotState Cslot::GetState() const {
+eSlotState Cslot::GetSlotState() const {
     return m_slotstate;
 }
 
 const show& Cslot::GetShow() const {
     return m_show;
-}
-
-eThreadResult Cslot::GetThreadResult() const {
-    return m_thread_result;
-}
-
-void Cslot::SetThreadResult(eThreadResult result) {
-    m_thread_result = result;
 }
 
 eThreadState Cslot::GetThreadState() const {
@@ -180,45 +163,36 @@ HANDLE Cslot::GetRequestHandle() const {
     return m_hEvRequest;
 }
 
-HANDLE Cslot::GetResultHandle() const {
-    return m_hEvResult;
-}
-
-HANDLE Cslot::GetReleaseHandle() const {
-    return m_hEvRelease;
-}
-
 void Cslot::SignalRequest() const  {
     SetEvent(m_hEvRequest);
 }
 
-void Cslot::SignalResult() const {
-    SetEvent(m_hEvResult);
+void Cslot::SetMsgWin(HWND hMsgWin) {
+    m_hMsgWin = hMsgWin;
 }
 
-void Cslot::SignalRelease() const {
-    SetEvent(m_hEvRelease);
-}
-
-
-
-
-
-
-
-
-
-Cslots::Cslots()
-{
-    // The Cslot 'array' is constructed by now
-    for (const Cslot& slot : m_slots) {
-        m_ResultHandles.push_back(slot.GetResultHandle());
-        m_ReleaseHandles.push_back(slot.GetReleaseHandle());
-    }
+HWND Cslot::GetMsgWin(void) const {
+    return m_hMsgWin;
 }
 
 
+
+
+
+
+
+
+
+
+Cslots::Cslots() {}
 Cslots::~Cslots() {}
+
+
+void Cslots::SetMsgWin(HWND hWin)
+{
+    for (Cslot& slot : m_slots)
+        slot.SetMsgWin(hWin);
+}
 
 
 void Cslots::TerminateSlotThreads()
@@ -233,27 +207,23 @@ void Cslots::TerminateSlotThreads()
 
 
 bool Cslots::IsFree(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetState() == eSlotState::SS_FREE;
+    return m_slots.at(slotnum).GetSlotState() == eSlotState::SS_FREE;
 }
 
 bool Cslots::IsBusy(unsigned slotnum) const {
     return !IsFree(slotnum);
 }
 
-const show& Cslots::GetShow(unsigned slotnum) const {
+const show& Cslots::GetSlotShow(unsigned slotnum) const {
     return m_slots.at(slotnum).GetShow();
 }
 
 eSlotState Cslots::GetSlotState(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetState();
+    return m_slots.at(slotnum).GetSlotState();
 }
 
 void Cslots::SetSlotState(unsigned slotnum, eSlotState state) {
-    m_slots.at(slotnum).SetState(state);
-}
-
-eThreadResult Cslots::GetThreadResult(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetThreadResult();
+    m_slots.at(slotnum).SetSlotState(state);
 }
 
 void Cslots::SetUrl(unsigned slotnum, const std::string& url) {
@@ -264,20 +234,8 @@ void Cslots::SignalRequest(unsigned slotnum) const {
     m_slots.at(slotnum).SignalRequest();
 }
 
-void Cslots::SignalResult(unsigned slotnum) const {
-    m_slots.at(slotnum).SignalResult();
-}
-
-void Cslots::SignalRelease(unsigned slotnum) const {
-    m_slots.at(slotnum).SignalRelease();
-}
-
 const std::string& Cslots::GetErrorString(unsigned slotnum) const {
     return m_slots.at(slotnum).GetErrorString();
-}
-
-const std::vector<HANDLE>& Cslots::GetResultHandles() const {
-    return m_ResultHandles;
 }
 
 const std::vector<HANDLE>& Cslots::GetReleaseHandles() const {
@@ -288,13 +246,13 @@ void Cslots::ResetAndFree(unsigned slotnum) {
     m_slots.at(slotnum).ResetAndFree();
 }
 
-int Cslots::FirstFreeSlot()
+int Cslots::FirstFreeSlot() const
 {
     auto iter = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& s) { return s.IsFree(); });
     return (iter == m_slots.end()) ? -1 : (iter - m_slots.begin());
 }
 
-int Cslots::FirstBusySlot()
+int Cslots::FirstBusySlot() const
 {
     auto iter = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& s) { return s.IsBusy(); });
     return (iter == m_slots.end()) ? -1 : (iter - m_slots.begin());

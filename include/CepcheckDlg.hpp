@@ -90,7 +90,7 @@ private:
 			CdownloadManager	m_dlm;
 			//
 			unsigned		m_ping_expected{ 0 };
-			unsigned		m_ping_received{ 0 };
+//			unsigned		m_ping_received{ 0 };
 			unsigned		m_ping_count{ 0 };
 			unsigned		m_err_count{ 0 };
 
