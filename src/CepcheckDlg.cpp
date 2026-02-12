@@ -77,7 +77,6 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtn_ShowLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
-	ON_MESSAGE( WM_TVP_SLOT_RELEASED,				&CepcheckDlg::OnSlotReleased)
 	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CepcheckDlg::OnZoomEpisodes)
 	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
 	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
@@ -159,10 +158,13 @@ BOOL CepcheckDlg::OnInitDialog()
 	LogSetMsgWin(&m_dlgMessages.m_messages);
 
 
-	// If this is a debug build, show the 'Break' UI button
+	// If this is a debug build, show the 'Break' UI button & the 'Logging' config button.
 #ifdef _DEBUG
 	GetDlgItem(IDC_BTN_BREAK)->EnableWindow();
 	GetDlgItem(IDC_BTN_BREAK)->ShowWindow(SW_SHOW);
+
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->EnableWindow();
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->ShowWindow(SW_SHOW);
 #endif
 
 
@@ -204,6 +206,57 @@ BOOL CepcheckDlg::OnInitDialog()
 
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
+}
+
+
+
+
+/**
+ * Stop the <RETURN> key from closing the application
+ */
+void CepcheckDlg::OnOK()
+{
+	LogMsgWin(L"CepcheckDlg::OnOK() discarded");
+	//CDialog::OnOK();
+}
+
+/**
+ * Stop the <CANCEL> key from closing the application if we're downloading
+ */
+void CepcheckDlg::OnCancel()
+{
+	if (m_dlm.DownloadInProgress())
+	{
+		AfxMessageBox(L"Download in progress. Abort it first.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		return;
+	}
+
+	/**
+	 * This gives you a chance to copy msgs out of console or message log windows
+	 */
+
+#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
+	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
+#endif
+
+
+	// Stop all the slotthreads & wait for them to exit
+	m_dlm.TerminateSlotThreads();
+
+	CDialog::OnCancel();
+}
+
+/**
+ * As soon as the main dialog window is created, notity the model.
+ */
+int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CDialog::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	m_dlm.SetMsgWin(m_hWnd);
+
+	return 0;
 }
 
 
@@ -269,6 +322,80 @@ void CepcheckDlg::OnBtn_Save()
 
 
 
+/**
+ * 'Missed only' checkbox clicked in the top level dialog.
+ * Notify the model of the new state & rebuild the schedule accordingly
+ */
+void CepcheckDlg::OnBtn_ChkMissedOnly()
+{
+	UpdateData();
+	m_data.ShowMissedOnly(m_missed_only);
+
+	UpdateScheduleList();
+}
+
+
+
+
+/**
+ * Open up file explorer in the data file location
+ *
+ */
+void CepcheckDlg::OnBtn_Explorer()
+{
+	m_data.OpenDataFileFolder();
+}
+
+
+
+
+/**
+ * Break into the debugger
+ *
+ */
+void CepcheckDlg::OnBtn_Break()
+{
+	AfxDebugBreak();
+}
+
+
+
+
+/**
+ * Show/Hide the logging messages window
+ *
+ */
+void CepcheckDlg::OnBtn_ShowLog()
+{
+	static BOOL visible = false;
+
+	visible = !visible;
+
+	CButton* chkbox = (CButton*)GetDlgItem(IDC_CHK_DEBUG_LOG);
+	chkbox->SetCheck(visible);
+
+	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
+}
+
+
+
+
+/**
+ * Reset the +/- days interval for the schedule list to their defaults.
+ *
+ */
+void CepcheckDlg::OnBtn_ResetDays()
+{
+	m_spin_pre_val = DEFAULT_DAYS_PRE;
+	m_spin_post_val = DEFAULT_DAYS_POST;
+
+	m_spin_pre.SetPos(m_spin_pre_val);
+	m_spin_post.SetPos(m_spin_post_val);
+
+	UpdateSchedulePeriod();
+	UpdateScheduleList();
+}
+
 
 
 
@@ -283,15 +410,15 @@ void CepcheckDlg::OnBtn_DeleteShow()
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
 	{
 		LogMsgWin(L"Must be on 'Archive' tab to delete a show");
-		MessageBeep(UINT_MAX);
+		MessageBeep(MB_ICONEXCLAMATION);
 		return;
 	}
 
-	// Can only delete one show at a time - multiple selections not allowed
+	// Can only delete one show at a time - multiple selections not allowed TODO Disable multiselect?!?
 	if (m_dlgArchive.m_archivelist.GetSelectedCount() != 1)
 	{
-		MessageBeep(UINT_MAX);
-		AfxMessageBox(L"Can only delete one show at a time", MB_ICONERROR | MB_APPLMODAL | MB_OK);
+		LogMsgWin(L"Can only delete one show at a time");
+		MessageBeep(MB_ICONEXCLAMATION);
 		return;
 	}
 
@@ -458,6 +585,31 @@ void CepcheckDlg::UpdateArchiveList()
 
 
 /**
+ * Update the text on the 'Shows' & 'Archive tabs
+ *
+ */
+void CepcheckDlg::UpdateTabTotals(void)
+{
+	// Put # Shows in the Show tab text
+	CString str;
+	str.Format(L"Shows (%d)", m_data.NumShows(eShowList::ACTIVE));
+
+	TCITEM ltag;
+	ltag.mask = TCIF_TEXT;
+	ltag.pszText = str.LockBuffer();
+	m_tabctrl.SetItem(TAB_NUM_SHOWS, &ltag);
+	str.UnlockBuffer();
+
+	str.Format(L"Archive (%d)", m_data.NumShows(eShowList::ARCHIVE));
+	ltag.pszText = str.LockBuffer();
+	m_tabctrl.SetItem(TAB_NUM_ARCHIVE, &ltag);
+	str.UnlockBuffer();
+}
+
+
+
+
+/**
  * Update the UI ping & error counter boxes
  * 
  */
@@ -489,7 +641,29 @@ void CepcheckDlg::ResetOnscreenCounters(void)
 
 
 /**
- * Handler for WM_DOWNLOAD_COMPLETE message sent by the dispatch thread when all shows have completed downloading & been processed
+ * Sends the +/- days count to the database and updates the on-screen values
+ *
+ */
+void CepcheckDlg::UpdateSchedulePeriod(void)
+{
+	CString str;
+
+	// Tell the model the date interval we're interested in
+	m_data.SetDateInterval(m_spin_pre_val, m_spin_post_val);
+
+	// Update the UI
+	str.Format(L"- %2d", m_spin_pre_val);
+	GetDlgItem(IDC_STATIC_DAYS_PRE)->SetWindowText(str);
+
+	str.Format(L"+ %2d", m_spin_post_val);
+	GetDlgItem(IDC_STATIC_DAYS_POST)->SetWindowText(str);
+}
+
+
+
+
+/**
+ * Handler for WM_DOWNLOAD_COMPLETE message
  *
  */
 afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum,
@@ -526,26 +700,6 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum
 
 
 /**
- * Handler for the WM_TVP_SLOW_RELEASED message, sent from the thrRelase thread after the model has finished with the slot.
- * This local function just calls into the model.
- *
- */
-afx_msg LRESULT CepcheckDlg::OnSlotReleased( [[maybe_unused]] WPARAM slotnum, 
-											 [[maybe_unused]] LPARAM lParam )
-{
-	// Nothing to do? TODO
-
-	return 0;
-}
-
-
-
-
-
-
-
-
-/**
  * A row on the Shows or Schedule tab was double-clicked. Popup a modal dialog listing all episodes for that Show.
  *
  */
@@ -565,31 +719,6 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LP
 	}
 
 	return TRUE;
-}
-
-
-
-
-/**
- * Update the text on the 'Shows' & 'Archive tabs
- *
- */
-void CepcheckDlg::UpdateTabTotals(void)
-{
-	// Put # Shows in the Show tab text
-	CString str;
-	str.Format(L"Shows (%d)", m_data.NumShows(eShowList::ACTIVE));
-
-	TCITEM ltag;
-	ltag.mask = TCIF_TEXT;
-	ltag.pszText = str.LockBuffer();
-	m_tabctrl.SetItem(TAB_NUM_SHOWS, &ltag);
-	str.UnlockBuffer();
-
-	str.Format(L"Archive (%d)", m_data.NumShows(eShowList::ARCHIVE));
-	ltag.pszText = str.LockBuffer();
-	m_tabctrl.SetItem(TAB_NUM_ARCHIVE, &ltag);
-	str.UnlockBuffer();
 }
 
 
@@ -715,9 +844,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	}
 	else
 	{
-		CString s{ L"Unrecognised context for right mouse button." };
-		AfxMessageBox(s, MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
-		LogMsgWin(s);
+		LogMsgWin(L"Unrecognised context for right mouse button.");
 	}
 
 
@@ -798,13 +925,16 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			break;
 
 		case ID_MNU_REFRESH_SHOW:
-			// Reset ping & download counter
+			RefreshShow(hash);
+			break;
+/*
+		case ID_MNU_REFRESH_SHOW:
 			ResetOnscreenCounters();
 			m_ping_expected = 1;
 			m_dlm.DownloadShow(pshow->epguides_url);
 			LogMsgWin(L"Refreshing show...");
 			break;
-
+*/
 		// Copy the show title or episode title from the Schedule List to the system clipboard
 		case ID_MNU_COPY_SHOW_TITLE:
 			// Already have pshow, no need to query the dialog directly like for ID_MNU_COPY_EPISODE_TITLE
@@ -836,8 +966,6 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 	}
 
 
-
-
 	if (url_edited == true)
 	{
 		// Enable the Save/Load buttons if need be
@@ -858,63 +986,6 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 
 
 /**
- * 'Missed only' checkbox clicked in the top level dialog.
- * Notify the model of the new state & rebuild the schedule accordingly
- */
-void CepcheckDlg::OnBtn_ChkMissedOnly()
-{
-	UpdateData();
-	m_data.ShowMissedOnly(m_missed_only);
-
-	UpdateScheduleList();
-}
-
-
-
-
-/**
- * Show/Hide the logging messages window
- *
- */
-void CepcheckDlg::OnBtn_ShowLog()
-{
-static BOOL visible = false;
-
-	static unsigned	nCounter = 0;
-	visible = !visible;
-
-	CButton* chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
-	chkbox->SetCheck(visible);
-
-	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
-
-	LOG_PRINT(eLogFlags::INFO, L"LOG: BOING %u\n", nCounter++);
-
-}
-
-
-
-
-/**
- * Reset the +/- days interval for the schedule list to their defaults.
- *
- */
-void CepcheckDlg::OnBtn_ResetDays()
-{
-	m_spin_pre_val  = DEFAULT_DAYS_PRE;
-	m_spin_post_val = DEFAULT_DAYS_POST;
-
-	m_spin_pre.SetPos(m_spin_pre_val);
-	m_spin_post.SetPos(m_spin_post_val);
-
-	UpdateSchedulePeriod();
-	UpdateScheduleList();
-}
-
-
-
-
-/**
  * Handle a WM_SIGNAL_APP_EVENT message
  * 
  */
@@ -923,9 +994,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 	eAppevent event = static_cast<eAppevent>(wParam);
 
 #if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
-	CString _msg;
-	_msg.Format(L"eAppevent: %d", event);
-	LogMsgWin(_msg);
+	LogMsgWin(L"eAppevent: %u", event);
 #endif
 
 	// Have a few useful values handy
@@ -1035,9 +1104,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			break;
 
 		default:
-			CString str;
-			str.Format(L"Unhandled eAppevent: %d", event);
-			LogMsgWin(str);
+			LogMsgWin(L"Unhandled eAppevent: %u", event);
 			break;
 	}
 
@@ -1077,93 +1144,6 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 
 
 
-
-/**
- * Sends the +/- days count to the database and updates the on-screen values
- *
- */
-void CepcheckDlg::UpdateSchedulePeriod(void)
-{
-	CString str;
-
-	// Tell the model the date interval we're interested in
-	m_data.SetDateInterval(m_spin_pre_val, m_spin_post_val);
-
-	// Update the UI
-	str.Format(L"- %2d", m_spin_pre_val);
-	GetDlgItem(IDC_STATIC_DAYS_PRE)->SetWindowText(str);
-
-	str.Format(L"+ %2d", m_spin_post_val);
-	GetDlgItem(IDC_STATIC_DAYS_POST)->SetWindowText(str);
-}
-
-
-
-
-/**
- * Open up file explorer in the data file location
- *
- */
-void CepcheckDlg::OnBtn_Explorer()
-{
-	m_data.OpenDataFileFolder();
-}
-
-
-
-
-/**
- * Break into the debugger
- *
- */
-void CepcheckDlg::OnBtn_Break()
-{
-	AfxDebugBreak();
-}
-
-/**
- * Stop the <RETURN> key from closing the application
- */
-void CepcheckDlg::OnOK()
-{
-	LogMsgWin(L"CepcheckDlg::OnOK() discarded");
-	//CDialog::OnOK();
-}
-
-/**
- * Stop the <CANCEL> key from closing the application if we're downloading
- */
-void CepcheckDlg::OnCancel()
-{
-	if (m_dlm.DownloadInProgress())
-	{
-		AfxMessageBox(L"Download in progress. Abort it first.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		return;
-	}
-
-	/*
-	 * This gives you a chance to copy msgs out of console or message log windows
-	 */
-
-#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
-	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
-#endif
-
-	CDialog::OnCancel();
-}
-
-/**
- * As soon as the main dialog window is created, notity the model.
- */
-int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
-	if (CDialog::OnCreate(lpCreateStruct) == -1)
-		return -1;
-
-	m_dlm.SetMsgWin(m_hWnd);
-
-	return 0;
-}
 
 /**
  * Sent by the CDMessages dialog when the 'Cancel Download' button is pressed
@@ -1274,25 +1254,20 @@ void CepcheckDlg::OnBtn_Download()
  * Currently only called when adding a new show.
  *
  */
-bool CepcheckDlg::DownloadSingleShow(DWORD hash)
+bool CepcheckDlg::RefreshShow(DWORD hash)
 {
 	bool retval = true;
 
 	// Already downloading?
 	if (m_dlm.DownloadInProgress()) {
-		CString error1(L"Download already in progress!");
-		LogMsgWin(error1);
-		LOG_PRINT(eLogFlags::INFO, error1);
-		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return false;
 	}
 
 
 	show* pShow = m_data.FindShow(hash, eShowList::ACTIVE);
 	if (pShow == nullptr) {
-		CString error1(L"DownloadSingleShow() : Can't find show");
-		LogMsgWin(error1);
-		AfxMessageBox(error1, MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		AfxMessageBox(L"RefreshShow() : Can't find show", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return FALSE;
 	}
 
@@ -1303,7 +1278,7 @@ bool CepcheckDlg::DownloadSingleShow(DWORD hash)
 	m_ping_count    = 0;
 
 	m_dlm.DownloadShow(pShow->epguides_url);
-	LogMsgWin(L"Download requested");
+	LogMsgWin(L"Refreshing show...");
 
 	return retval;
 }
@@ -1311,15 +1286,9 @@ bool CepcheckDlg::DownloadSingleShow(DWORD hash)
 
 
 
-
-
-
-
 /**
 * If all shows are downloaded *OR* the download has been sucessfully
 * aborted, send WM_DOWNLOAD_COMPLETE to the main dialog window.
-*
-* TODO Shouldn't CdownloadManager determine when the download's complete? Not the model/database?
 *
 */
 void CepcheckDlg::CheckDownloadComplete()
@@ -1329,11 +1298,10 @@ void CepcheckDlg::CheckDownloadComplete()
 		(m_ping_expected == m_ping_count)
 		)
 	{
-		PostMessage(WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
+		//PostMessage(WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
+		PostMessage(WM_TVP_DOWNLOAD_COMPLETE);
 	}
 }
-
-
 
 
 
@@ -1368,7 +1336,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 		CString msg;
 		msg.Format(L"ERROR! Pinged on an slot %u results not ready : %u\n", slotnum, m_dlm.GetSlotState(slotnum));
 		LogMsgWin(msg);
-		LOG_PRINT(eLogFlags::MODEL, msg);
+		LOG_PRINT(eLogFlags::INFO, msg);
 	}
 	else
 	{
@@ -1381,9 +1349,12 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 		else
 			LogMsgWin(L"Unexpected showstate\n");
 
-		// Notify the thrRelease thread we're done
-		m_dlm.ResetAndFree(slotnum);
+		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSED);
+
 	}
+
+	// Reset the slot and mark it available
+	m_dlm.ResetAndFree(slotnum);
 
 	// Time to send WM_DOWNLOAD_COMPLETE ?
 	CheckDownloadComplete();

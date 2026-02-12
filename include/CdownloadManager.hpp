@@ -19,6 +19,8 @@ public:
     CdownloadManager();
     ~CdownloadManager();
 
+    void TerminateSlotThreads();
+
     void SetMsgWin(HWND hMsgWin);
 
     void DownloadShow(const std::string& url);

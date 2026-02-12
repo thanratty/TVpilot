@@ -32,7 +32,7 @@
 //
 constexpr int WM_TVP_DOWNLOAD_COMPLETE		 = (WM_USER + 7000);
 constexpr int WM_TVP_DOWNLOAD_PING			 = (WM_USER + 7001);
-constexpr int WM_TVP_SLOT_RELEASED           = (WM_USER + 7002);
+//constexpr int WM_TVP_SLOT_RELEASED           = (WM_USER + 7002); TODO Delete
 constexpr int WM_TVP_ZOOM_EPISODES			 = (WM_USER + 7003);
 constexpr int WM_TVP_LAUNCH_URL				 = (WM_USER + 7004);
 constexpr int WM_TVP_SHOW_CONTEXT_MENU		 = (WM_USER + 7005);

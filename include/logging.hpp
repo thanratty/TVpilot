@@ -12,6 +12,8 @@
 #include "common.hpp"
 
 
+// TODO These aren't used now?
+
 #define     ENABLE_THREAD_DATA_LOGGING      0       // Dbg message thread data classes constructors/destructors & Cslot & threads
 #define     ENABLE_THREAD_FUNC_LOGGING      0       // Dbg message thread data classes constructors/destructors & Cslot & threads
 #define     ENABLE_SYNC_OBJECT_LOGGING      0       // Must also have console window enabled to work [DEBUG build only]
@@ -23,29 +25,30 @@
 
 
 
-
-
 enum class eLogFlags : UINT32
 {
-    LOCK         = 0x00000001,
-    UNLOCK       = 0x00000002,
-    DL_THREADS   = 0x00000004,
-    INFO         = 0x00000008,
-	WM_MSGS      = 0x00000010,
-    THREAD_DATA  = 0x00000020,
-    THREAD_FUNC  = 0x00000040,
-    SYSTEM       = 0x00000080,
-    MODEL        = 0x00000100,
-    SYNC_OBJECTS = 0x00000200,
-    CURL         = 0x00000400,
-    XML          = 0x00000800,
-    TEST         = 0x00001000,
+    INFO            = 0x00000001,
+    SLOT_THREAD     = 0x00000002,
+    WM_MSGS         = 0x00000004,
+    MODEL           = 0x00000008,
+    CURL            = 0x00000010,
+    XML             = 0x00000020,
+    FATAL           = 0x00000040,
+
+    SLOT_LOCK       = 0x00000080,
+    SLOT_USE        = 0x00000100,
+    SYNC_OBJECTS    = 0x00000200,
+
+    TEST            = 0x00000400,
+    CONSOLE_ECHO    = 0x00000800,
     //
-    ALL          = 0x00001FFF,
-    NONE         = 0x00000000
+    ALL             = 0x00000FFF,
+    NONE            = 0x00000000
 };
 
 ENUM_FLAGS(eLogFlags)
+
+
 
 
 
@@ -78,12 +81,17 @@ void        LOG_EXIT( void );
  */
 
 void LogSetMsgWin(CEdit* pedit);
+
+/*
 void LogMsgWin(CString& msg);
 void LogMsgWin(const char* pchars);
 void LogMsgWin(const wchar_t* pwchars);
 void LogMsgWin(const std::string& str);
+*/
 
-
-
+void LogMsgWin(const wchar_t* format, ...);
+void LogMsgWin(const char* format);
+void LogMsgWin(const std::string& str);
+void LogMsgWin(const CString& msg);
 
 

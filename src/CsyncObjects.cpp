@@ -27,7 +27,7 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents constructor\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() constructor");
 
     m_handles.insert(m_handles.end(), handles.begin(), handles.end());
 
@@ -37,7 +37,7 @@ CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
 
 CMultiEvents::~CMultiEvents()
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents destructor\n");
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() destructor\n");
 }
 
 
@@ -93,7 +93,7 @@ CslotsSem::CslotsSem()
 
         if (m_hSem == NULL) {
             m_last_error = GetLastError();
-            LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Can't create slots semaphore\n");
+            LOG_PRINT(eLogFlags::FATAL, L"Can't create slots semaphore. Error %08X\n", m_last_error);
         }
     }
     else
@@ -112,11 +112,15 @@ CslotsSem::~CslotsSem()
         CloseHandle(m_hSem);
         m_hSem = INVALID_HANDLE_VALUE;
     }
+    else
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor. m_hSem already closed");
 }
 
 
 CslotsSem& CslotsSem::getInstance()
 {
+    LOG_PRINT(eLogFlags::SLOT_LOCK, L"CslotSem::getInstance()\n");
+
     static CslotsSem instance;      // Guaranteed to be destroyed. Instantiated on first use.
     return instance;
 }
@@ -131,10 +135,10 @@ bool CslotsSem::Lock()
         return true;
 
     m_last_error = GetLastError();
-
     CString str;
-    str.Format(L"CslotsSem::Lock() wait fail. Error %u\n", m_last_error);
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem::Lock() wait fail\n");
+    str.Format(L"CslotsSem::Lock() wait fail. Error %08X\n", m_last_error);
+    LogMsgWin(str);
+    LOG_PRINT(eLogFlags::FATAL, str);
 
     return false;
 }
@@ -150,8 +154,7 @@ bool CslotsSem::Unlock()
         return true;
 
     m_last_error = GetLastError();
-
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem::Unlock() release fail. Error %u. Count %lu\n", m_last_error, last_count);
+    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %lu\n", m_last_error, last_count);
 
     return false;
 }

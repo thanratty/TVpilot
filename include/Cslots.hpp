@@ -88,9 +88,9 @@ public:
     void        SetUrl(const std::string& url);
 
     void        StartThread();
-    void        ResetAndFree();
     void        TerminateThread();
-    void        CloseSlot();
+
+    void        ResetAndFree();
 
     void        SetExitFlag();
     bool        GetExitFlag() const;
@@ -114,6 +114,7 @@ public:
     HWND        GetMsgWin(void) const;
 
 
+
 private:
     // One instance of this variable is shared between all Cslot objects
     inline static LONG  gSlotCount{ -1 };
@@ -134,8 +135,10 @@ public:
     Cslots::Cslots();
     Cslots::~Cslots();
 
+    void    TerminateSlotThreads();
+    bool    AllSlotThreadsTerminated() const;
+
     void SetMsgWin( HWND hWin );
-    void TerminateSlotThreads();
 
     bool IsFree(unsigned slotnum) const;
     bool IsBusy(unsigned slotnum) const;
@@ -151,7 +154,6 @@ public:
 
     const std::string& GetErrorString(unsigned slotnum) const;
 
-    const std::vector<HANDLE>& GetReleaseHandles() const;
     void ResetAndFree(unsigned slotnum);
 
     int FirstFreeSlot() const;
@@ -162,7 +164,4 @@ private:
 
     // The actual slot 'array'
     std::vector<Cslot>  m_slots = std::vector<Cslot>(NUMBER_OF_DOWNLOAD_THREADS);
-
-    std::vector<HANDLE> m_ReleaseHandles;
-
 };

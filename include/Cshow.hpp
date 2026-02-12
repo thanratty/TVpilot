@@ -84,7 +84,7 @@ public:
 
     DWORD               hash{ DWORD_MAX };
     showflags           flags{ showflags::SH_FL_NONE };
-    showstate           state{ showstate::SH_ST_NONE };         // Ephemeral - ie  not save to disk.
+    showstate           state{ showstate::SH_ST_NONE };         // Ephemeral - do not save to disk.
 
     gregorian::date     last_airdate;
     std::string         last_airdate_string;

@@ -361,7 +361,7 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
     // At the end already?
     if (index > m_guide.size() - 1)
     {
-        DebugLogMsgWin(L"GetFilteredEpisode(): All done");
+        LogMsgWin(L"GetFilteredEpisode(): All done");
         return false;
     }
 
@@ -464,9 +464,7 @@ bool model::UpdateShow(const show& showtoupdate)
             // If we didn't have that episode's flags, it's either a completely new show or a new episode. for
             // an existing show. (Only notify about new episodes for existing shows, otherwise it gets too noisy.)
             if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
-                std::ostringstream str;
-                str << "New episode " << (originalShow->title) << " " << ep.ep_num;
-                LogMsgWin(str.str());
+                LogMsgWin(L"New episode %s %s\n", originalShow->title.c_str(), ep.ep_num.c_str());
             }
         }
     }

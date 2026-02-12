@@ -43,43 +43,44 @@ bool CurlAndParse( Cslot& slot );
 UINT __cdecl thrSlotThread(LPVOID pParam)
 {
 	Cslot&			slot	  = *static_cast<Cslot*>(pParam);
-	CslotsSem&		slotslock = CslotsSem::getInstance();
+//	CslotsSem&		slotslock = CslotsSem::getInstance();
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
-	LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u created\n", slot.m_SlotNumber);
+	LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u created\n", slot.m_SlotNumber);
 
 	while (true)
 	{
 		slot.SetThreadState(eThreadState::TS_WAITING);
 
-		//
-		// Wait for valid request event
+		// Wait for request event
 		//
 		DWORD wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
 		slot.SetThreadState(eThreadState::TS_RUNNING);
-		if (wait_result != WAIT_OBJECT_0)
+
+
+		// If the Wait fails - just loop & try again.
+		//
+ 		if (wait_result != WAIT_OBJECT_0)
 		{
-			// If the Wait fails - just loop & try again.
-			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread wait failed\n");
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread wait failed\n");
+			// TODO some error stuff here
 			continue;
 		}
 
 
-		//
 		// Terminate flag set? Exit the thread
 		//
 		if (slot.GetExitFlag())
 		{
-			LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
 
 			slot.SetSlotState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
-			return eThreadResult::TR_UNKNOWN;
+			return eThreadResult::TR_NORMAL_EXIT;
 		}
 
 
-		//
 		// Got a good event. Check slot state to determine what to do next
 		//
 		eSlotState state = slot.GetSlotState();
@@ -95,20 +96,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 				}
 				break;
 
-			case eSlotState::SS_RESULTS_PROCESSED:
-				if (!slotslock.Lock()) {
-					LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u slot lock fail\n", slot.m_SlotNumber);
-				}
-				else {
-					slot.ResetAndFree();
-					if (!slotslock.Unlock())
-						LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u slot release fail\n", slot.m_SlotNumber);
-					::PostMessage(slot.GetMsgWin(), WM_TVP_SLOT_RELEASED, slot.m_SlotNumber, 0);
-				}
-				break;
-
 			default:
-				LOG_PRINT(eLogFlags::THREAD_FUNC, L"thrSlotThread %u : Unhandled slotstate %u\n", slot.m_SlotNumber, state);
+				LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u : Unhandled slotstate %u\n", slot.m_SlotNumber, state);
 				break;
 		}
 

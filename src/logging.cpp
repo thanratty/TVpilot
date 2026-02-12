@@ -16,6 +16,50 @@
 
 
 
+
+
+
+
+
+
+
+typedef struct tag_LogFlagDef {
+	eLogFlags           mask;
+	const wchar_t*		description;
+
+} sLogFlagDef;
+
+
+
+STATIC sLogFlagDef  LogFlagDefs[] = {
+	{ eLogFlags::INFO,          L"Info" },
+	{ eLogFlags::SLOT_THREAD,   L"Slot Thread" },
+	{ eLogFlags::WM_MSGS,       L"WM_MSGS" },
+	{ eLogFlags::MODEL,         L"Model" },
+	{ eLogFlags::CURL,          L"Curl" },
+	{ eLogFlags::XML,           L"XML" },
+	{ eLogFlags::FATAL,         L"Fatal" },
+
+	{ eLogFlags::SLOT_LOCK,     L"Slot Lock" },
+	{ eLogFlags::SLOT_USE,      L"Slot Use" },
+	{ eLogFlags::SYNC_OBJECTS,  L"SYNC Objects" },
+
+	{ eLogFlags::TEST,          L"Test" },
+	{ eLogFlags::CONSOLE_ECHO,  L"Console Echo" }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * The control in the message Dialog window for debug/log text.
  */
@@ -33,15 +77,22 @@ STATIC HANDLE	hLogEvent  { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
 
 
-STATIC std::queue<const wchar_t*>	myQueue;				// FIFO of ptrs to message strings
-//STATIC std::mutex					queueMutex;				// To control Lock/Unlock access to the queue
+STATIC std::queue<const wchar_t*>	myQueue;						// FIFO of ptrs to message strings
 
-STATIC CSemaphore*   semQueue{nullptr};
-bool bConsoleReady{ false };
+STATIC CSemaphore*  semQueue{nullptr};
+bool				bConsoleReady{ false };
+STATIC DWORD		bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
 
-STATIC DWORD bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
 
-STATIC eLogFlags LogEnableFlags = eLogFlags::THREAD_FUNC;
+
+
+STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
+									 eLogFlags::TEST  |
+									 eLogFlags::FATAL;
+
+
+
+
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)
 
@@ -54,6 +105,19 @@ STATIC eLogFlags LogEnableFlags = eLogFlags::THREAD_FUNC;
 
 
 #if (ENABLE_CONSOLE_LOGGING==1)
+
+STATIC bool MsgQueueIsEmpty()
+{
+	bool bIsEmpty;
+
+	CSingleLock lock(semQueue);
+	lock.Lock();
+	bIsEmpty = myQueue.empty();
+	lock.Unlock();
+
+	return bIsEmpty;
+}
+
 
 STATIC void PushToMsgQueue(const wchar_t* str)
 {
@@ -70,8 +134,6 @@ STATIC const wchar_t*  PopFromMsgQueue()
 {
 	const wchar_t* val = nullptr;
 	
-//	std::unique_lock<std::mutex> lock(queueMutex);
-
 	CSingleLock lock(semQueue);
 	lock.Lock();
 
@@ -114,7 +176,7 @@ const	wchar_t* msg;
 		}
 		else
 		{
-			MessageBox(NULL, L"Wait error!\n", L"Console Thread", MB_OK | MB_ICONEXCLAMATION);
+			::MessageBox(NULL, L"Wait error!\n", L"Console Thread", MB_OK | MB_ICONEXCLAMATION);
 		}
 
 		if (bExitThreadFlag != 0)
@@ -151,7 +213,7 @@ STATIC void LogConsoleCreate(void)
 
 STATIC void LogConsoleClose(void)
 {
-	LOG_PRINT(eLogFlags::SYSTEM, L"Closing console\n");
+	LOG_PRINT(eLogFlags::INFO, L"Closing console\n");
 
 	FreeConsole();
 	hLogHandle = INVALID_HANDLE_VALUE;
@@ -171,8 +233,11 @@ void LOG_INIT()
 	LogConsoleCreate();
 
 	semQueue   = new CSemaphore(1,1,L"semQueue", NULL);
-	hLogEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hLogEvent");         // NOT manual reset, initial state
+	hLogEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hLogEvent");         // NOT manual reset, initial state unsignalled
 	hLogThread = CreateThread(NULL, 0, LogThread, NULL, 0, NULL);
+
+	if (hLogThread)
+		SetThreadDescription(hLogThread, L"thrLogging");
 
 	LOG_PRINT(eLogFlags::INFO, L"Console Ready\n\n");
 
@@ -182,6 +247,9 @@ void LOG_INIT()
 
 void LOG_EXIT()
 {
+	// Wait till all current messages are printed
+	while (!MsgQueueIsEmpty());
+
 	bExitThreadFlag = 1;
 	SetEvent(hLogEvent);
 	WaitForSingleObject(hLogThread, THREAD_EXIT_TIMEOUT);
@@ -240,7 +308,10 @@ void LogSetMsgWin(CEdit* pedit)
 	pMsgWindow = pedit;
 }
 
-void LogMsgWin(CString& msg)
+
+
+
+void LogMsgWin(const CString& msg)
 {
 	if (pMsgWindow)
 	{
@@ -251,23 +322,35 @@ void LogMsgWin(CString& msg)
 	}
 }
 
-void LogMsgWin(const char* pchars)
+void LogMsgWin(const wchar_t* format, ...)
 {
-	CString s(pchars);
-	LogMsgWin(s);
+	wchar_t newstr[ LOG_BUFFER_LEN ];
+
+	memset(newstr, 0, LOG_BUFFER_LEN*sizeof(wchar_t));
+
+	va_list args;
+	va_start(args, format);
+	vswprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
+	va_end(args);
+
+	//newstr[LOG_BUFFER_LEN - 1] = L'\0';
+
+	size_t len = wcslen(newstr);
+	if (len > 0)
+	{
+		CString s(newstr);
+		LogMsgWin(s);
+	}
 }
 
-void LogMsgWin(const wchar_t* pwchars)
+
+void LogMsgWin(const char* format)
 {
-	CString s(pwchars);
-	LogMsgWin(s);
+	CString msg(format);
+	LogMsgWin(msg);
 }
 
 void LogMsgWin(const std::string& str)
 {
 	LogMsgWin(str.c_str());
 }
-
-
-
-

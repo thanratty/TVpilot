@@ -6,7 +6,10 @@
 //--
 
 #include "common.hpp"
+#include "CDlogging.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
+
 
 #include "CDmessages.hpp"
 
@@ -34,6 +37,7 @@ void CDmessages::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CDmessages, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtnClicked_Clear)
 	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtnClicked_AbortDownload)
+	ON_BN_CLICKED(IDC_BTN_LOGGING,          &CDmessages::OnBtn_Logging)
 END_MESSAGE_MAP()
 
 
@@ -69,5 +73,19 @@ void CDmessages::OnCancel()
 void CDmessages::OnBtnClicked_AbortDownload()
 {
 	GetParent()->PostMessage(WM_TVP_ABORT_DOWNLOAD);
+}
+
+
+void CDmessages::OnBtn_Logging()
+{
+	LogMsgWin(L"BOING\n");
+
+	CDLogging	dlog(this);
+	INT_PTR retval = dlog.DoModal();
+
+	CString msg;
+	msg.Format(L"Dialog returned %lu\n", retval);
+
+	LogMsgWin(msg);
 }
 

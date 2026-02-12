@@ -37,8 +37,8 @@ Cslot::Cslot()
 
 Cslot::~Cslot()
 {
-    // NB The logging thread has been shutdown by now
-    CloseSlot();
+    CloseHandle(m_hEvRequest);
+    m_hEvRequest = INVALID_HANDLE_VALUE;
 }
 
 
@@ -54,7 +54,7 @@ void Cslot::StartThread()
 
 void Cslot::TerminateThread()
 {
-    LOG_PRINT(eLogFlags::DL_THREADS,L"Slot %u TerminateThread()\n", m_SlotNumber);
+    LOG_PRINT(eLogFlags::SLOT_THREAD,L"CSlot::TerminateThread() %u\n", m_SlotNumber);
 
     if (m_pWinThread)
     {
@@ -71,20 +71,10 @@ void Cslot::TerminateThread()
         delete m_pWinThread;
         m_pWinThread = nullptr;
     }
-}
-
-
-void Cslot::CloseSlot()
-{
-    LOG_PRINT(eLogFlags::DL_THREADS, L"Slot %u CloseSlot()\n", m_SlotNumber);
-
-    if (m_pWinThread != nullptr) {
-        LOG_PRINT(eLogFlags::DL_THREADS, L"Slot %u thread still running\n", m_SlotNumber);
-        TerminateThread();
+    else
+    {
+        LOG_PRINT(eLogFlags::SLOT_THREAD, L"Slot thread %u already NULL\n", m_SlotNumber);
     }
-
-    CloseHandle(m_hEvRequest);
-    m_hEvRequest = INVALID_HANDLE_VALUE;
 }
 
 
@@ -102,7 +92,7 @@ void Cslot::SetUrl(const std::string& url)
     }
     else
     {
-        LogMsgWin(L"SetUrl slot not free!");
+        LOG_PRINT(eLogFlags::INFO, L"SetUrl() slot %u not free!", m_SlotNumber);
     }
 }
 
@@ -110,13 +100,13 @@ void Cslot::SetUrl(const std::string& url)
 void Cslot::ResetAndFree()
 {
     m_show.Reset();
-    m_error_string.erase();
 
+    m_error_string.erase();
     m_http_status = 0;
     m_curl_status = 0;
-    m_xml_status = 0;
+    m_xml_status  = 0;
 
-    m_slotstate = eSlotState::SS_FREE;
+    SetSlotState(eSlotState::SS_FREE);
 }
 
 void Cslot::SetExitFlag() {
@@ -194,18 +184,6 @@ void Cslots::SetMsgWin(HWND hWin)
         slot.SetMsgWin(hWin);
 }
 
-
-void Cslots::TerminateSlotThreads()
-{
-    for (auto slot : m_slots)
-    {
-        slot.CloseSlot();
-        while (slot.GetThreadState() != eThreadState::TS_FINISHED);
-    }
-}
-
-
-
 bool Cslots::IsFree(unsigned slotnum) const {
     return m_slots.at(slotnum).GetSlotState() == eSlotState::SS_FREE;
 }
@@ -238,10 +216,6 @@ const std::string& Cslots::GetErrorString(unsigned slotnum) const {
     return m_slots.at(slotnum).GetErrorString();
 }
 
-const std::vector<HANDLE>& Cslots::GetReleaseHandles() const {
-    return m_ReleaseHandles;
-}
-
 void Cslots::ResetAndFree(unsigned slotnum) {
     m_slots.at(slotnum).ResetAndFree();
 }
@@ -258,4 +232,14 @@ int Cslots::FirstBusySlot() const
     return (iter == m_slots.end()) ? -1 : (iter - m_slots.begin());
 }
 
+void Cslots::TerminateSlotThreads()
+{
+    // TODO Currently, Cslot::TerminateThread() waits for the thread to signal every time
+    std::for_each(m_slots.begin(), m_slots.end(), [](Cslot& slot){ slot.TerminateThread();});
+}
 
+bool Cslots::AllSlotThreadsTerminated() const
+{
+    auto it = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& slot) { return slot.GetSlotState() != eSlotState::SS_THREAD_EXITED; });
+    return (it == m_slots.end());
+}

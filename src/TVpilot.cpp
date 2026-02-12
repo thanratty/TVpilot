@@ -96,8 +96,6 @@ BOOL CepcheckApp::InitInstance()
 	ReadAllShowsCsvFile();
 #endif
 
-	// TODO - do Thread startup/shudown in the dialog's init/exit instance functions.
-
 
 	CepcheckDlg dlg;
 	m_pMainWnd = &dlg;
@@ -127,7 +125,6 @@ BOOL CepcheckApp::InitInstance()
 	ControlBarCleanUp();
 #endif
 
-
 	LOG_EXIT();
 
 	xmlCleanupParser();
@@ -135,6 +132,7 @@ BOOL CepcheckApp::InitInstance()
 
 	// Since the dialog has been closed, return FALSE so that we exit the
 	//  application, rather than start the application's message pump.
+
 	return FALSE;
 }
 

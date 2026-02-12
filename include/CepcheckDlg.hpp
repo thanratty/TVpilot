@@ -49,9 +49,8 @@ protected:
 
 	// Windows Message Handlers
 	afx_msg void	OnTcnSelchangeTab1(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);		// TODO Needed ?
 	afx_msg LRESULT OnDownloadPing(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnSlotReleased(WPARAM slotnum, LPARAM lParam);
 	afx_msg LRESULT OnZoomEpisodes(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnLaunchUrl(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnShowContextMenu(WPARAM wParam, LPARAM lParam);
@@ -90,7 +89,6 @@ private:
 			CdownloadManager	m_dlm;
 			//
 			unsigned		m_ping_expected{ 0 };
-//			unsigned		m_ping_received{ 0 };
 			unsigned		m_ping_count{ 0 };
 			unsigned		m_err_count{ 0 };
 
@@ -111,9 +109,6 @@ private:
 			void		UpdateArchiveList();
 			void		UpdateSchedulePeriod();
 
-
-			bool		DownloadAllShows();
-			bool		DownloadSingleShow(DWORD hash);
+			bool		RefreshShow(DWORD hash);
 			void		CheckDownloadComplete();
-
 };

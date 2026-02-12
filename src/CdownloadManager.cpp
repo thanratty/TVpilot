@@ -26,11 +26,9 @@ CdownloadManager::CdownloadManager()
 
 CdownloadManager::~CdownloadManager()
 {
-	// Stop the slot threads first
-
-	TerminateSlotThreads();
-
+	// Individual slots shutdown their own threads & close event handles.
 }
+
 
 
 /**
@@ -92,3 +90,11 @@ void CdownloadManager::AbortDownload()
 }
 
 
+
+
+void CdownloadManager::TerminateSlotThreads()
+{
+	Cslots::TerminateSlotThreads();
+
+	while (!AllSlotThreadsTerminated());
+}

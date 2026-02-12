@@ -143,13 +143,13 @@ std::string extractUniqueNode(xmlXPathObjectPtr nodes)
 	{
 		int size = nodeset->nodeNr;
 		if (size != 1)
-			LogMsgWin(L"ERROR! XPATH query returned more than one node");
+			LogMsgWin(L"ERROR: XPATH query returned more than one node!\n");
 
 		// The webpage should have exactly one element
 		if ((nodeset->nodeTab[0]->type == XML_ELEMENT_NODE) || (nodeset->nodeTab[0]->type == XML_ATTRIBUTE_NODE))
 			str = getNodeText(nodeset->nodeTab[0]);
 		else
-			LogMsgWin(L"ERROR! Unexpected XML node type.");
+			LogMsgWin(L"ERROR: Unexpected XML node type!\n");
 	}
 
 	return str;
@@ -173,7 +173,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 	// Sanity check on results set
 	if ((nodeset == nullptr) || (nodeset->nodeNr == 0))
 	{
-		LogMsgWin("extractEpisodeDetails() Error. Empty results set!");
+		LogMsgWin(L"extractEpisodeDetails() Error. Empty results set!\n");
 		return false;
 	}
 
@@ -200,7 +200,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the date format & fix if necessary
 		if (!bGoodDate)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode date format. Defaulted. [" + ep_date + "]";
+			std::string msg = "extractEpisodeDetails() Bad episode date format. Defaulted. [" + ep_date + "]\n";
 			LogMsgWin(msg);
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
@@ -216,7 +216,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode number format. Defaulted. [" + ep_number + "]";
+			std::string msg = "extractEpisodeDetails() Bad episode number format. Defaulted. [" + ep_number + "]\n";
 			LogMsgWin(msg);
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
