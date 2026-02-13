@@ -23,7 +23,7 @@
 
 
 
-
+#define     NUM_LOG_FLAGS       12
 
 enum class eLogFlags : UINT32
 {
@@ -49,6 +49,13 @@ enum class eLogFlags : UINT32
 ENUM_FLAGS(eLogFlags)
 
 
+
+
+
+typedef struct tag_sLogFlags {
+    eLogFlags           mask;
+    const wchar_t*      description;
+} sLogFlagDef;
 
 
 
@@ -82,16 +89,13 @@ void        LOG_EXIT( void );
 
 void LogSetMsgWin(CEdit* pedit);
 
-/*
-void LogMsgWin(CString& msg);
-void LogMsgWin(const char* pchars);
-void LogMsgWin(const wchar_t* pwchars);
-void LogMsgWin(const std::string& str);
-*/
-
 void LogMsgWin(const wchar_t* format, ...);
 void LogMsgWin(const char* format);
 void LogMsgWin(const std::string& str);
 void LogMsgWin(const CString& msg);
 
 
+eLogFlags GetLogFlags();
+void SetLogFlags(eLogFlags newflags);
+void EnableLogFlag(eLogFlags mask);
+void DisableLogFlag(eLogFlags mask);

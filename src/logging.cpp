@@ -7,6 +7,8 @@
 
 #include <mutex>
 #include <queue>
+#include <array>
+#include <vector>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -20,18 +22,9 @@
 
 
 
-
-
-
-typedef struct tag_LogFlagDef {
-	eLogFlags           mask;
-	const wchar_t*		description;
-
-} sLogFlagDef;
-
-
-
-STATIC sLogFlagDef  LogFlagDefs[] = {
+// Global const, referenced in the CDLogging dialog
+//
+std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags {{
 	{ eLogFlags::INFO,          L"Info" },
 	{ eLogFlags::SLOT_THREAD,   L"Slot Thread" },
 	{ eLogFlags::WM_MSGS,       L"WM_MSGS" },
@@ -46,14 +39,7 @@ STATIC sLogFlagDef  LogFlagDefs[] = {
 
 	{ eLogFlags::TEST,          L"Test" },
 	{ eLogFlags::CONSOLE_ECHO,  L"Console Echo" }
-};
-
-
-
-
-
-
-
+}};
 
 
 
@@ -99,7 +85,27 @@ STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
 
 
 
+eLogFlags GetLogFlags()
+{
+	return LogEnableFlags;
+}
 
+void SetLogFlags(eLogFlags newflags)
+{
+	LogEnableFlags = newflags;
+}
+
+// TODO Not needed?
+void EnableLogFlag(eLogFlags mask)
+{
+	LogEnableFlags |= mask;
+}
+
+// TODO Not needed?
+void DisableLogFlag(eLogFlags mask)
+{
+	LogEnableFlags &= ~mask;
+}
 
 
 

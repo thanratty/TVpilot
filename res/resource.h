@@ -41,6 +41,8 @@
 #define IDC_SHOW_LIST                   1052
 #define IDC_EPISODES_LIST               1053
 #define IDC_MESSAGES                    1054
+#define IDC_BTN_LOG_ALL                 2000
+#define IDC_BTN_LOG_NONE                2001
 #define ID_MNU_EPGUIDES_GO              32780
 #define ID_MNU_EPGUIDES_EDIT            32781
 #define ID_MNU_TVMAZE_GO                32782

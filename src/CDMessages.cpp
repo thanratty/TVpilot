@@ -78,14 +78,7 @@ void CDmessages::OnBtnClicked_AbortDownload()
 
 void CDmessages::OnBtn_Logging()
 {
-	LogMsgWin(L"BOING\n");
-
 	CDLogging	dlog(this);
-	INT_PTR retval = dlog.DoModal();
-
-	CString msg;
-	msg.Format(L"Dialog returned %lu\n", retval);
-
-	LogMsgWin(msg);
+	dlog.DoModal();
 }
 
