@@ -36,6 +36,7 @@ std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags {{
 	{ eLogFlags::SLOT_LOCK,     L"Slot Lock" },
 	{ eLogFlags::SLOT_USE,      L"Slot Use" },
 	{ eLogFlags::SYNC_OBJECTS,  L"SYNC Objects" },
+	{ eLogFlags::APP_EVENT,     L"APP Events" },
 
 	{ eLogFlags::TEST,          L"Test" },
 	{ eLogFlags::CONSOLE_ECHO,  L"Console Echo" }
@@ -66,19 +67,13 @@ STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
 STATIC std::queue<const wchar_t*>	myQueue;						// FIFO of ptrs to message strings
 
 STATIC CSemaphore*  semQueue{nullptr};
-bool				bConsoleReady{ false };
+STATIC bool			bConsoleReady{ false };
 STATIC DWORD		bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
-
-
 
 
 STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
 									 eLogFlags::TEST  |
 									 eLogFlags::FATAL;
-
-
-
-
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)
 
@@ -93,18 +88,6 @@ eLogFlags GetLogFlags()
 void SetLogFlags(eLogFlags newflags)
 {
 	LogEnableFlags = newflags;
-}
-
-// TODO Not needed?
-void EnableLogFlag(eLogFlags mask)
-{
-	LogEnableFlags |= mask;
-}
-
-// TODO Not needed?
-void DisableLogFlag(eLogFlags mask)
-{
-	LogEnableFlags &= ~mask;
 }
 
 
@@ -319,6 +302,8 @@ void LogSetMsgWin(CEdit* pedit)
 
 void LogMsgWin(const CString& msg)
 {
+	LOG_PRINT(eLogFlags::CONSOLE_ECHO, msg);
+
 	if (pMsgWindow)
 	{
 		CString str = msg + CString(L"\r\n");
@@ -339,8 +324,6 @@ void LogMsgWin(const wchar_t* format, ...)
 	vswprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
 	va_end(args);
 
-	//newstr[LOG_BUFFER_LEN - 1] = L'\0';
-
 	size_t len = wcslen(newstr);
 	if (len > 0)
 	{
@@ -349,11 +332,23 @@ void LogMsgWin(const wchar_t* format, ...)
 	}
 }
 
-
-void LogMsgWin(const char* format)
+void LogMsgWin(const char* format, ...)
 {
-	CString msg(format);
-	LogMsgWin(msg);
+	char newstr[ LOG_BUFFER_LEN ];
+
+	memset(newstr, 0, LOG_BUFFER_LEN);
+
+	va_list args;
+	va_start(args, format);
+	vsprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
+	va_end(args);
+
+	size_t len = strlen(newstr);
+	if (len > 0)
+	{
+		CString str = CA2W(newstr, CP_UTF8);
+		LogMsgWin(str);
+	}
 }
 
 void LogMsgWin(const std::string& str)

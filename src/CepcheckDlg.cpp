@@ -24,8 +24,8 @@
 
 
 
-#define		MIN_SPIN_DAYS			1
-#define		MAX_SPIN_DAYS			30
+constexpr short MIN_SPIN_DAYS = 1;
+constexpr short MAX_SPIN_DAYS = 30;
 
 
 STATIC UINT_PTR	TIMER_ID_ONE_MINUTE = 60;
@@ -48,10 +48,10 @@ CepcheckDlg::CepcheckDlg(CWnd* pParent /*=nullptr*/) :
 void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,  m_spin_pre);
-	DDX_Check(pDX, IDC_CHK_MISSED_ONLY,  m_missed_only);
+	DDX_Control(pDX, IDC_TAB1,			   m_tabctrl);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST,   m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,    m_spin_pre);
+	DDX_Check(  pDX, IDC_CHK_MISSED_ONLY,  m_missed_only);
 }
 
 
@@ -108,14 +108,14 @@ BOOL CepcheckDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	// Add a suffix to the dialog title bar if this is a debug build
+
 #ifdef _DEBUG
 	CString str;
 	GetWindowText(str);
 	str += L" [DEBUG]";
 	SetWindowText(str);
 #endif
-
-
 
 	// Center the text in the two counters
 	GetDlgItem(IDC_PING_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
@@ -134,9 +134,9 @@ BOOL CepcheckDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// Add three tabs to the tab control.
-	m_tabctrl.InsertItem(TAB_NUM_SHOWS, L"Shows");
+	m_tabctrl.InsertItem(TAB_NUM_SHOWS,    L"Shows");
 	m_tabctrl.InsertItem(TAB_NUM_SCHEDULE, L"Schedule");
-	m_tabctrl.InsertItem(TAB_NUM_ARCHIVE, L"Archive");
+	m_tabctrl.InsertItem(TAB_NUM_ARCHIVE,  L"Archive");
 
 	// Create the client dialog boxes 
 	m_dlgShows.Create(IDD_SHOWS, this);
@@ -158,7 +158,7 @@ BOOL CepcheckDlg::OnInitDialog()
 	LogSetMsgWin(&m_dlgMessages.m_messages);
 
 
-	// If this is a debug build, show the 'Break' UI button & the 'Logging' config button.
+	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.
 #ifdef _DEBUG
 	GetDlgItem(IDC_BTN_BREAK)->EnableWindow();
 	GetDlgItem(IDC_BTN_BREAK)->ShowWindow(SW_SHOW);
@@ -168,7 +168,7 @@ BOOL CepcheckDlg::OnInitDialog()
 #endif
 
 
-	// Load the database from disk
+	// Load in the database from disk
 	if (m_data.LoadFile() == false)
 	{
 		AfxMessageBox(L"Can't open data file", MB_ICONERROR);
@@ -386,7 +386,7 @@ void CepcheckDlg::OnBtn_ShowLog()
  */
 void CepcheckDlg::OnBtn_ResetDays()
 {
-	m_spin_pre_val = DEFAULT_DAYS_PRE;
+	m_spin_pre_val  = DEFAULT_DAYS_PRE;
 	m_spin_post_val = DEFAULT_DAYS_POST;
 
 	m_spin_pre.SetPos(m_spin_pre_val);
@@ -529,7 +529,7 @@ void CepcheckDlg::UpdateShowList()
 	m_dlgShows.RestoreTopIndex();
 	m_dlgShows.Invalidate();
 
-	// Update #shows in Show tab text
+	// Update # shows in Show tab text
 	UpdateTabTotals();
 }
 
@@ -562,6 +562,10 @@ void CepcheckDlg::UpdateScheduleList()
 
 
 
+/**
+ * Reload the 'Archived shows' list control from the database
+ *
+ */
 void CepcheckDlg::UpdateArchiveList()
 {
 	sShowListEntry	sle;
@@ -585,7 +589,7 @@ void CepcheckDlg::UpdateArchiveList()
 
 
 /**
- * Update the text on the 'Shows' & 'Archive tabs
+ * Update the text on the 'Shows' & 'Archive' tabs
  *
  */
 void CepcheckDlg::UpdateTabTotals(void)
@@ -725,7 +729,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LP
 
 
 /**
- * Display a URL in the default browser
+ * Open up a URL in the default web browser
  *
  * wParam = hash
  * lParam = popup menu selection ID
@@ -927,14 +931,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 		case ID_MNU_REFRESH_SHOW:
 			RefreshShow(hash);
 			break;
-/*
-		case ID_MNU_REFRESH_SHOW:
-			ResetOnscreenCounters();
-			m_ping_expected = 1;
-			m_dlm.DownloadShow(pshow->epguides_url);
-			LogMsgWin(L"Refreshing show...");
-			break;
-*/
+
 		// Copy the show title or episode title from the Schedule List to the system clipboard
 		case ID_MNU_COPY_SHOW_TITLE:
 			// Already have pshow, no need to query the dialog directly like for ID_MNU_COPY_EPISODE_TITLE
@@ -944,7 +941,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			CopyToClipboard(m_dlgSchedule.GetEpisodeTitle(pcontext->list_index));
 			break;
 		case ID_MNU_COPY_SHOW_TITLE_NUM:
-		{
+			{
 			CString show  = m_dlgSchedule.GetEpisodeShow(pcontext->list_index);
 			CString epnum = m_dlgSchedule.GetEpisodeNumber(pcontext->list_index);
 
@@ -955,9 +952,8 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
 			CString str;
 			str.Format(L"%s s%se%s", (LPCTSTR) show, (LPCTSTR) series, (LPCTSTR)episode);
 			CopyToClipboard(str);
-		}
+			}
 			break;
-
 
 		default:
 			LogMsgWin(L"OnShowContextMenu(): Unhandled menu selection");
@@ -989,13 +985,11 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam *
  * Handle a WM_SIGNAL_APP_EVENT message
  * 
  */
-afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */ )
+afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
 {
 	eAppevent event = static_cast<eAppevent>(wParam);
 
-#if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
-	LogMsgWin(L"eAppevent: %u", event);
-#endif
+	LOG_PRINT(eLogFlags::APP_EVENT, L"eAppevent %u\n", event);
 
 	// Have a few useful values handy
 	unsigned numActiveShows  = m_data.NumShows(eShowList::ACTIVE);
@@ -1021,8 +1015,8 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 		case eAppevent::AE_DOWNLOAD_OK:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
+			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			// Also set tab appropriate buttons
 			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
@@ -1030,15 +1024,15 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 		case eAppevent::AE_DOWNLOAD_ABORTED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow();
 			break;
 
 		case eAppevent::AE_DOWNLOAD_FAILED:
 			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
 
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
 			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
@@ -1063,8 +1057,8 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 
 		// Can only happen on Schedule dialog
 		case eAppevent::AE_EP_FLAGS_CHANGED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
+			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
@@ -1073,20 +1067,20 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 		case eAppevent::AE_SHOW_ADDED:
 		case eAppevent::AE_SHOW_REFRESHED:
 		case eAppevent::AE_SHOW_DELETED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
+			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 			break;
 
 		case eAppevent::AE_ARCHIVE_CHANGED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(1);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(1);
+			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
+			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
 			break;
 
 		case eAppevent::AE_TAB_CHANGED:
 			if (selectedTab == TAB_NUM_SHOWS) {
-				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(1);
+				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow();
 				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0);
 				GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			}
@@ -1098,7 +1092,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
 			else if (selectedTab == TAB_NUM_ARCHIVE)
 			{
 				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(0);
-				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(1);
+				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow();
 				GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			}
 			break;
@@ -1120,9 +1114,9 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, LPARAM /* lParam */
  */
 void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	UINT ctrlId = pNMUpDown->hdr.idFrom;
-	LRESULT retval = 1;
+	LPNMUPDOWN	pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	UINT		ctrlId = pNMUpDown->hdr.idFrom;
+	LRESULT		retval = 1;
 
 	int new_val = pNMUpDown->iPos + pNMUpDown->iDelta;
 
@@ -1133,6 +1127,7 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 			m_spin_pre_val = new_val;
 		else
 			m_spin_post_val = new_val;
+
 
 		retval = 0;
 		UpdateSchedulePeriod();
@@ -1148,17 +1143,18 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 /**
  * Sent by the CDMessages dialog when the 'Cancel Download' button is pressed
  */
-afx_msg LRESULT CepcheckDlg::OnAbortDownload( WPARAM wParam, LPARAM lParam )
+afx_msg LRESULT CepcheckDlg::OnAbortDownload( [[ maybe_unused ]] WPARAM wParam,
+											  [[ maybe_unused ]] LPARAM lParam )
 {
-	UNREFERENCED_PARAMETER(wParam);
-	UNREFERENCED_PARAMETER(lParam);
-
 	// Gets reset by the WM_DOWNLOAD_COMPLETE handler
 	m_abort_download = true;
 	m_dlm.AbortDownload();
 
 	return 0;
 }
+
+
+
 
 /**
  * Check every minute if the day has changed. If so, update the schedule list.
@@ -1196,11 +1192,6 @@ static int day = 0;
 
 
 
-
-
-
-
-
 /**
  * Download from the internet. Update all shows / episodes.
  *
@@ -1229,20 +1220,17 @@ void CepcheckDlg::OnBtn_Download()
 	m_ping_count = m_err_count = 0;
 	m_ping_expected = m_data.NumActiveShows();
 
-	eGetAction action = eGetAction::GET_FIRST;
-	sShowListEntry  sle;
-
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 
-	m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
-
+	sShowListEntry  sle;
+	eGetAction action = eGetAction::GET_FIRST;
 	while (m_data.GetShow(eShowList::ACTIVE, action, &sle))
 	{
 		m_dlm.DownloadShow(sle.epguides_url);
 		action = eGetAction::GET_NEXT;
 	}
 
-	LogMsgWin(L"All shows queued for download");
+	LogMsgWin(L"Download started");
 }
 
 
@@ -1251,13 +1239,9 @@ void CepcheckDlg::OnBtn_Download()
 /**
  * Download a show's information from the URL and create a new database entry.
  *
- * Currently only called when adding a new show.
- *
  */
 bool CepcheckDlg::RefreshShow(DWORD hash)
 {
-	bool retval = true;
-
 	// Already downloading?
 	if (m_dlm.DownloadInProgress()) {
 		AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
@@ -1268,7 +1252,7 @@ bool CepcheckDlg::RefreshShow(DWORD hash)
 	show* pShow = m_data.FindShow(hash, eShowList::ACTIVE);
 	if (pShow == nullptr) {
 		AfxMessageBox(L"RefreshShow() : Can't find show", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		return FALSE;
+		return false;
 	}
 
 	pShow->state |= showstate::SH_ST_WAITING;
@@ -1278,9 +1262,9 @@ bool CepcheckDlg::RefreshShow(DWORD hash)
 	m_ping_count    = 0;
 
 	m_dlm.DownloadShow(pShow->epguides_url);
-	LogMsgWin(L"Refreshing show...");
+	LogMsgWin("Refreshing show '%s'\n", pShow->title.c_str());
 
-	return retval;
+	return true;
 }
 
 
@@ -1313,16 +1297,14 @@ void CepcheckDlg::CheckDownloadComplete()
  * Existing episode flags must be copied over as that's not in the reveived data
  *
  */
-afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
+afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER(lParam);
-
 	// Bump ping counter and update the UI
 	m_ping_count++;
 	UpdateOnscreenCounters();
 
 	const show& resultShow = m_dlm.GetSlotShow(slotnum);
-	// If this is for a new show, there will be no database entry for it. [TODO of check showstate flags? ]
+	// If this is for a new show, there will be no database entry for it. [TODO or check showstate flags? ]
 	show* originalShow = m_data.FindShow(resultShow.hash, eShowList::ACTIVE);
 
 	
@@ -1347,7 +1329,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, LPARAM lParam)
 		else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
 			m_data.AddNewShow(m_dlm.GetSlotShow(slotnum));
 		else
-			LogMsgWin(L"Unexpected showstate\n");
+			LogMsgWin(L"OnDownloadPing() : Unexpected showstate\n");
 
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSED);
 

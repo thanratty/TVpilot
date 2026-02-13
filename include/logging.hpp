@@ -12,18 +12,10 @@
 #include "common.hpp"
 
 
-// TODO These aren't used now?
-
-#define     ENABLE_THREAD_DATA_LOGGING      0       // Dbg message thread data classes constructors/destructors & Cslot & threads
-#define     ENABLE_THREAD_FUNC_LOGGING      0       // Dbg message thread data classes constructors/destructors & Cslot & threads
-#define     ENABLE_SYNC_OBJECT_LOGGING      0       // Must also have console window enabled to work [DEBUG build only]
 
 
 
-
-
-
-#define     NUM_LOG_FLAGS       12
+#define     NUM_LOG_FLAGS       13                  // !!! MUST MATCH THE NUMBER OF eLogFlags defined below !!!
 
 enum class eLogFlags : UINT32
 {
@@ -41,8 +33,11 @@ enum class eLogFlags : UINT32
 
     TEST            = 0x00000400,
     CONSOLE_ECHO    = 0x00000800,
+    APP_EVENT       = 0x00001000,
     //
-    ALL             = 0x00000FFF,
+    // Excluse these last two from the NUM_LOG_FLAGS total above
+    //
+    ALL             = 0x00001FFF,
     NONE            = 0x00000000
 };
 
@@ -90,12 +85,10 @@ void        LOG_EXIT( void );
 void LogSetMsgWin(CEdit* pedit);
 
 void LogMsgWin(const wchar_t* format, ...);
-void LogMsgWin(const char* format);
+void LogMsgWin(const char* format, ...);
 void LogMsgWin(const std::string& str);
 void LogMsgWin(const CString& msg);
 
 
 eLogFlags GetLogFlags();
 void SetLogFlags(eLogFlags newflags);
-void EnableLogFlag(eLogFlags mask);
-void DisableLogFlag(eLogFlags mask);

@@ -11,7 +11,6 @@
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
-#include "threadData.hpp"
 #include "utils.hpp"
 #include "logging.hpp"
 
