@@ -11,7 +11,6 @@
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
-#include "utils.hpp"
 #include "logging.hpp"
 
 #include "threadFuncs.hpp"
@@ -28,8 +27,10 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob);
 
 
 
-
-bool CurlAndParse( Cslot& slot );
+/**
+ *  Local prototype
+ */
+STATIC bool CurlAndParse( Cslot& slot );
 
 
 
@@ -41,8 +42,8 @@ bool CurlAndParse( Cslot& slot );
  */
 UINT __cdecl thrSlotThread(LPVOID pParam)
 {
-	Cslot&			slot	  = *static_cast<Cslot*>(pParam);
-//	CslotsSem&		slotslock = CslotsSem::getInstance();
+	Cslot&		slot	  = *static_cast<Cslot*>(pParam);
+	DWORD		wait_result;
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
 
@@ -50,11 +51,10 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 	while (true)
 	{
-		slot.SetThreadState(eThreadState::TS_WAITING);
-
 		// Wait for request event
 		//
-		DWORD wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
+		slot.SetThreadState(eThreadState::TS_WAITING);
+		wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
 		slot.SetThreadState(eThreadState::TS_RUNNING);
 
 
@@ -62,8 +62,8 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		//
  		if (wait_result != WAIT_OBJECT_0)
 		{
-			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread wait failed\n");
-			// TODO some error stuff here
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed\n", slot.m_SlotNumber);
+			// TODO some error stuff here ???
 			continue;
 		}
 
@@ -111,31 +111,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 
 
 
-
-
-
-
-
-#if (SAVE_WEBPAGE_ON_ERROR==1)
-
-void SAVE_WEB_PAGE(const cCurlJob& curljob)
-{
-	CFile cfile;
-	cfile.Open(L"webpage.txt", CFile::modeCreate | CFile::modeWrite);
-	cfile.Write(&curljob.m_page[0], curljob.m_page.size());
-	cfile.Flush();
-	cfile.Close();
-
-	LOG_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
-}
-
-#endif
-
-
-
-
-
-bool CurlAndParse(Cslot& slot)
+STATIC bool CurlAndParse(Cslot& slot)
 {
 	slot.SetSlotState(eSlotState::SS_CURLING);
 
@@ -177,8 +153,32 @@ bool CurlAndParse(Cslot& slot)
 		return false;
 	}
 
-
 	slot.SetSlotState(eSlotState::SS_PARSED_OK);
 	return true;
 }
+
+
+
+
+
+
+
+
+
+
+#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(DEBUG)
+
+void SAVE_WEB_PAGE(const cCurlJob& curljob)
+{
+	CFile cfile;
+	cfile.Open(L"webpage.txt", CFile::modeCreate | CFile::modeWrite);
+	cfile.Write(&curljob.m_page[0], curljob.m_page.size());
+	cfile.Flush();
+	cfile.Close();
+
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
+}
+
+#endif
+
 

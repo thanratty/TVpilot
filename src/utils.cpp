@@ -27,23 +27,6 @@ using namespace boost;
 
 
 
-
-/**
- * Check if a CMultiEvent wait result is within range for the # events waited on.
- */
-bool CheckWaitResult(unsigned numevents, DWORD result)
-{
-	if ((result >= WAIT_OBJECT_0) && (result < WAIT_OBJECT_0 + numevents))
-		return true;
-
-	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
-
-	LOG_PRINT( eLogFlags::INFO, L"CheckWaitResult() failed: %08X\n", result);
-	return false;
-}
-
-
-
 /**
  * Compute a simple hash on the string parameter
  */
@@ -69,8 +52,8 @@ DWORD SimpleHash(const std::string& str)
  */
 DWORD SimpleHash(const CString& url)
 {
-	std::string new_url = CW2A(url, CP_UTF8);
-	return SimpleHash(new_url);
+	std::string ascii_url = CW2A(url, CP_UTF8);
+	return SimpleHash(ascii_url);
 }
 
 
@@ -85,8 +68,8 @@ STATIC unsigned EpisodeToNumber(const CString& epstring)
 	int hpos = epstring.Find('-');
 	if (hpos != -1)
 	{
-		season = _ttoi(epstring.Left(hpos));
-		epnum  = _ttoi(epstring.Mid(hpos + 1));
+		season = _wtoi(epstring.Left(hpos));
+		epnum  = _wtoi(epstring.Mid(hpos + 1));
 	}
 
 	return season * 1000 + epnum;
@@ -231,15 +214,6 @@ void CopyOutShowInfo(sShowListEntry* sle, const show* pshow)
 	sle->next_airdate        = pshow->next_airdate;
 	sle->next_airdate_string = pshow->next_airdate_string;
 	sle->next_episode_number = pshow->next_episode_number;
-}
-
-
-
-
-void MessageExit(const wchar_t* msg)
-{
-	AfxMessageBox(msg, MB_ICONERROR | MB_APPLMODAL | MB_OK);
-	ExitProcess(1);
 }
 
 

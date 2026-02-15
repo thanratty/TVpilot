@@ -59,7 +59,7 @@ typedef struct tag_sLogFlags {
 /**
  * Optionally display a separate text console for loggin & debug messages.
  */
-#if (ENABLE_CONSOLE_LOGGING==1)
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 
 void        LOG_INIT( void );
 void        LOG_PRINT(eLogFlags type, const wchar_t* format, ...);
@@ -91,4 +91,5 @@ void LogMsgWin(const CString& msg);
 
 
 eLogFlags GetLogFlags();
-void SetLogFlags(eLogFlags newflags);
+void      SetLogFlags(eLogFlags newflags);
+

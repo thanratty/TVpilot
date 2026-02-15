@@ -154,7 +154,7 @@ public:
 
     const std::string& GetErrorString(unsigned slotnum) const;
 
-    void ResetAndFree(unsigned slotnum);
+    void Release(unsigned slotnum);
 
     int FirstFreeSlot() const;
     int FirstBusySlot() const;

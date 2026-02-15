@@ -27,9 +27,14 @@ public:
     bool DownloadInProgress() const;
     void AbortDownload();
 
+    void        Push(const std::string& url);
+    std::string Pop();
+    void        Release(int slotnum);
+
 private:
 
     // Destination of WM_DOWNLOAD_PING message
-    HWND             m_hMsgWin{ NULL };
+    HWND                        m_hMsgWin{ NULL };
+    std::queue<std::string>     m_url_queue;
 };
 

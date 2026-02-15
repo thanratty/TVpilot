@@ -10,6 +10,7 @@
 #include "CsyncObjects.hpp"
 #include "Cslots.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "CdownloadManager.hpp"
 
@@ -28,6 +29,41 @@ CdownloadManager::~CdownloadManager()
 {
 	// Individual slots shutdown their own threads & close event handles.
 }
+
+
+void CdownloadManager::Push(const std::string& url)
+{
+	m_url_queue.push(url);
+}
+
+std::string CdownloadManager::Pop()
+{
+	std::string url;
+	
+	if (m_url_queue.size() > 0) {
+		url = m_url_queue.front();
+		m_url_queue.pop();
+	}
+	else {
+		LogMsgWin(L"Download Pop on empty URL queue\n");
+	}
+
+	return url;
+}
+
+
+
+void CdownloadManager::Release(int slotnum)
+{
+	Cslots::Release(slotnum);
+
+	if (m_url_queue.size() == 0)
+		return;
+
+	std::string url = Pop();
+	DownloadShow(url);
+}
+
 
 
 
@@ -49,6 +85,9 @@ void CdownloadManager::DownloadShow(const std::string& url)
 			SetSlotState(freeslot, eSlotState::SS_URL_SET);
 			SignalRequest(freeslot);
 		}
+		else
+			Push(url);
+
 		slotslock.Unlock();
 	}
 }
@@ -68,12 +107,10 @@ void CdownloadManager::SetMsgWin(HWND hMsgWin)
 
 bool CdownloadManager::DownloadInProgress() const
 {
-bool retval = false;
-
 	if (FirstBusySlot() != -1)
-			retval = true;
+			return true;
 
-	return retval;
+	return false;
 }
 
 

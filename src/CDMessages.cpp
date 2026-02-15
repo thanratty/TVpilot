@@ -78,7 +78,9 @@ void CDmessages::OnBtnClicked_AbortDownload()
 
 void CDmessages::OnBtn_Logging()
 {
+#if defined(_DEBUG)
 	CDLogging	dlog(this);
 	dlog.DoModal();
+#endif
 }
 

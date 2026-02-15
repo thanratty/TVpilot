@@ -5,10 +5,8 @@
 
 //--
 
-#include <mutex>
 #include <queue>
 #include <array>
-#include <vector>
 
 #include "boost/algorithm/string/trim.hpp"
 
@@ -19,7 +17,18 @@
 
 
 
+constexpr unsigned LOG_BUFFER_LEN = 256;
 
+
+
+/**
+ * The control in the message Dialog window for debug/log text.
+ */
+STATIC CEdit* pMsgWindow = nullptr;
+
+
+
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 
 // Global const, referenced in the CDLogging dialog
@@ -44,41 +53,30 @@ std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags {{
 
 
 
-
-
-
-/**
- * The control in the message Dialog window for debug/log text.
- */
-STATIC CEdit* pMsgWindow = nullptr;
-
-
-
-
-#if (ENABLE_CONSOLE_LOGGING==1)
-
-constexpr unsigned LOG_BUFFER_LEN = 256;
-
 STATIC HANDLE	hLogHandle { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogEvent  { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
 
 
-STATIC std::queue<const wchar_t*>	myQueue;						// FIFO of ptrs to message strings
+STATIC std::queue<const wchar_t*>	msgQueue;						// FIFO of ptrs to message strings
+STATIC CSemaphore*					semQueue{nullptr};				// Semaphore to control access to the message queue
 
-STATIC CSemaphore*  semQueue{nullptr};
 STATIC bool			bConsoleReady{ false };
 STATIC DWORD		bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
 
 
 STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
 									 eLogFlags::TEST  |
-									 eLogFlags::FATAL;
+									 eLogFlags::FATAL |
+									 eLogFlags::CONSOLE_ECHO;
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
+
+
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 eLogFlags GetLogFlags()
 {
@@ -90,10 +88,12 @@ void SetLogFlags(eLogFlags newflags)
 	LogEnableFlags = newflags;
 }
 
+#endif	// (ENABLE_CONSOLE_LOGGING==1)
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1)
+
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 STATIC bool MsgQueueIsEmpty()
 {
@@ -101,7 +101,7 @@ STATIC bool MsgQueueIsEmpty()
 
 	CSingleLock lock(semQueue);
 	lock.Lock();
-	bIsEmpty = myQueue.empty();
+	bIsEmpty = msgQueue.empty();
 	lock.Unlock();
 
 	return bIsEmpty;
@@ -110,11 +110,9 @@ STATIC bool MsgQueueIsEmpty()
 
 STATIC void PushToMsgQueue(const wchar_t* str)
 {
-//	std::unique_lock<std::mutex> lock(queueMutex);
-
 	CSingleLock lock(semQueue);
 	lock.Lock();
-	myQueue.push(str);
+	msgQueue.push(str);
 	lock.Unlock();
 }
 
@@ -126,9 +124,9 @@ STATIC const wchar_t*  PopFromMsgQueue()
 	CSingleLock lock(semQueue);
 	lock.Lock();
 
-	if (!myQueue.empty()){
-		val = myQueue.front();
-		myQueue.pop();
+	if (!msgQueue.empty()){
+		val = msgQueue.front();
+		msgQueue.pop();
 	}
 
 	lock.Unlock();
@@ -140,7 +138,7 @@ STATIC const wchar_t*  PopFromMsgQueue()
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1)
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 DWORD WINAPI LogThread([[maybe_unused]] LPVOID pParam)
 {
@@ -178,7 +176,7 @@ const	wchar_t* msg;
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1)
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 STATIC void LogConsoleCreate(void)
 {
@@ -215,7 +213,7 @@ STATIC void LogConsoleClose(void)
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1)
+#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 void LOG_INIT()
 {

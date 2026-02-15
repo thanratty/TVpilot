@@ -47,7 +47,7 @@ int CMultiEvents::Wait()
 {
     DWORD result = WaitForMultipleObjects( m_handles.size(), m_handles.data(), FALSE, INFINITE);
 
-    if (!CheckWaitResult(m_handles.size(), result))
+    if (!CheckWaitResult(result))
     {
         m_last_error = GetLastError();
         LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
@@ -55,6 +55,21 @@ int CMultiEvents::Wait()
     }
 
     return result;
+}
+
+
+/**
+ * Check the return from WaitForMultipleObjects is in range
+ */
+bool CMultiEvents::CheckWaitResult(DWORD result) const
+{
+    if ((result >= WAIT_OBJECT_0) && (result < WAIT_OBJECT_0 + m_handles.size()))
+        return true;
+
+    // WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
+
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents wait failed: %08X\n", result);
+    return false;
 }
 
 
@@ -131,7 +146,7 @@ bool CslotsSem::Lock()
     ASSERT(m_hSem != INVALID_HANDLE_VALUE);
 
     DWORD result = WaitForSingleObject(m_hSem, SLOT_LOCK_TIMEOUT);
-    if (CheckWaitResult(1, result))
+    if (CheckWaitResult(result))
         return true;
 
     m_last_error = GetLastError();
@@ -140,6 +155,18 @@ bool CslotsSem::Lock()
     LogMsgWin(str);
     LOG_PRINT(eLogFlags::FATAL, str);
 
+    return false;
+}
+
+
+bool CslotsSem::CheckWaitResult(DWORD result) const
+{
+    if (result == WAIT_OBJECT_0)
+        return true;
+
+    // WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED TODO CHeck!
+
+    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::CheckWaitResult() failed: %08X\n", result);
     return false;
 }
 

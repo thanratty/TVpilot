@@ -159,12 +159,23 @@ BOOL CepcheckDlg::OnInitDialog()
 
 
 	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.
-#ifdef _DEBUG
+
+#if defined(_DEBUG)
+
 	GetDlgItem(IDC_BTN_BREAK)->EnableWindow();
 	GetDlgItem(IDC_BTN_BREAK)->ShowWindow(SW_SHOW);
 
 	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->EnableWindow();
 	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->ShowWindow(SW_SHOW);
+
+#else
+
+	GetDlgItem(IDC_BTN_BREAK)->EnableWindow(0);
+	GetDlgItem(IDC_BTN_BREAK)->ShowWindow(SW_HIDE);
+
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->EnableWindow(0);
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->ShowWindow(SW_HIDE);
+
 #endif
 
 
@@ -371,7 +382,7 @@ void CepcheckDlg::OnBtn_ShowLog()
 
 	visible = !visible;
 
-	CButton* chkbox = (CButton*)GetDlgItem(IDC_CHK_DEBUG_LOG);
+	CButton* chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
 	chkbox->SetCheck(visible);
 
 	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
@@ -738,7 +749,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LP
 afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 {
 	DWORD hash = static_cast<DWORD>(wParam);
-	unsigned selection = static_cast<unsigned>(lParam);
+	auto selection = static_cast<unsigned>(lParam);
 
 	const show* ashow = m_data.FindShow(hash, eShowList::BOTH);
 	if (ashow == nullptr)
@@ -788,7 +799,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
  * One of the child dialogs has asked for a context menu.
  * 
  */
-afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, LPARAM /* lParam */)
+afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
 {
 	sPopupContext* pcontext = reinterpret_cast<sPopupContext*>(wParam);
 
@@ -1114,9 +1125,9 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
  */
 void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	LPNMUPDOWN	pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	UINT		ctrlId = pNMUpDown->hdr.idFrom;
-	LRESULT		retval = 1;
+	const LPNMUPDOWN	pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	UINT				ctrlId = pNMUpDown->hdr.idFrom;
+	LRESULT				retval = 1;
 
 	int new_val = pNMUpDown->iPos + pNMUpDown->iDelta;
 
@@ -1124,7 +1135,7 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 	if (new_val >= MIN_SPIN_DAYS)
 	{
 		if (ctrlId == IDC_SPIN_DAYS_PRE)
-			m_spin_pre_val = new_val;
+			m_spin_pre_val  = new_val;
 		else
 			m_spin_post_val = new_val;
 
@@ -1336,7 +1347,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	}
 
 	// Reset the slot and mark it available
-	m_dlm.ResetAndFree(slotnum);
+	m_dlm.Release(slotnum);
 
 	// Time to send WM_DOWNLOAD_COMPLETE ?
 	CheckDownloadComplete();

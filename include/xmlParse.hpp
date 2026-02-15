@@ -16,9 +16,9 @@ typedef struct xml_error_info_tag
 {
 	int                 xmlErrorCode{ INT_MAX };
 	//
-	int                 xmlErrorDomain;		// These four vars are meaningful if xmlErrorCode isn't XML_ERR_NONE
-	int                 xmlErrorLine;
-	int                 xmlErrorCol;
+	int                 xmlErrorDomain{ 0 };		// These four vars are meaningful if xmlErrorCode isn't XML_ERR_NONE
+	int                 xmlErrorLine{ 0 };
+	int                 xmlErrorCol{ 0 };
 	std::string         xmlErrorMsg;
 } sXmlErrorInfo;
 

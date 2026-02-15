@@ -148,7 +148,9 @@
     <ClInclude Include="res\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\CDLogging.cpp" />
+    <ClCompile Include="src\CDLogging.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\Cslots.cpp" />
     <ClCompile Include="src\CDArchive.cpp" />
     <ClCompile Include="src\CDShowZoom.cpp" />

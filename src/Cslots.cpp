@@ -99,7 +99,7 @@ void Cslot::SetUrl(const std::string& url)
 
 void Cslot::ResetAndFree()
 {
-    m_show.Reset();
+    m_show.Initialise();
 
     m_error_string.erase();
     m_http_status = 0;
@@ -185,11 +185,11 @@ void Cslots::SetMsgWin(HWND hWin)
 }
 
 bool Cslots::IsFree(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetSlotState() == eSlotState::SS_FREE;
+    return m_slots.at(slotnum).IsFree();
 }
 
 bool Cslots::IsBusy(unsigned slotnum) const {
-    return !IsFree(slotnum);
+    return m_slots.at(slotnum).IsBusy();
 }
 
 const show& Cslots::GetSlotShow(unsigned slotnum) const {
@@ -216,7 +216,7 @@ const std::string& Cslots::GetErrorString(unsigned slotnum) const {
     return m_slots.at(slotnum).GetErrorString();
 }
 
-void Cslots::ResetAndFree(unsigned slotnum) {
+void Cslots::Release(unsigned slotnum) {
     m_slots.at(slotnum).ResetAndFree();
 }
 

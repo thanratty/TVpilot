@@ -55,7 +55,7 @@ public:
     friend std::ostream& operator<< (std::ostream& wstream, const show& s);
     friend std::istream& operator>> (std::istream& wstream, show& s);
 
-    void Reset()
+    void Initialise()
     {
         title.clear();
         epguides_url.clear();

@@ -419,7 +419,7 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
 
 void model::AddNewShow(const show& showtoadd)
 {
-    m_active_shows.push_back(showtoadd);        // Use std::move ? TODO
+    m_active_shows.push_back(std::move(showtoadd));        // Use std::move ? TODO
 }
 
 
@@ -464,7 +464,7 @@ bool model::UpdateShow(const show& showtoupdate)
             // If we didn't have that episode's flags, it's either a completely new show or a new episode. for
             // an existing show. (Only notify about new episodes for existing shows, otherwise it gets too noisy.)
             if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
-                LogMsgWin(L"New episode %s %s\n", originalShow->title.c_str(), ep.ep_num.c_str());
+                LogMsgWin("New episode %s %s\n", originalShow->title.c_str(), ep.ep_num.c_str());
             }
         }
     }

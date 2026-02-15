@@ -121,7 +121,8 @@ std::string getNodeText(const xmlNodePtr cur)
 
 	if ((cur->children != NULL) && (cur->children[0].type == XML_TEXT_NODE))
 	{
-		content = std::string((LPCSTR)cur->children[0].content);
+		// Convert content from unsigned char
+		content = std::string((char *) cur->children[0].content);
 		// Replace all UTF-8 &nbsp (hex C2 A0) characters with ASCII spaces
 		ReplaceAllSubstrings(content, chNBSP);
 		boost::trim(content);
@@ -173,7 +174,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 	// Sanity check on results set
 	if ((nodeset == nullptr) || (nodeset->nodeNr == 0))
 	{
-		LogMsgWin(L"extractEpisodeDetails() Error. Empty results set!\n");
+		LogMsgWin(L"extractEpisodeDetails() : Empty results set!\n");
 		return false;
 	}
 
@@ -194,14 +195,19 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		bool bGoodNumber = std::regex_match(ep_number, epnum_regex);
 
 		// If either are bad skip this node. A few epguides.com pages had different formatting.
-		if (!bGoodDate || !bGoodNumber)
+		if (!bGoodDate || !bGoodNumber) {
+			LogMsgWin("extractEpisodeDetails : skipping bad episode, date %u, episode %u\n", bGoodDate, bGoodNumber);
 			continue;
+		}
+
+
+		// TODO Never get to here on a bad episode date or number ????
+
 
 		// Validate the date format & fix if necessary
 		if (!bGoodDate)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode date format. Defaulted. [" + ep_date + "]\n";
-			LogMsgWin(msg);
+  			LogMsgWin("extractEpisodeDetails() Bad episode date format. Defaulted. [%s]\n", ep_date.c_str());
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -216,8 +222,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode number format. Defaulted. [" + ep_number + "]\n";
-			LogMsgWin(msg);
+			LogMsgWin("extractEpisodeDetails() Bad episode number format. Defaulted. [%s]\n", ep_number.c_str());
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 

@@ -27,6 +27,8 @@ public:
 private:
     std::vector<HANDLE>     m_handles;
     DWORD                   m_last_error{ 0 };
+
+    bool                    CheckWaitResult(DWORD result) const;
 };
 
 
@@ -55,6 +57,8 @@ private:
     const CString   m_name{ L"slotsSem" };
     HANDLE          m_hSem{ INVALID_HANDLE_VALUE };
     DWORD           m_last_error{ 0 };
+
+    bool            CheckWaitResult(DWORD result) const;
 
 };
 

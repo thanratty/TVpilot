@@ -168,21 +168,6 @@ void EvalShowLastNextDates(show* pshow);
 
 
 
-// TODO Move ????
-#ifdef _DEBUG
-#define		DebugLogMsgWin(x)		LogMsgWin(x)
-#else
-#define		DebugLogMsgWin(x)		do {} while(0)
-#endif
-
-
-/**
- * Fatal error - show a messagebox & exit the program.
- */
-void MessageExit(const wchar_t* msg);
-
-
-
 void SetListHeaderFont(CListCtrl* plist);
 int  GetSelectedListItem(CListCtrl& pctrl);
 
@@ -199,12 +184,6 @@ void CopyToClipboard(const std::string str);
  * Deletes all occurances of a substring 
  */
 void ReplaceAllSubstrings(std::string& str, const char* sub);
-
-
-/**
- * Check the return from WaitForMultipleObjects is in range
- */
-bool CheckWaitResult(unsigned numevents, DWORD result);
 
 
 /**
