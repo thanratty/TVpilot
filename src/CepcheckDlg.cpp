@@ -1228,7 +1228,7 @@ void CepcheckDlg::OnBtn_Download()
 		return;
 
 	// Reset counters
-	m_ping_count = m_err_count = 0;
+	m_ping_count    = m_err_count = 0;
 	m_ping_expected = m_data.NumActiveShows();
 
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
@@ -1273,8 +1273,7 @@ bool CepcheckDlg::RefreshShow(DWORD hash)
 	m_ping_count    = 0;
 
 	m_dlm.DownloadShow(pShow->epguides_url);
-	LogMsgWin("Refreshing show '%s'\n", pShow->title.c_str());
-
+	LogMsgWin("Refreshing show '%s'\n", pShow->title.c_str());	
 	return true;
 }
 

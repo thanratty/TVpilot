@@ -194,20 +194,14 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		bool bGoodDate   = std::regex_match(ep_date, epdate_regex);
 		bool bGoodNumber = std::regex_match(ep_number, epnum_regex);
 
-		// If either are bad skip this node. A few epguides.com pages had different formatting.
-		if (!bGoodDate || !bGoodNumber) {
-			LogMsgWin("extractEpisodeDetails : skipping bad episode, date %u, episode %u\n", bGoodDate, bGoodNumber);
+		// If both are bad skip this node. Some epguides.com pages had different formatting/layout.
+		if (!bGoodDate && !bGoodNumber)
 			continue;
-		}
-
-
-		// TODO Never get to here on a bad episode date or number ????
-
 
 		// Validate the date format & fix if necessary
 		if (!bGoodDate)
 		{
-  			LogMsgWin("extractEpisodeDetails() Bad episode date format. Defaulted. [%s]\n", ep_date.c_str());
+  			LogMsgWin("extractEpisodeDetails() Bad date [%s]. Defaulted.\n", ep_date.c_str());
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -222,7 +216,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			LogMsgWin("extractEpisodeDetails() Bad episode number format. Defaulted. [%s]\n", ep_number.c_str());
+			LogMsgWin("extractEpisodeDetails() Bad episode number [%s]. Defaulted. [%s]\n", ep_number.c_str());
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 

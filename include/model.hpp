@@ -133,7 +133,7 @@ inline  bool IsNewDataFile() const
             return m_datafile.IsNewFile();
         }
 
-inline bool NumActiveShows() const
+inline unsigned NumActiveShows() const
         {
             return m_active_shows.size();
         }
