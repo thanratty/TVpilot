@@ -113,9 +113,9 @@ bool cCurlJob::downloadShow()
         LOG_PRINT(eLogFlags::CURL, L"Curl fail, error %d : HTTp response %d\n", m_curl_result, m_http_response);
 
         // Delay before retrying if any retries left
-        if (attempt_number++ < CURL_MAX_TRIES)
-            Sleep( CURL_RETRY_DELAY );
-
+        if (attempt_number++ < CURL_MAX_TRIES) {
+            Sleep(CURL_RETRY_DELAY);
+        }
     } while (attempt_number <= CURL_MAX_TRIES);
 
     return success;
