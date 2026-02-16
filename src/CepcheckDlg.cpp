@@ -1337,7 +1337,6 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 			LogMsgWin(L"OnDownloadPing() : Unexpected showstate");
 
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSED);
-
 	}
 
 	// Reset the slot and mark it available

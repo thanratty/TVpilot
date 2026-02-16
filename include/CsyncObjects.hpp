@@ -57,5 +57,4 @@ private:
     DWORD           m_last_error{ 0 };
 
     bool            CheckWaitResult(DWORD result);
-
 };

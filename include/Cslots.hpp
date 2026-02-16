@@ -38,7 +38,6 @@ enum class eSlotState
 class CslotData
 {
 public:
-
     // This slot's instance number
     unsigned        m_SlotNumber{ 0 };
 
@@ -54,7 +53,6 @@ public:
     CWinThread*     m_pWinThread{ nullptr };
 
 protected:
-
     bool            m_exit_thread{ false };
 
     HANDLE          m_hEvRequest { INVALID_HANDLE_VALUE };
@@ -79,7 +77,6 @@ protected:
 
 class Cslot : public CslotData
 {
-
 public:
     Cslot();
     ~Cslot();
@@ -128,7 +125,6 @@ private:
 
 class Cslots
 {
-
 public:
     Cslots::Cslots();
     Cslots::~Cslots();
