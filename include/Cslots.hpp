@@ -79,9 +79,8 @@ protected:
 
 class Cslot : public CslotData
 {
+
 public:
-
-
     Cslot();
     ~Cslot();
 
@@ -131,7 +130,6 @@ class Cslots
 {
 
 public:
-
     Cslots::Cslots();
     Cslots::~Cslots();
 
@@ -161,7 +159,6 @@ public:
 
 
 private:
-
     // The actual slot 'array'
     std::vector<Cslot>  m_slots = std::vector<Cslot>(NUMBER_OF_DOWNLOAD_THREADS);
 };

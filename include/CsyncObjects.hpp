@@ -39,14 +39,12 @@ private:
 class CslotsSem
 {
 public:
-
     static CslotsSem& getInstance();
 
     bool    Lock();
     bool    Unlock();
 
 private:
-
     CslotsSem(CslotsSem const&) = delete;
     CslotsSem& operator=(CslotsSem const&) = delete;
 
@@ -61,4 +59,3 @@ private:
     bool            CheckWaitResult(DWORD result);
 
 };
-

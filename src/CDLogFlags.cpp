@@ -164,12 +164,9 @@ afx_msg void CDLogFlags::OnBtnClicked_LogNone()
 
 void CDLogFlags::UpdateUI()
 {
-	int state;
-
 	for (unsigned btn_num = 0; btn_num < log_flags.size(); btn_num++)
 	{
-		state = flags(m_temp_flags & log_flags[btn_num].mask) ? BST_CHECKED : BST_UNCHECKED;
+		int state = flags(m_temp_flags & log_flags[btn_num].mask) ? BST_CHECKED : BST_UNCHECKED;
 		bptrs[btn_num]->SetCheck(state);
 	}
-
 }

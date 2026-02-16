@@ -98,7 +98,6 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 				LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u : Unhandled slotstate %u\n", slot.m_SlotNumber, state);
 				break;
 		}
-
 	}
 }
 

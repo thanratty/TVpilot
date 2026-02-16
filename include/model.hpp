@@ -162,6 +162,4 @@ private:
         boost::gregorian::date      m_start_date, m_end_date, m_today;
         BOOL                        m_missed_edpisodes_only { FALSE };
         bool                        m_abort_download { false };
-
 };
-
