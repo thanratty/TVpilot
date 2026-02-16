@@ -90,7 +90,7 @@ public:
     void        StartThread();
     void        TerminateThread();
 
-    void        ResetAndFree();
+    void        Reset();
 
     void        SetExitFlag();
     bool        GetExitFlag() const;
@@ -154,7 +154,7 @@ public:
 
     const std::string& GetErrorString(unsigned slotnum) const;
 
-    void Release(unsigned slotnum);
+    void ReleaseSlot(unsigned slotnum);
 
     int FirstFreeSlot() const;
     int FirstBusySlot() const;

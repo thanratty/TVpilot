@@ -28,7 +28,7 @@
 
 
 STATIC constexpr char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
-STATIC constexpr char* DEFAULT_EPISODE_NUMBER = "00-00";
+STATIC constexpr char* DEFAULT_EPISODE_NUMBER = "01-00";
 
 
 
@@ -93,9 +93,6 @@ std::string GuessTvdbUrl(const std::string& title)
 
 
 
-
-
-
 /**
  * Run the given XPATH query and return the result nodes
  */
@@ -108,6 +105,7 @@ xmlXPathObjectPtr runXquery(htmlDocPtr document, PXMLCHAR xpath_query_string)
 	xmlXPathFreeContext(xpath_ctx);
 	return nodes;
 }
+
 
 
 
@@ -144,13 +142,13 @@ std::string extractUniqueNode(xmlXPathObjectPtr nodes)
 	{
 		int size = nodeset->nodeNr;
 		if (size != 1)
-			LogMsgWin(L"ERROR: XPATH query returned more than one node!\n");
+			LogMsgWin(L"ERROR: XPATH query returned more than one node!");
 
 		// The webpage should have exactly one element
 		if ((nodeset->nodeTab[0]->type == XML_ELEMENT_NODE) || (nodeset->nodeTab[0]->type == XML_ATTRIBUTE_NODE))
 			str = getNodeText(nodeset->nodeTab[0]);
 		else
-			LogMsgWin(L"ERROR: Unexpected XML node type!\n");
+			LogMsgWin(L"ERROR: Unexpected XML node type!");
 	}
 
 	return str;
@@ -174,7 +172,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 	// Sanity check on results set
 	if ((nodeset == nullptr) || (nodeset->nodeNr == 0))
 	{
-		LogMsgWin(L"extractEpisodeDetails() : Empty results set!\n");
+		LogMsgWin(L"extractEpisodeDetails() : Empty results set!");
 		return false;
 	}
 
@@ -194,14 +192,19 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		bool bGoodDate   = std::regex_match(ep_date, epdate_regex);
 		bool bGoodNumber = std::regex_match(ep_number, epnum_regex);
 
-		// If both are bad skip this node. Some epguides.com pages had different formatting/layout.
-		if (!bGoodDate && !bGoodNumber)
+		// If both episode number and date are bad skip this node. Some epguides.com pages had different formatting/layout.
+		if (!bGoodDate && !bGoodNumber) {
+			LOG_PRINT(eLogFlags::XML, L"Bad date & episode number. Node discarded\n");
 			continue;
+		}
 
 		// Validate the date format & fix if necessary
 		if (!bGoodDate)
 		{
-  			LogMsgWin("extractEpisodeDetails() Bad date [%s]. Defaulted.\n", ep_date.c_str());
+			std::ostringstream msg;
+			msg << "Bad episode date [" << ep_date << "]. Set to default\n";
+			LogMsgWin(msg.str());
+			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -216,7 +219,10 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			LogMsgWin("extractEpisodeDetails() Bad episode number [%s]. Defaulted. [%s]\n", ep_number.c_str());
+			std::ostringstream msg;
+			msg << "Bad episode number [" << ep_number << "]. Set to default\n";
+			LogMsgWin(msg.str());
+			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 

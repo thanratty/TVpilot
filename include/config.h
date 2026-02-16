@@ -1,23 +1,24 @@
 #pragma once
 
-
-#define         PAUSE_BEFORE_EXIT               0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
-
-#define         USE_TEST_DATAFILE               1       // Use alternative datafile for debugging/testing
-#define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG build only ]
+/**
+ * Both DEBUG and RELEASE
+ */
+#define         USE_TEST_DATAFILE               0       // Force use of alternative datafile for testing NB Both DEBUG & RELEASE
 #define         KEEP_BUTTONS_ENABLED            0       // Keep all dialog buttons enabled for ease of testing/debugging
-#define			SAVE_WEBPAGE_ON_ERROR		    0		// Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]
-
 #define			CURL_MAX_TRIES                  3       // Max # curl download attempts including retries
 #define			CURL_RETRY_DELAY                2000    // Delay 2 seconds after a Curl download error
 #define         CURL_REPLY_TIMEOUT              8000    // Allow 8 seconds for https transaction to complete
-
-#define         NAMED_SYNC_OBJECTS              1       // Windows Events & Semaphores are created with names
-
+#define         NAMED_OBJECTS                   1       // Events, Semaphores and Threds are created with names
 #define         NUMBER_OF_DOWNLOAD_THREADS      15      // Number of worker threads created to do the actual downloading
 
+ /**
+  * DEBUG configuration only
+  */
+#define			SAVE_WEBPAGE_ON_ERROR		    0		// Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]
+#define         PAUSE_BEFORE_EXIT               0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
 #define         ENABLE_CONSOLE_LOGGING          1       // Create a console window for log messages. Finer control in logging.hpp
-#define         ECHO_MSG_WINDOW_TO_CONSOLE      0
+#define         ECHO_MSG_WINDOW_TO_CONSOLE      1
+#define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG build only ]
 
 
 

@@ -113,15 +113,12 @@ END_MESSAGE_MAP()
 
 
 
-
-
 BOOL CDSchedule::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	DWORD style = m_schedlist.GetExtendedStyle();
-	style |= (LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_SINGLEROW);
-	m_schedlist.SetExtendedStyle(style);
+	m_schedlist.ModifyStyle(0, LVS_SINGLESEL);
+	m_schedlist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_SINGLEROW);
 
 	// This dialog box lives in the tab control, so resize to that.
 	CRect  rc;

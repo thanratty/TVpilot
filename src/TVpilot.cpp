@@ -100,15 +100,7 @@ BOOL CepcheckApp::InitInstance()
 	CepcheckDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
-		// Nothing special
-	}
-	else if (nResponse == IDCANCEL)
-	{
-		// Nothing special
-	}
-	else if (nResponse == -1)
+	if (nResponse == -1)
 	{
 		TRACE(traceAppMsg, 0, "Warning: dialog creation failed, so application is terminating unexpectedly.\n");
 		TRACE(traceAppMsg, 0, "Warning: if you are using MFC controls on the dialog, you cannot #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS.\n");
@@ -125,13 +117,22 @@ BOOL CepcheckApp::InitInstance()
 	ControlBarCleanUp();
 #endif
 
+	/**
+	 * This gives you a chance to copy msgs out of console or message log windows
+	 */
+#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
+	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
+#endif
+
+
+	// Terminate the logging thread / console
 	LOG_EXIT();
 
 	xmlCleanupParser();
 	curl_global_cleanup();
 
 	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
+	// application, rather than start the application's message pump.
 
 	return FALSE;
 }

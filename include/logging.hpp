@@ -63,6 +63,7 @@ typedef struct tag_sLogFlags {
 
 void        LOG_INIT( void );
 void        LOG_PRINT(eLogFlags type, const wchar_t* format, ...);
+void        LOG_PRINT(eLogFlags type, const char* format, ...);
 void        LOG_EXIT( void );
 
 #else

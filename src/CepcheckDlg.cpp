@@ -65,14 +65,15 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_NOTIFY( TCN_SELCHANGE, IDC_TAB1,				&CepcheckDlg::OnTcnSelchangeTab1)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_PRE,	&CepcheckDlg::OnDeltaPosSpinDays)
 	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_POST,	&CepcheckDlg::OnDeltaPosSpinDays)
-	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtn_ResetDays)
 	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtn_Load)
 	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtn_Save)
 	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtn_Download)
+	ON_BN_CLICKED( IDC_BTN_ABORT_DOWNLOAD,			&CepcheckDlg::OnBtn_AbortDownload)
 	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtn_DeleteShow)
 	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtn_NewShow)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtn_Break)
 	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtn_Explorer)
+	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtn_ResetDays)
 	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtn_ChkMissedOnly)
 	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtn_ShowLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
@@ -81,7 +82,6 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
 	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
 	ON_MESSAGE( WM_TVP_SIGNAL_APP_EVENT,			&CepcheckDlg::OnSignalAppEvent)
-	ON_MESSAGE( WM_TVP_ABORT_DOWNLOAD,				&CepcheckDlg::OnAbortDownload)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -242,15 +242,6 @@ void CepcheckDlg::OnCancel()
 		return;
 	}
 
-	/**
-	 * This gives you a chance to copy msgs out of console or message log windows
-	 */
-
-#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
-	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
-#endif
-
-
 	// Stop all the slotthreads & wait for them to exit
 	m_dlm.TerminateSlotThreads();
 
@@ -382,7 +373,7 @@ void CepcheckDlg::OnBtn_ShowLog()
 
 	visible = !visible;
 
-	CButton* chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
+	auto chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
 	chkbox->SetCheck(visible);
 
 	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
@@ -425,17 +416,9 @@ void CepcheckDlg::OnBtn_DeleteShow()
 		return;
 	}
 
-	// Can only delete one show at a time - multiple selections not allowed TODO Disable multiselect?!?
-	if (m_dlgArchive.m_archivelist.GetSelectedCount() != 1)
-	{
-		LogMsgWin(L"Can only delete one show at a time");
-		MessageBeep(MB_ICONEXCLAMATION);
-		return;
-	}
-
 	// This looks like a strange function call sequence, but it is right - call GetFirst then GetNext
 	POSITION pos = m_dlgArchive.m_archivelist.GetFirstSelectedItemPosition();
-	int nItem = m_dlgArchive.m_archivelist.GetNextSelectedItem(pos);
+	int nItem    = m_dlgArchive.m_archivelist.GetNextSelectedItem(pos);
 
 	CString str;
 	str.Format(L"Delete show '%s' ?", (LPCTSTR) m_dlgArchive.m_archivelist.GetItemText(nItem, 0));
@@ -684,23 +667,25 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
 afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum,
 												 [[maybe_unused]] LPARAM lParam )
 {
+	LogMsgWin(L"Download complete");
 
-	if (m_err_count > 0)
+	if (m_abort_download)
+	{
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
+		AfxMessageBox(L"Download aborted.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		m_abort_download = false;
+		m_dlm.ClearAbortCondition();
+	}
+	else if (m_err_count > 0)
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
 		m_err_count = 0;
 	}
-	else if (m_abort_download)
-	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
-		AfxMessageBox(L"Download aborted", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		m_abort_download = false;
-	}
 	else
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_OK));
-		AfxMessageBox(L"Download complete", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
+		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
 
@@ -783,7 +768,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 		HINSTANCE h = ::ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
 		if ((INT_PTR)h <= 32) {
 			CString msg;
-			msg.Format(L"ShellExecute returned %08X\n", (INT_PTR) h);
+			msg.Format(L"ShellExecute returned %08X", (INT_PTR) h);
 			LogMsgWin(msg);
 			AfxMessageBox(L"Can't open web browser!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		}
@@ -1000,6 +985,10 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 {
 	eAppevent event = static_cast<eAppevent>(wParam);
 
+#if (TRACE_APP_EVENTS==1) && defined(_DEBUG)
+	LogMsgWin(L"eAppevent %u", event);
+#endif
+
 	LOG_PRINT(eLogFlags::APP_EVENT, L"eAppevent %u\n", event);
 
 	// Have a few useful values handy
@@ -1073,7 +1062,6 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
-		// TODO - check if these are needed?
 		case eAppevent::AE_URL_EDITED:
 		case eAppevent::AE_SHOW_ADDED:
 		case eAppevent::AE_SHOW_REFRESHED:
@@ -1125,7 +1113,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
  */
 void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	const LPNMUPDOWN	pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	const LPNMUPDOWN	pNMUpDown = reinterpret_cast<const LPNMUPDOWN>(pNMHDR);
 	UINT				ctrlId = pNMUpDown->hdr.idFrom;
 	LRESULT				retval = 1;
 
@@ -1154,14 +1142,15 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 /**
  * Sent by the CDMessages dialog when the 'Cancel Download' button is pressed
  */
-afx_msg LRESULT CepcheckDlg::OnAbortDownload( [[ maybe_unused ]] WPARAM wParam,
-											  [[ maybe_unused ]] LPARAM lParam )
+void CepcheckDlg::OnBtn_AbortDownload()
 {
+	LogMsgWin(L"Aborting Download!");
+
 	// Gets reset by the WM_DOWNLOAD_COMPLETE handler
 	m_abort_download = true;
 	m_dlm.AbortDownload();
 
-	return 0;
+	// End of the 'abort download' is checked for in the ping handler
 }
 
 
@@ -1273,7 +1262,7 @@ bool CepcheckDlg::RefreshShow(DWORD hash)
 	m_ping_count    = 0;
 
 	m_dlm.DownloadShow(pShow->epguides_url);
-	LogMsgWin("Refreshing show '%s'\n", pShow->title.c_str());	
+	LogMsgWin("Refreshing show '%s'", pShow->title.c_str());	
 	return true;
 }
 
@@ -1287,12 +1276,19 @@ bool CepcheckDlg::RefreshShow(DWORD hash)
 */
 void CepcheckDlg::CheckDownloadComplete()
 {
-	if (
-		((m_abort_download == true) && (m_dlm.DownloadInProgress() == false)) ||
-		(m_ping_expected == m_ping_count)
-		)
+	if (m_abort_download)
 	{
-		//PostMessage(WM_TVP_DOWNLOAD_COMPLETE, 0, 0);
+		// More slots still active? Wait for them to complete & ping
+		if (m_dlm.DownloadInProgress())
+			return;
+		else {
+			PostMessage(WM_TVP_DOWNLOAD_COMPLETE);
+		}
+	}
+
+	// We're not mid-abort. Just check the ping count
+	if (m_ping_expected == m_ping_count)
+	{
 		PostMessage(WM_TVP_DOWNLOAD_COMPLETE);
 	}
 }
@@ -1318,15 +1314,14 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	show* originalShow = m_data.FindShow(resultShow.hash, eShowList::ACTIVE);
 
 	
-	eSlotState slotstate = m_dlm.GetSlotState(slotnum);
-
+	auto slotstate = m_dlm.GetSlotState(slotnum);
 	if (slotstate != eSlotState::SS_RESULTS_READY)
 	{
 		if (originalShow)
 			originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
 
 		CString msg;
-		msg.Format(L"ERROR! Pinged on an slot %u results not ready : %u\n", slotnum, m_dlm.GetSlotState(slotnum));
+		msg.Format(L"ERROR! Pinged on an slot %u results not ready : %u", slotnum, slotstate);
 		LogMsgWin(msg);
 		LOG_PRINT(eLogFlags::INFO, msg);
 	}
@@ -1339,16 +1334,16 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 		else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
 			m_data.AddNewShow(m_dlm.GetSlotShow(slotnum));
 		else
-			LogMsgWin(L"OnDownloadPing() : Unexpected showstate\n");
+			LogMsgWin(L"OnDownloadPing() : Unexpected showstate");
 
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSED);
 
 	}
 
 	// Reset the slot and mark it available
-	m_dlm.Release(slotnum);
+	m_dlm.ReleaseSlot(slotnum);
 
-	// Time to send WM_DOWNLOAD_COMPLETE ?
+	// Time to send WM_DOWNLOAD_COMPLETE ? Also checks for the 'download abort' flag.
 	CheckDownloadComplete();
 
 	return 0;

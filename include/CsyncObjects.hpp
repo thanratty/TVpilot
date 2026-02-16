@@ -58,7 +58,7 @@ private:
     HANDLE          m_hSem{ INVALID_HANDLE_VALUE };
     DWORD           m_last_error{ 0 };
 
-    bool            CheckWaitResult(DWORD result) const;
+    bool            CheckWaitResult(DWORD result);
 
 };
 

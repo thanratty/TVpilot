@@ -104,6 +104,7 @@ BOOL CDArchive::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	m_archivelist.ModifyStyle(0, LVS_SINGLESEL);
 	m_archivelist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_SORTASCENDING );
 
 	// This dialog box lives in the tab control, so resize to that.

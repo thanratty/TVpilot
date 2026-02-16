@@ -116,7 +116,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\CDLogging.hpp" />
+    <ClInclude Include="include\CDLogFlags.hpp" />
     <ClInclude Include="include\Cslots.hpp" />
     <ClInclude Include="include\CDArchive.hpp" />
     <ClInclude Include="include\CDShowZoom.hpp" />
@@ -148,7 +148,7 @@
     <ClInclude Include="res\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\CDLogging.cpp">
+    <ClCompile Include="src\CDLogFlags.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\Cslots.cpp" />

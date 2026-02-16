@@ -11,7 +11,7 @@
 #include "utils.hpp"
 #include "logging.hpp"
 
-#include "CDLogging.hpp"
+#include "CDLogFlags.hpp"
 
 
 
@@ -28,17 +28,17 @@ STATIC CButton* bptrs[NUM_LOG_FLAGS]{};
 
 
 
-// CDlogging dialog
+// CDLogFlags dialog
 
-IMPLEMENT_DYNAMIC(CDLogging, CDialog)
+IMPLEMENT_DYNAMIC(CDLogFlags, CDialog)
 
-CDLogging::CDLogging(CWnd* pParent /*=nullptr*/)
+CDLogFlags::CDLogFlags(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_LOGGING, pParent)
 {
 }
 
 
-CDLogging::~CDLogging()
+CDLogFlags::~CDLogFlags()
 {
 	for (unsigned i = 0; i < NUM_LOG_FLAGS; i++) {
 		if (bptrs[i] != nullptr) {
@@ -49,16 +49,16 @@ CDLogging::~CDLogging()
 }
 
 
-void CDLogging::DoDataExchange(CDataExchange* pDX)
+void CDLogFlags::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 }
 
 
-BEGIN_MESSAGE_MAP(CDLogging, CDialog)
-	ON_COMMAND_RANGE(BTN_BASE_ID, (BTN_BASE_ID+NUM_LOG_FLAGS-1), &CDLogging::OnChkBoxClicked)
-	ON_BN_CLICKED(IDC_BTN_LOG_ALL,		&CDLogging::OnBtnClicked_LogAll)
-	ON_BN_CLICKED(IDC_BTN_LOG_NONE,		&CDLogging::OnBtnClicked_LogNone)
+BEGIN_MESSAGE_MAP(CDLogFlags, CDialog)
+	ON_COMMAND_RANGE(BTN_BASE_ID, (BTN_BASE_ID+NUM_LOG_FLAGS-1),	&CDLogFlags::OnChkBoxClicked)
+	ON_BN_CLICKED(IDC_BTN_LOG_ALL,									&CDLogFlags::OnBtnClicked_LogAll)
+	ON_BN_CLICKED(IDC_BTN_LOG_NONE,									&CDLogFlags::OnBtnClicked_LogNone)
 END_MESSAGE_MAP()
 
 
@@ -71,7 +71,7 @@ END_MESSAGE_MAP()
  * Create a checkbox for each LOG option flag & position them in the dialog.
  *
  */
-BOOL CDLogging::OnInitDialog()
+BOOL CDLogFlags::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
@@ -108,13 +108,12 @@ BOOL CDLogging::OnInitDialog()
 	UpdateUI();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
 
 
 
-void CDLogging::OnCancel()
+void CDLogFlags::OnCancel()
 {
 	if (AfxMessageBox(L"Discard all changes?", MB_YESNO | MB_APPLMODAL | MB_ICONQUESTION) == IDNO)
 		return;
@@ -122,7 +121,7 @@ void CDLogging::OnCancel()
 	CDialog::OnCancel();
 }
 
-void CDLogging::OnOK()
+void CDLogFlags::OnOK()
 {
 	SetLogFlags(m_temp_flags);
 
@@ -132,7 +131,7 @@ void CDLogging::OnOK()
 
 
 
-afx_msg void CDLogging::OnChkBoxClicked(UINT nID)
+afx_msg void CDLogFlags::OnChkBoxClicked(UINT nID)
 {
 	unsigned btn_index = nID - BTN_BASE_ID;
 
@@ -150,20 +149,20 @@ afx_msg void CDLogging::OnChkBoxClicked(UINT nID)
 
 
 
-afx_msg void CDLogging::OnBtnClicked_LogAll()
+afx_msg void CDLogFlags::OnBtnClicked_LogAll()
 {
 	m_temp_flags = eLogFlags::ALL;
 	UpdateUI();
 }
 
-afx_msg void CDLogging::OnBtnClicked_LogNone()
+afx_msg void CDLogFlags::OnBtnClicked_LogNone()
 {
 	m_temp_flags = eLogFlags::NONE;
 	UpdateUI();
 }
 
 
-void CDLogging::UpdateUI()
+void CDLogFlags::UpdateUI()
 {
 	int state;
 

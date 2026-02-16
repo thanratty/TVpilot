@@ -62,8 +62,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		//
  		if (wait_result != WAIT_OBJECT_0)
 		{
-			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed\n", slot.m_SlotNumber);
-			// TODO some error stuff here ???
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed : %08X\n", slot.m_SlotNumber, wait_result);
 			continue;
 		}
 
@@ -166,7 +165,7 @@ STATIC bool CurlAndParse(Cslot& slot)
 
 
 
-#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(DEBUG)
+#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(_DEBUG)
 
 void SAVE_WEB_PAGE(const cCurlJob& curljob)
 {

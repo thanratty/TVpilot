@@ -150,23 +150,28 @@ bool CslotsSem::Lock()
         return true;
 
     m_last_error = GetLastError();
-    CString str;
-    str.Format(L"CslotsSem::Lock() wait fail. Error %08X\n", m_last_error);
-    LogMsgWin(str);
-    LOG_PRINT(eLogFlags::FATAL, str);
+
+    CString errmsg;
+    errmsg.Format(L"FATAL! CslotsSem::Lock() fail. Result %08X, Error %08X\n", result, m_last_error);
+    LogMsgWin( errmsg );
+    LOG_PRINT( eLogFlags::FATAL, errmsg );
 
     return false;
 }
 
 
-bool CslotsSem::CheckWaitResult(DWORD result) const
+bool CslotsSem::CheckWaitResult(DWORD result)
 {
     if (result == WAIT_OBJECT_0)
         return true;
 
-    // WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED TODO CHeck!
+    m_last_error = GetLastError();
 
-    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::CheckWaitResult() failed: %08X\n", result);
+    CString errmsg;
+    errmsg.Format(L"FATAL! CslotsSem::CheckWaitResult() fail. Result %08X, Error %08X\n", result, m_last_error);
+    LogMsgWin( errmsg );
+    LOG_PRINT( eLogFlags::FATAL, errmsg );
+
     return false;
 }
 
@@ -181,7 +186,7 @@ bool CslotsSem::Unlock()
         return true;
 
     m_last_error = GetLastError();
-    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %lu\n", m_last_error, last_count);
+    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %ld\n", m_last_error, last_count);
 
     return false;
 }

@@ -31,7 +31,7 @@ STATIC CEdit* pMsgWindow = nullptr;
 #if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 
-// Global const, referenced in the CDLogging dialog
+// Global const, referenced in the CDLogFlags dialog
 //
 std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags {{
 	{ eLogFlags::INFO,          L"Info" },
@@ -223,8 +223,10 @@ void LOG_INIT()
 	hLogEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hLogEvent");         // NOT manual reset, initial state unsignalled
 	hLogThread = CreateThread(NULL, 0, LogThread, NULL, 0, NULL);
 
+#if (NAMED_OBJECTS==1)
 	if (hLogThread)
 		SetThreadDescription(hLogThread, L"thrLogging");
+#endif
 
 	LOG_PRINT(eLogFlags::INFO, L"Console Ready\n\n");
 
@@ -249,32 +251,61 @@ void LOG_EXIT()
 }
 
 
-void LOG_PRINT( eLogFlags type, const wchar_t* format, ...)
+void LOG_PRINT(eLogFlags type, const wchar_t* format, ...)
 {
-	while(!bConsoleReady) SwitchToThread();
+	while (!bConsoleReady) SwitchToThread();
 
-	// Can't print anything once we're shutting down. This is a task sequence issue.
-	// TODO - thread manager
-	if (bExitThreadFlag==1)
+	// Can't print anything once we're shutting down.
+	if (bExitThreadFlag == 1)
 		return;
 
 	// Only print enable messages
 	if (flags(LogEnableFlags & type))
 	{
-		wchar_t* newstr = new wchar_t[ LOG_BUFFER_LEN ]();
+		wchar_t* newstr = new wchar_t[LOG_BUFFER_LEN]();
 
 		va_list args;
 		va_start(args, format);
 		vswprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
 		va_end(args);
 
-		newstr[ LOG_BUFFER_LEN - 1 ] = L'\0';
+		newstr[LOG_BUFFER_LEN - 1] = L'\0';
 
 		size_t len = wcslen(newstr);
 		if (len > 0)
 		{
 			PushToMsgQueue(newstr);
 			SetEvent(hLogEvent);
+		}
+	}
+}
+
+
+void LOG_PRINT(eLogFlags type, const char* format, ...)
+{
+	while (!bConsoleReady) SwitchToThread();
+
+	// Can't print anything once we're shutting down.
+	if (bExitThreadFlag == 1)
+		return;
+
+	// Only print enable messages
+	if (flags(LogEnableFlags & type))
+	{
+		char newstr[ LOG_BUFFER_LEN ];
+
+		va_list args;
+		va_start(args, format);
+		vsprintf_s(newstr, LOG_BUFFER_LEN - 1, format, args);
+		va_end(args);
+
+		newstr[LOG_BUFFER_LEN - 1] = L'\0';
+
+		size_t len = strlen(newstr);
+		if (len > 0)
+		{
+			std::wstring wstr(CA2W(newstr, CP_UTF8));
+			LOG_PRINT(type, wstr.c_str());
 		}
 	}
 }

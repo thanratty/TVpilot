@@ -3,15 +3,17 @@
 
 #include "logging.hpp"
 
-// CDlogging dialog
 
-class CDLogging : public CDialog
+
+// CDLogFlags dialog
+
+class CDLogFlags : public CDialog
 {
-	DECLARE_DYNAMIC(CDLogging)
+	DECLARE_DYNAMIC(CDLogFlags)
 
 public:
-	CDLogging(CWnd* pParent = nullptr);   // standard constructor
-	virtual ~CDLogging();
+	CDLogFlags(CWnd* pParent = nullptr);   // standard constructor
+	virtual ~CDLogFlags();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

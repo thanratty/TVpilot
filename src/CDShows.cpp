@@ -106,6 +106,7 @@ BOOL CDShows::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	m_showlist.ModifyStyle(0, LVS_SINGLESEL);
 	m_showlist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_SORTASCENDING );
 
 	// This dialog box lives in the tab control, so resize to that.

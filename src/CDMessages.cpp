@@ -6,7 +6,7 @@
 //--
 
 #include "common.hpp"
-#include "CDlogging.hpp"
+#include "CDLogFlags.hpp"
 #include "utils.hpp"
 #include "logging.hpp"
 
@@ -72,14 +72,14 @@ void CDmessages::OnCancel()
 
 void CDmessages::OnBtnClicked_AbortDownload()
 {
-	GetParent()->PostMessage(WM_TVP_ABORT_DOWNLOAD);
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_BTN_ABORT_DOWNLOAD, BN_CLICKED));
 }
 
 
 void CDmessages::OnBtn_Logging()
 {
 #if defined(_DEBUG)
-	CDLogging	dlog(this);
+	CDLogFlags	dlog(this);
 	dlog.DoModal();
 #endif
 }

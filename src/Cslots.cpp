@@ -48,7 +48,10 @@ void Cslot::StartThread()
     ASSERT(m_pWinThread);
     m_pWinThread->m_bAutoDelete = false;
     m_pWinThread->ResumeThread();
+
+#if (NAMED_OBJECTS==1)
     SetThreadDescription(m_pWinThread->m_hThread, m_SlotName);
+#endif
 }
 
 
@@ -65,8 +68,12 @@ void Cslot::TerminateThread()
 
         if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
             m_slotstate = eSlotState::SS_THREAD_EXITED;
-        else
-            LogMsgWin(L"Slot thread didn't terminate within timeout");
+        else {
+            CString errmsg;
+            errmsg.Format(L"Slot thread %u didn't terminate within timeout. Error %08X", m_SlotNumber, GetLastError());
+            LogMsgWin(errmsg);
+            LOG_PRINT(eLogFlags::SLOT_THREAD, errmsg);
+        }
 
         delete m_pWinThread;
         m_pWinThread = nullptr;
@@ -80,7 +87,7 @@ void Cslot::TerminateThread()
 
 
 
-// Only called from the UI thread so no need to lock the slots ??? TODO check
+// Only called from the UI thread so no need to lock the slots.
 void Cslot::SetUrl(const std::string& url)
 {
     if (IsFree())
@@ -97,7 +104,7 @@ void Cslot::SetUrl(const std::string& url)
 }
 
 
-void Cslot::ResetAndFree()
+void Cslot::Reset()
 {
     m_show.Initialise();
 
@@ -216,8 +223,8 @@ const std::string& Cslots::GetErrorString(unsigned slotnum) const {
     return m_slots.at(slotnum).GetErrorString();
 }
 
-void Cslots::Release(unsigned slotnum) {
-    m_slots.at(slotnum).ResetAndFree();
+void Cslots::ReleaseSlot(unsigned slotnum) {
+    m_slots.at(slotnum).Reset();
 }
 
 int Cslots::FirstFreeSlot() const
@@ -234,7 +241,6 @@ int Cslots::FirstBusySlot() const
 
 void Cslots::TerminateSlotThreads()
 {
-    // TODO Currently, Cslot::TerminateThread() waits for the thread to signal every time
     std::for_each(m_slots.begin(), m_slots.end(), [](Cslot& slot){ slot.TerminateThread();});
 }
 

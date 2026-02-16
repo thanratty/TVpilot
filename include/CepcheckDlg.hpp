@@ -49,13 +49,12 @@ protected:
 
 	// Windows Message Handlers
 	afx_msg void	OnTcnSelchangeTab1(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);		// TODO Needed ?
+	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDownloadPing(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnZoomEpisodes(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnLaunchUrl(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnShowContextMenu(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnSignalAppEvent(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnAbortDownload(WPARAM wParam, LPARAM lParam);
 
 public:
 	// Dialog control event handlers
@@ -69,6 +68,7 @@ public:
 	afx_msg void    OnBtn_ShowLog();
 	afx_msg void	OnBtn_ResetDays();
 	afx_msg void	OnBtn_Explorer();
+	afx_msg void    OnBtn_AbortDownload();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void	OnTimer(UINT_PTR nIDEvent);

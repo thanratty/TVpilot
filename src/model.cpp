@@ -50,8 +50,9 @@ struct fnoMatchEpisodeNumber
 {
     fnoMatchEpisodeNumber() = delete;
     explicit fnoMatchEpisodeNumber(const CString& epnum)
+        : ep_num(CW2A(epnum, CP_UTF8))
     {
-        ep_num = CW2A(epnum, CP_UTF8);
+//        ep_num = CW2A(epnum, CP_UTF8);
     }
 
     bool operator()(const episode& test_ep) const
@@ -293,7 +294,7 @@ bool model::GetShow(eShowList list, eGetAction action, sShowListEntry* sle) cons
 
     pVec = (list == eShowList::ACTIVE) ? &m_active_shows : &m_archive_shows;
 
-    if (pVec->size() == 0)
+    if (pVec->empty())
         return false;
 
     if (action == eGetAction::GET_FIRST)
@@ -419,7 +420,7 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
 
 void model::AddNewShow(const show& showtoadd)
 {
-    m_active_shows.push_back(std::move(showtoadd));        // Use std::move ? TODO
+    m_active_shows.push_back(showtoadd);
 }
 
 
@@ -433,7 +434,7 @@ bool model::UpdateShow(const show& showtoupdate)
 
     // Save all current episode flags in a map with the episode number as the key
     std::map<std::string, episodeflags> ep_flags_map;
-    for (const auto& ep : originalShow->episodes)
+    for (const episode& ep : originalShow->episodes)
         ep_flags_map[ep.ep_num] = ep.ep_flags;
 
     // Put the show's episodes in the database - lock the 'database' while we're twiddling.
@@ -464,7 +465,7 @@ bool model::UpdateShow(const show& showtoupdate)
             // If we didn't have that episode's flags, it's either a completely new show or a new episode. for
             // an existing show. (Only notify about new episodes for existing shows, otherwise it gets too noisy.)
             if (!(originalShow->state & showstate::SH_ST_NEW_SHOW)) {
-                LogMsgWin("New episode %s %s\n", originalShow->title.c_str(), ep.ep_num.c_str());
+                LogMsgWin("New episode %s : %s", originalShow->title.c_str(), ep.ep_num.c_str());
             }
         }
     }

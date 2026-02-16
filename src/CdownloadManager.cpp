@@ -45,7 +45,7 @@ std::string CdownloadManager::Pop()
 		m_url_queue.pop();
 	}
 	else {
-		LogMsgWin(L"Download Pop on empty URL queue\n");
+		LogMsgWin(L"Download Pop on empty URL queue");
 	}
 
 	return url;
@@ -53,9 +53,9 @@ std::string CdownloadManager::Pop()
 
 
 
-void CdownloadManager::Release(int slotnum)
+void CdownloadManager::ReleaseSlot(int slotnum)
 {
-	Cslots::Release(slotnum);
+	Cslots::ReleaseSlot(slotnum);
 
 	if (m_url_queue.size() == 0)
 		return;
@@ -73,6 +73,10 @@ void CdownloadManager::Release(int slotnum)
  */
 void CdownloadManager::DownloadShow(const std::string& url)
 {
+	// Don't add anything new if we're mid-abort
+	if (m_abort_pending)
+		return;
+
 	CslotsSem& slotslock = CslotsSem::getInstance();
 	int freeslot;
 
@@ -116,14 +120,22 @@ bool CdownloadManager::DownloadInProgress() const
 
 
 
-/// TODO This doesnt work reliably
-//
 void CdownloadManager::AbortDownload()
 {
-	// Clear all queued URLs then wait in the
-	// ping handler till all slots are free.
+	m_abort_pending = true;
 
-	// TODO - Lock reset all slots with SS_URL
+	while(!m_url_queue.empty())
+		m_url_queue.pop();
+}
+
+
+
+void CdownloadManager::ClearAbortCondition()
+{
+	m_abort_pending = false;
+
+	for (unsigned i=0 ; i<NUMBER_OF_DOWNLOAD_THREADS ; i++)
+		Cslots::ReleaseSlot(i);
 }
 
 
