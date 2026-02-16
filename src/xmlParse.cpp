@@ -10,6 +10,7 @@
 #include <regex>
 
 #include "boost/algorithm/string/trim.hpp"
+#include "iconv.h"
 
 #include "libxml/xpath.h"
 #include "libxml/HTMLparser.h"
@@ -19,14 +20,15 @@
 #include "Cshow.hpp"
 #include "CcurlJob.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "xmlParse.hpp"
 
 
 
 
-STATIC const char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
-STATIC const char* DEFAULT_EPISODE_NUMBER = "00-00";
+STATIC constexpr char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
+STATIC constexpr char* DEFAULT_EPISODE_NUMBER = "01-00";
 
 
 
@@ -66,33 +68,27 @@ bool my_replace(std::string& str, const std::string& from, const std::string& to
 
 
 
+
+/**
+ * Try and guess the URL for thetvdb.com from the show title. Give up on non-ASCII characters and
+ * just return the base URL as a default.
+ */
 STATIC
 std::string GuessTvdbUrl(const std::string& title)
 {
 	std::string		url("https://thetvdb.com/series/");
 	std::string		show(title);
 
-	for (auto& ch : show)
-		if (! isalnum(ch))
-			ch = '-';
 
-	// Remove all double dashes
-	while(my_replace(show, "--", "-"));
+	// If all the chars in the title are ASCII, remove any spaces and append to the URL
+	if (show.end() == std::find_if( show.begin(), show.end(), [](const char c){ return ((c < ' ') || (c > 0x7e)); } ))
+	{
+		show.erase(remove_if(show.begin(), show.end(), ::isspace), show.end());
+		url += show;
+	}
 
-	// Remove any trailing dash
-	if (show[show.length()-1] == '-')
-		show.pop_back();
-
-	url += show;
 	return url;
 }
-
-
-
-
-
-
-
 
 
 
@@ -112,6 +108,7 @@ xmlXPathObjectPtr runXquery(htmlDocPtr document, PXMLCHAR xpath_query_string)
 
 
 
+
 /**
  * Extract the inner text from a node pointer from the XPATH query results set
  */
@@ -122,7 +119,8 @@ std::string getNodeText(const xmlNodePtr cur)
 
 	if ((cur->children != NULL) && (cur->children[0].type == XML_TEXT_NODE))
 	{
-		content = std::string((LPCSTR)cur->children[0].content);
+		// Convert content from unsigned char
+		content = std::string((char *) cur->children[0].content);
 		// Replace all UTF-8 &nbsp (hex C2 A0) characters with ASCII spaces
 		ReplaceAllSubstrings(content, chNBSP);
 		boost::trim(content);
@@ -144,13 +142,13 @@ std::string extractUniqueNode(xmlXPathObjectPtr nodes)
 	{
 		int size = nodeset->nodeNr;
 		if (size != 1)
-			WriteMessageLog(L"ERROR! XPATH query returned more than one node");
+			LogMsgWin(L"ERROR: XPATH query returned more than one node!");
 
 		// The webpage should have exactly one element
 		if ((nodeset->nodeTab[0]->type == XML_ELEMENT_NODE) || (nodeset->nodeTab[0]->type == XML_ATTRIBUTE_NODE))
 			str = getNodeText(nodeset->nodeTab[0]);
 		else
-			WriteMessageLog(L"ERROR! Unexpected XML node type.");
+			LogMsgWin(L"ERROR: Unexpected XML node type!");
 	}
 
 	return str;
@@ -174,7 +172,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 	// Sanity check on results set
 	if ((nodeset == nullptr) || (nodeset->nodeNr == 0))
 	{
-		WriteMessageLog("extractEpisodeDetails() Error. Empty results set!");
+		LogMsgWin(L"extractEpisodeDetails() : Empty results set!");
 		return false;
 	}
 
@@ -191,18 +189,22 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		ep_number = getNodeText(nodeset->nodeTab[i + 1]);
 		ep_date   = getNodeText(nodeset->nodeTab[i + 2]);
 
-		bool bGoodDate = std::regex_match(ep_date, epdate_regex);
+		bool bGoodDate   = std::regex_match(ep_date, epdate_regex);
 		bool bGoodNumber = std::regex_match(ep_number, epnum_regex);
 
-		// If they're both bad - just skip this node. A few epguides.com pages had different formatting.
-		if (!bGoodDate || !bGoodNumber)
+		// If both episode number and date are bad skip this node. Some epguides.com pages had different formatting/layout.
+		if (!bGoodDate && !bGoodNumber) {
+			LOG_PRINT(eLogFlags::XML, L"Bad date & episode number. Node discarded\n");
 			continue;
+		}
 
 		// Validate the date format & fix if necessary
 		if (!bGoodDate)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode date format. Defaulted. [" + ep_date + "]";
-			WriteMessageLog(msg);
+			std::ostringstream msg;
+			msg << "Bad episode date [" << ep_date << "]. Set to default\n";
+			LogMsgWin(msg.str());
+			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -217,8 +219,10 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			std::string msg = "extractEpisodeDetails() Bad episode number format. Defaulted. [" + ep_number + "]";
-			WriteMessageLog(msg);
+			std::ostringstream msg;
+			msg << "Bad episode number [" << ep_number << "]. Set to default\n";
+			LogMsgWin(msg.str());
+			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 
@@ -263,7 +267,7 @@ bool extractEpisodeTitles( xmlXPathObjectPtr nodes, sMyXpathResults& results)
 /**********************************************************************************
  * 
  * E_XPARSE_OK			Success
- * E_XPARSE_DOC_ERROR	
+ * E_XPARSE_DOC_FORMAT_ERROR	
  * Anything else = XML parse error
  *
  **********************************************************************************/
@@ -280,7 +284,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 	show.hash         = SimpleHash(curljob.Url());
 
 
-	// Create a thread-safe parser context
+	// Create a thread-safe XML-parser context
 	htmlParserCtxtPtr context = htmlNewParserCtxt();
 
 	// Parse the web page into an HTML DOM
@@ -304,7 +308,9 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 			xml_error_info.xmlErrorCol    = perror->int2;
 		}
 		xmlCtxtResetLastError(context);
-		retval = E_XPARSE_DOC_ERROR;
+
+		LOG_PRINT(eLogFlags::XML, L"E_XPARSE_DOC_FORMAT_ERROR: %s\n", curljob.Url().c_str());
+		retval = E_XPARSE_DOC_FORMAT_ERROR;
 	}
 	else
 	{
@@ -333,7 +339,8 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		if (!bGotTitles || !bGotDetails || (show.title.length() == 0))
 		{
 			show.state |= showstate::SH_ST_UPDATE_FAILED;
-			retval = E_XPARSE_PAGE_ERROR;
+			LOG_PRINT(eLogFlags::XML, L"E_XPARSE_PAGE_FORMAT_ERROR: %s\n", curljob.Url().c_str());
+			retval = E_XPARSE_PAGE_FORMAT_ERROR;
 		}
 		else
 		{
@@ -352,6 +359,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		}
 	}
 
+	// Cleanup
 	htmlFreeParserCtxt(context);
 	xmlFreeDoc(doc);
 

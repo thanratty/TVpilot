@@ -12,12 +12,10 @@ using namespace boost;
 #include "Cshow.hpp"
 
 
-class CslotData;
 
-
-enum class appevent : unsigned
+enum class eAppevent
 {
-	AE_APP_STARTED = 1,
+	AE_APP_STARTED,
 	AE_TAB_CHANGED,
 	AE_SHOW_ADDED,
 	AE_SHOW_REFRESHED,
@@ -49,7 +47,7 @@ typedef struct PopupContext_tag
 	CListCtrl*		pList{ nullptr };		// Dialog objecy pointer
 	int				list_index{ 0 };		// Item # in the list control
 	DWORD			show_hash{ DWORD_MAX };
-	CPoint			click_point;
+	CPoint			click_point{ (0,0) };
 	episodeflags	ep_flags{ episodeflags::EP_FL_NONE };			// If present - episode flags. Schedule list only?
 	CString			ep_num;
 } sPopupContext;
@@ -170,42 +168,8 @@ void EvalShowLastNextDates(show* pshow);
 
 
 
-
-#ifdef _DEBUG
-#define		DebugWriteMessageLog(x)		WriteMessageLog(x)
-#else
-#define		DebugWriteMessageLog(x)		do {} while(0)
-#endif
-
-
-/**
- * Set and write to the debug dialog box
- */
-void SetMessageLog(CEdit* pedit);
-void WriteMessageLog(CString& msg);
-void WriteMessageLog(const char* pchars);
-void WriteMessageLog(const wchar_t* pwchars);
-void WriteMessageLog(const std::string& str);
-
-
-/**
- * Fatal error - show a messagebox & exit the program.
- */
-void MessageExit(const wchar_t* msg);
-
-
-/**
- * Website URLs might need different validation.
- */
-bool EditUrl_Epguides(show* pshow);
-bool EditUrl_TVmaze(show* pshow);
-bool EditUrl_IMDB(show* pshow);
-bool EditUrl_TheTVDB(show* pshow);
-
 void SetListHeaderFont(CListCtrl* plist);
 int  GetSelectedListItem(CListCtrl& pctrl);
-
-
 
 
 /**
@@ -222,8 +186,8 @@ void CopyToClipboard(const std::string str);
 void ReplaceAllSubstrings(std::string& str, const char* sub);
 
 
-bool CheckWaitResult(unsigned numevents, DWORD result);
-
-int FindFreeSlot(const CslotData* sd);
-int FindBusySlot(const CslotData* sd);
+/**
+ * Edit a website URL from the main context menu
+ */
+bool EditUrl(const CString& title, std::string& url);
 

@@ -9,9 +9,10 @@
 #include "libxml/HTMLparser.h"
 
 #include "common.hpp"
+
 #include "CepcheckDlg.hpp"
 #include "utils.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
 
 #include "TVpilot.hpp"
 
@@ -35,6 +36,15 @@ CepcheckApp::CepcheckApp()
 // The one and only CepcheckApp object
 
 CepcheckApp theApp;
+
+
+
+// Can use for debugging programme termination state.
+//
+int CepcheckApp::ExitInstance()
+{
+	return CWinApp::ExitInstance();
+}
 
 
 // CepcheckApp initialization
@@ -73,8 +83,9 @@ BOOL CepcheckApp::InitInstance()
 	// Initialise libxml2 library
 	xmlInitParser();
 
-	// Depending on config.h this creates a console for debug messages
-	OpenDebugConsole();
+	// If enabled, start the logging thread & open a console. Logging functionality must
+	// be available before the main dialog & its member objects are instantiated.
+	LOG_INIT();
 
 	/**
 	 * We used to need the CSV file for TVmaze show numbers but we now
@@ -89,20 +100,11 @@ BOOL CepcheckApp::InitInstance()
 	CepcheckDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
-		// Nothing special
-	}
-	else if (nResponse == IDCANCEL)
-	{
-		// Nothing special
-	}
-	else if (nResponse == -1)
+	if (nResponse == -1)
 	{
 		TRACE(traceAppMsg, 0, "Warning: dialog creation failed, so application is terminating unexpectedly.\n");
 		TRACE(traceAppMsg, 0, "Warning: if you are using MFC controls on the dialog, you cannot #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS.\n");
 	}
-
 
 
 	// Delete the shell manager created above.
@@ -115,14 +117,23 @@ BOOL CepcheckApp::InitInstance()
 	ControlBarCleanUp();
 #endif
 
+	/**
+	 * This gives you a chance to copy msgs out of console or message log windows
+	 */
+#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
+	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
+#endif
+
+
+	// Terminate the logging thread / console
+	LOG_EXIT();
 
 	xmlCleanupParser();
 	curl_global_cleanup();
 
-	CloseDebugConsole();
-
 	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
+	// application, rather than start the application's message pump.
+
 	return FALSE;
 }
 

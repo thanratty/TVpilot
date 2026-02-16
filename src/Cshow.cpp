@@ -10,8 +10,10 @@
 
 #include "boost/algorithm/string/case_conv.hpp"
 
-#include "Cshow.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
+
+#include "Cshow.hpp"
 
 
 

@@ -8,68 +8,61 @@
 #include "common.hpp"
 
 #include "CsyncObjects.hpp"
-#include "threadData.hpp"
-#include "threadFuncs.hpp"
+#include "Cslots.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "CdownloadManager.hpp"
 
 
 
+//extern Cslots gSlots;
 
+
+
+CdownloadManager::CdownloadManager()
+{
+}
 
 
 CdownloadManager::~CdownloadManager()
 {
-	// Terminate all the worker threads
-	//
-	for(auto i=0 ; i< NUM_WORKER_THREADS ; i++)
-		m_slots[i].TerminateThread();
+	// Individual slots shutdown their own threads & close event handles.
+}
 
-	// Terminate the three download-event handler threads
-	//
-	request_data.TerminateThread();
-	results_data.TerminateThread();
-	release_data.TerminateThread();
+
+void CdownloadManager::Push(const std::string& url)
+{
+	m_url_queue.push(url);
+}
+
+std::string CdownloadManager::Pop()
+{
+	std::string url;
+	
+	if (m_url_queue.size() > 0) {
+		url = m_url_queue.front();
+		m_url_queue.pop();
+	}
+	else {
+		LogMsgWin(L"Download Pop on empty URL queue");
+	}
+
+	return url;
 }
 
 
 
-
-CdownloadManager::CdownloadManager() :
-	request_data(m_slots),
-	results_data(m_slots),
-	release_data(m_slots)
+void CdownloadManager::ReleaseSlot(int slotnum)
 {
-	CWinThread* thread;
-	CString		str;
+	Cslots::ReleaseSlot(slotnum);
 
-	// Start a worker thread for each slot (m_slots is initialised by now)
-	//
-	for (auto i=0 ; i < NUM_WORKER_THREADS ; i++)
-	{
-		thread = AfxBeginThread(thrSlotThread, &m_slots[i]);
-		ASSERT(thread);
-		str.Format(L"slot-%-u", i);
-		SetThreadDescription(thread->m_hThread, str);
-	}
+	if (m_url_queue.size() == 0)
+		return;
 
-
-	// Start the three event handler threads
-	//
-	m_thrRequest = AfxBeginThread(thrRequest, &request_data);
-	ASSERT(m_thrRequest);
-	SetThreadDescription(m_thrRequest->m_hThread, L"thrRequest");
-
-	m_thrResults = AfxBeginThread(thrResults, &results_data);
-	ASSERT(m_thrResults);
-	SetThreadDescription(m_thrResults->m_hThread, L"thrResults");
-
-	m_thrRelease = AfxBeginThread(thrRelease, &release_data);
-	ASSERT(m_thrRelease);
-	SetThreadDescription(m_thrRelease->m_hThread, L"thrRelease");
-};
-
+	std::string url = Pop();
+	DownloadShow(url);
+}
 
 
 
@@ -80,20 +73,37 @@ CdownloadManager::CdownloadManager() :
  */
 void CdownloadManager::DownloadShow(const std::string& url)
 {
-	request_data.Lock();
-	request_data.Push(url);
-	request_data.Unlock();
+	// Don't add anything new if we're mid-abort
+	if (m_abort_pending)
+		return;
 
-	request_data.Trigger();
+	CslotsSem& slotslock = CslotsSem::getInstance();
+	int freeslot;
+
+	// Any requests in the queue, find a slot for the & signal a request for that slot
+	if (slotslock.Lock())
+	{
+		if ((freeslot = FirstFreeSlot()) != -1)
+		{
+			SetUrl(freeslot, url);
+			SetSlotState(freeslot, eSlotState::SS_URL_SET);
+			SignalRequest(freeslot);
+		}
+		else
+			Push(url);
+
+		slotslock.Unlock();
+	}
 }
 
 
 
 
-void CdownloadManager::SetMsgWindow(HWND hMsgWindow)
+void CdownloadManager::SetMsgWin(HWND hMsgWin)
 {
-	m_hMsgWindow = hMsgWindow;
-	results_data.SetMsgWindow(hMsgWindow);
+	m_hMsgWin = hMsgWin;
+
+	Cslots::SetMsgWin( hMsgWin );
 }
 
 
@@ -101,25 +111,10 @@ void CdownloadManager::SetMsgWindow(HWND hMsgWindow)
 
 bool CdownloadManager::DownloadInProgress() const
 {
-bool retval = true;
+	if (FirstBusySlot() != -1)
+			return true;
 
-	CslotsSem		slotslock;
-	
-	request_data.Lock();
-
-	if (request_data.Pending()) {
-		retval = false;
-	}
-	else
-	{
-		slotslock.Lock();
-		retval = (FindBusySlot(m_slots) == -1);
-		slotslock.Unlock();
-	}
-
-	request_data.Unlock();
-
-	return !retval;
+	return false;
 }
 
 
@@ -127,11 +122,28 @@ bool retval = true;
 
 void CdownloadManager::AbortDownload()
 {
-	// Clear all queued URLs then wait in the
-	// ping handler till all slots are free.
+	m_abort_pending = true;
 
-	request_data.Lock();
-	request_data.ClearQueue();
-	request_data.Unlock();
+	while(!m_url_queue.empty())
+		m_url_queue.pop();
 }
 
+
+
+void CdownloadManager::ClearAbortCondition()
+{
+	m_abort_pending = false;
+
+	for (unsigned i=0 ; i<NUMBER_OF_DOWNLOAD_THREADS ; i++)
+		Cslots::ReleaseSlot(i);
+}
+
+
+
+
+void CdownloadManager::TerminateSlotThreads()
+{
+	Cslots::TerminateSlotThreads();
+
+	while (!AllSlotThreadsTerminated());
+}

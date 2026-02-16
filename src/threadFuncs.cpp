@@ -7,248 +7,152 @@
 
 #include "common.hpp"
 
-#include "CslotData.hpp"
-#include "CdownloadManager.hpp"
-#include "model.hpp"
+#include "Cslots.hpp"
 #include "CcurlJob.hpp"
 #include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
-#include "threadData.hpp"
+#include "logging.hpp"
+
 #include "threadFuncs.hpp"
 
 
 
 
 
-
-#if (SAVE_WEBPAGE_ON_ERROR==1)
-void SaveWebPage(const cCurlJob& curljob);
+#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(_DEBUG)
+void SAVE_WEB_PAGE(const cCurlJob& curljob);
 #else
-#define     SaveWebPage(x)      do{} while(0)
+#define     SAVE_WEB_PAGE(x)      do{} while(0)
 #endif
 
 
 
+/**
+ *  Local prototype
+ */
+STATIC bool CurlAndParse( Cslot& slot );
 
 
 
 
 
 /**
- * Each worker thread handles one slot
+ * Each worker thread handles one slot. The thread waits on a single request event.
  * 
  */
 UINT __cdecl thrSlotThread(LPVOID pParam)
 {
-UINT	status = E_THREAD_OK;
-int		index;
+	Cslot&		slot	  = *static_cast<Cslot*>(pParam);
+	DWORD		wait_result;
 
-	CslotData&		slot = * static_cast<CslotData*>(pParam);
-	CMultiEvents	request(&slot.evRequest, 1);
+	slot.SetThreadState(eThreadState::TS_RUNNING);
+
+	LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u created\n", slot.m_SlotNumber);
 
 	while (true)
 	{
-		// Wait for a new request
-		if ((index = request.Wait()) == E_SO_WAIT_FAIL)
+		// Wait for request event
+		//
+		slot.SetThreadState(eThreadState::TS_WAITING);
+		wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
+		slot.SetThreadState(eThreadState::TS_RUNNING);
+
+
+		// If the Wait fails - just loop & try again.
+		//
+ 		if (wait_result != WAIT_OBJECT_0)
 		{
-			// If the Wait fails - just loop & try again.
-			WriteDebugConsole(L"thrSlotThread WAIT_FAIL!");
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed : %08X\n", slot.m_SlotNumber, wait_result);
 			continue;
 		}
 
-		// Terminate flag set? Exit the thread.
-		if (slot.TerminateRequested())
-			return E_THREAD_OK;
 
-		// Download the webpage from the show URL
-		cCurlJob  curljob(slot.m_show.epguides_url);
-		bool curl_ok = curljob.downloadShow();
-
-		// Handy status/error codes for debugging.
-		slot.m_curl_status = curljob.m_curl_result;
-		slot.m_http_status = curljob.m_http_response;
-
-		if (curl_ok == false)
+		// Terminate flag set? Exit the thread
+		//
+		if (slot.GetExitFlag())
 		{
-			// In debug mode, optionally save a local copy of the faulting page (see config flag).
-			SaveWebPage(curljob);
+			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
 
-			std::ostringstream os;
-			os << "CURL code " << curljob.m_curl_result << ", HTTP response " << curljob.m_http_response;
-			slot.m_error_string = os.str();
-			status = E_THREAD_CURL;
+			slot.SetSlotState(eSlotState::SS_THREAD_EXITING);
+			slot.SetThreadState(eThreadState::TS_FINISHED);
+			return eThreadResult::TR_NORMAL_EXIT;
 		}
-		else
-		{
-			// No download errors. Parse the HTML into the show object
-			sXmlErrorInfo xml_error_info;
-			slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
-			if (slot.m_xml_status != E_XPARSE_OK)
-			{
-				// In debug mode, optionally save a local copy of the faulting page (see config flag).
-				SaveWebPage(curljob);
 
-				if (slot.m_xml_status == E_XPARSE_DOC_ERROR) {
-					slot.m_error_string = "xmlParse doc error";
-					status = E_THREAD_DOC_ERR;
+
+		// Got a good event. Check slot state to determine what to do next
+		//
+		eSlotState state = slot.GetSlotState();
+		switch (state)
+		{
+			case eSlotState::SS_URL_SET:
+				{
+					bool curl_ok = CurlAndParse(slot);
+					if (curl_ok) {
+						slot.SetSlotState(eSlotState::SS_RESULTS_READY);
+					}
+					::PostMessage(slot.GetMsgWin(), WM_TVP_DOWNLOAD_PING, slot.m_SlotNumber, 0);
 				}
-				else if (slot.m_xml_status == E_XPARSE_PAGE_ERROR) {
-					slot.m_error_string = "xmlParse page format error";
-					status = E_THREAD_PARSE;
-				}
-				else {
-					slot.m_error_string = "xmlParse unknown error";
-					status = E_THREAD_XML;
-				}
-			}
+				break;
+
+			default:
+				LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u : Unhandled slotstate %u\n", slot.m_SlotNumber, state);
+				break;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+STATIC bool CurlAndParse(Cslot& slot)
+{
+	slot.SetSlotState(eSlotState::SS_CURLING);
+
+	cCurlJob  curljob(slot.m_show.epguides_url);
+	bool curl_ok = curljob.downloadShow();
+
+	// Handy status/error codes for debugging.
+	slot.m_curl_status = curljob.m_curl_result;
+	slot.m_http_status = curljob.m_http_response;
+
+	if (curl_ok == false)
+	{
+		slot.SetSlotState(eSlotState::SS_CURL_ERROR);
+		SAVE_WEB_PAGE(curljob);
+
+		std::ostringstream os;
+		os << "CURL code " << curljob.m_curl_result << ", HTTP response " << curljob.m_http_response;
+		slot.m_error_string = os.str();
+		return false;
+	}
+
+	slot.SetSlotState(eSlotState::SS_PARSING);
+
+	// No download errors. Parse the HTML into the show object
+	sXmlErrorInfo xml_error_info;
+	slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
+	if (slot.m_xml_status != E_XPARSE_OK)
+	{
+		slot.SetSlotState(eSlotState::SS_PARSE_ERROR);
+		SAVE_WEB_PAGE(curljob);
+
+		if (slot.m_xml_status == E_XPARSE_DOC_FORMAT_ERROR) {
+			slot.m_error_string = "xmlParse doc error";
+		}
+		else if (slot.m_xml_status == E_XPARSE_PAGE_FORMAT_ERROR) {
+			slot.m_error_string = "xmlParse page format error";
 		}
 
-		// Save the status & Signal that we're all done
-		slot.SetThreadStatus(status);
-		if (!SetEvent(slot.evResults))
-			WriteDebugConsole(L"Can't set slot evResults event");
-
-		VERIFY(request.Reset(index) == E_SO_OK);
+		return false;
 	}
-}
 
-
-
-
-/**
- * Handle evRequest events from the main UI task from the CdownloadManager object
- * 
- */
- UINT __cdecl thrRequest( LPVOID pParam )
-{
-int slotnum;
-
-	cRequestData&	request_data = * static_cast<cRequestData*>(pParam);
-	CslotData*		slots = request_data.Slots();
-
-	// Lock objects last the life of the thread
-	CMultiEvents	events(request_data.Handles(), 2);
-	CslotsSem		slotslock;
-
-
-	while (true)
-	{
-		// Wait forever, on any event (there are only two!)
-		DWORD index = events.Wait();
-
-		// Terminate event?
-		if (index == 0)
-			return E_THREAD_OK;
-
-		ASSERT(index == (WAIT_OBJECT_0 + 1));
-
-		// There is at least one URL request in the request_data struct. Find a slot for it
-		// If there's no free download slot, loop for the next timeout 
-		// Keep popping requests off the queue till all slots are full or there are no more requests
-
-		if (!request_data.Lock())
-			WriteDebugConsole(L"Can't acquire request_data semaphore");
-		if (!slotslock.Lock())
-			WriteDebugConsole(L"Can't acquire thrRequert slots semaphore");
-
-		while (request_data.Pending())
-		{
-			slotnum = FindFreeSlot(slots);
-			if (slotnum == -1)
-			    break;
-
-			std::string str = request_data.Pop();
-			slots[ slotnum ].SetUrl(str);
-			if (!SetEvent(slots[ slotnum ].evRequest))
-				WriteDebugConsole(L"Can't set thrRequest slot event");
-		}
-
-		if (!slotslock.Unlock())
-			WriteDebugConsole(L"Can't release thrRequest slots semaphore");
-
-		if (!request_data.Unlock())
-			WriteDebugConsole(L"Can't release request_data semaphore");
-
-		if (events.Reset(index) != E_SO_OK)
-			WriteDebugConsole(L"Can't reset thrRequest event");
-	}
-}
-
-
-
-
-/**
- * Handle evResult event from a worker thread. CslotData contains the downloaded show info.
- * Pass the slot information to the database via a (thread safe) wimdows message.
- *
- */
-UINT __cdecl thrResults( LPVOID pParam )
-{
-	cResultsData*	pData = static_cast<cResultsData*>(pParam);
-	CMultiEvents	events(pData->Handles(), pData->NumHandles());
-
-	while (true)
-	{
-		DWORD wait_result = events.Wait();		// TODO Check for E_WAIT_FILE?
-
-		// Terminate thread event?
-		if (wait_result == WAIT_OBJECT_0)
-			return E_THREAD_OK;
-
-		if(!pData->Lock())
-			WriteDebugConsole(L"Can't acquire cResultsData semaphore");
-
-		// Check every slot event before unlocking. slot # 0 = event index 1
-		for (DWORD slotnum = 0 ; slotnum < NUM_WORKER_THREADS ; slotnum++)
-		{
-			if (events.IsSignalled(slotnum + 1))
-			{
-				PostMessage(pData->GetMessageWindow(), WM_TVP_DOWNLOAD_PING, slotnum, 0);
-				VERIFY(events.Reset(slotnum + 1) == E_SO_OK);
-			}
-		}
-
-		if (!pData->Unlock())
-			WriteDebugConsole(L"Can't release cResultsData semaphore");
-	}
-}
-
-
-
-
-/**
- * Handle evRelease event from the database. The slot results have been processed & incorporated into
- * the database. Reset & release the slot.
- *
- */
-UINT __cdecl thrRelease( LPVOID pParam )
-{
-	cReleaseData*	pData = static_cast<cReleaseData*>(pParam);
-
-	CMultiEvents	events(pData->Handles(), NUM_WORKER_THREADS+1 );
-	CslotsSem		slotslock;
-
-	while (true)
-	{
-		DWORD wait_result = events.Wait();
-
-		// 1st handle is the terminate event. The remainder are worker thread events
-		if (wait_result == WAIT_OBJECT_0)
-			return E_THREAD_OK;
-
-		// Get thread/slot index
-		DWORD slot = (wait_result - WAIT_OBJECT_0 - 1);
-
-		if (!slotslock.Lock())
-			WriteDebugConsole(L"Can't acquire thrRelease slots semaphore");
-
-		pData->ResetAndFree( slot );
-
-		if (!slotslock.Unlock())
-			WriteDebugConsole(L"Can't release thrRelease slots semaphore");
-
-		VERIFY(events.Reset(wait_result) == E_SO_OK);
-	}
+	slot.SetSlotState(eSlotState::SS_PARSED_OK);
+	return true;
 }
 
 
@@ -259,16 +163,20 @@ UINT __cdecl thrRelease( LPVOID pParam )
 
 
 
-#if (SAVE_WEBPAGE_ON_ERROR==1)
 
-void SaveWebPage(const cCurlJob& curljob)
+#if (SAVE_WEBPAGE_ON_ERROR==1) && defined(_DEBUG)
+
+void SAVE_WEB_PAGE(const cCurlJob& curljob)
 {
 	CFile cfile;
 	cfile.Open(L"webpage.txt", CFile::modeCreate | CFile::modeWrite);
 	cfile.Write(&curljob.m_page[0], curljob.m_page.size());
 	cfile.Flush();
 	cfile.Close();
+
+	LOG_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
 }
 
 #endif
+
 

@@ -10,10 +10,11 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "CDShowZoom.hpp"
-#include "CepcheckDlg.hpp"
-
 #include "utils.hpp"
+#include "logging.hpp"
+
+#include "CDShowZoom.hpp"
+
 
 
 
@@ -248,7 +249,7 @@ void CDShowZoom::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			break;
 
 		default:
-			WriteMessageLog(L"Unknown menu option selected");
+			LogMsgWin(L"Unknown menu option selected");
 			break;
 	}
 }

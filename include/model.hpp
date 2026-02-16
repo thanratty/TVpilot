@@ -15,19 +15,19 @@ using namespace boost;
 
 
 // Which show list selector
-typedef enum class SHOWLIST_tag : unsigned {
+typedef enum class ShowList_tag : UINT32 {
     ACTIVE,
     ARCHIVE,
     BOTH
-} eSHOWLIST;
+} eShowList;
 
 
 
 // When iterating a vector, which object to return
-typedef enum class GET_ACTION_tag : unsigned {
+typedef enum class GetActiontag : UINT32 {
     GET_FIRST,
     GET_NEXT
-} eGETACTION;
+} eGetAction;
 
 
 
@@ -70,7 +70,7 @@ public:
         {
             // A new empty model just needs a few dates preparing
             m_today      = gregorian::day_clock::local_day();
-            EvalScheduleDateWindow();
+            EvalScheduleDateRange();
 
             if (m_datafile.IsNewFile())
                 SaveFile();
@@ -88,62 +88,44 @@ public:
 
         bool        EpisodeFlagsChange(const sPopupContext* pcontext);
  
-        bool        GetShow(eSHOWLIST list, eGETACTION action, sShowListEntry* sle) const;
+        bool        GetShow(eShowList list, eGetAction action, sShowListEntry* sle) const;
 
         // To step through episodes within the date filter & return info
         void        SetDateInterval(int lower, int upper);
         void        SetTodaysDate();
-        bool        GetFilteredEpisode(eGETACTION locus, sScheduleListEntry* sle);
-
-
-        // Download from internet
-        void        DownloadPing(DWORD slotnum);
-        bool        DownloadAllShows();
-        bool        DownloadSingleShow(DWORD hash);
-        bool        DownloadComplete();
-        void        AbortDownload(void);
-
+        bool        GetFilteredEpisode(eGetAction locus, sScheduleListEntry* sle);
         void        BuildEpisodeList();
-        void        DeleteShow(DWORD hash);
-        DWORD       AddNewShow(const CString& url);
 
+        void        AddNewShow(const show& showtoadd);
+        bool        UpdateShow(const show& showtoupdate);
+
+
+        void        DeleteShow(DWORD hash);
         bool        ArchiveShow(DWORD hash);
         bool        UnarchiveShow(DWORD hash);
 
-        show* FindShow(DWORD searchhash, eSHOWLIST source);
-        show* FindShow(const CString& url, eSHOWLIST source);
+        show* FindShow(DWORD searchhash, eShowList source);
+        show* FindShow(const CString& url, eShowList source);
 
-        unsigned NumShows(eSHOWLIST list) const
+        unsigned NumShows(eShowList list) const
         { 
-            if (list == eSHOWLIST::ACTIVE)
+            if (list == eShowList::ACTIVE)
                 return m_active_shows.size();
-            else if (list == eSHOWLIST::ARCHIVE)
+            else if (list == eShowList::ARCHIVE)
                 return m_archive_shows.size();
-            else if (list == eSHOWLIST::BOTH)
+            else if (list == eShowList::BOTH)
                 return m_active_shows.size() + m_archive_shows.size();
             else
             {
-                CString str(L"NumShows() : Bad show list");
-                WriteMessageLog(str);
-                AfxMessageBox(str);
+                // Bad list?
                 return 0;
             }
         }
 
-        void SetMsgWindow(HWND hMsgWin)
-        {
-            m_hMsgWin = hMsgWin;
-            dm.SetMsgWindow( m_hMsgWin );
-        }
 
 inline  void ShowMissedOnly(bool missed_only)
         {
             m_missed_edpisodes_only = missed_only;
-        }
-
-inline  bool DownloadInProgress() const
-        {
-            return dm.DownloadInProgress();
         }
 
 inline  bool IsNewDataFile() const
@@ -151,10 +133,16 @@ inline  bool IsNewDataFile() const
             return m_datafile.IsNewFile();
         }
 
+inline unsigned NumActiveShows() const
+        {
+            return m_active_shows.size();
+        }
+
+
+
 
 private:
-        void        EvalScheduleDateWindow();
-        void        CheckDownloadComplete();
+        void        EvalScheduleDateRange();
 
 
         std::vector<show>           m_active_shows;
@@ -162,7 +150,6 @@ private:
         std::vector<sGuideEntry>    m_guide;
 
         CCriticalSection            m_critical;
-        CdownloadManager	        dm;
         CdataFile                   m_datafile;
 
         // Where to post 'ping' and 'complete' msgs to.
@@ -175,8 +162,4 @@ private:
         boost::gregorian::date      m_start_date, m_end_date, m_today;
         BOOL                        m_missed_edpisodes_only { FALSE };
         bool                        m_abort_download { false };
-
-        unsigned int                m_ping_expected{ 0 };
-        unsigned int                m_ping_received{ 0 };
 };
-

@@ -8,102 +8,170 @@
 #include "common.hpp"
 
 #include "utils.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
 
 #include "CsyncObjects.hpp"
 
 
 
-#if (ENABLE_CONSOLE_WINDOW==1) && (TRACE_SYNC_OBJECTS==1) && defined (_DEBUG)
-#define     SyncDebugMessage(x)     Sync_Debug_Message(x)
-#else
-#define     SyncDebugMessage(x)     do {} while(0)
-#endif
+
+
+constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 
 
+
+
+
+
+
+CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
+{
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() constructor");
+
+    m_handles.insert(m_handles.end(), handles.begin(), handles.end());
+
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents created with %u handles\n", m_handles.size());
+}
+
+
+CMultiEvents::~CMultiEvents()
+{
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() destructor\n");
+}
+
+
+// Returns the index of the signalled event, or E_SO_WAIT_FAIL
+//
+int CMultiEvents::Wait()
+{
+    DWORD result = WaitForMultipleObjects( m_handles.size(), m_handles.data(), FALSE, INFINITE);
+
+    if (!CheckWaitResult(result))
+    {
+        m_last_error = GetLastError();
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
+        return E_SO_WAIT_FAIL;
+    }
+
+    return result;
+}
 
 
 /**
- * Local debugging output function tailored for sync classes to show GetLastError()
- * 
- * Don't use WriteMessageLog() because we can't safely access UI objects from worker threads
- * and this function would use SendMessage to manipulate the message window. 
+ * Check the return from WaitForMultipleObjects is in range
  */
-#if (ENABLE_CONSOLE_WINDOW==1) && (TRACE_SYNC_OBJECTS==1) && defined (_DEBUG)
-
-STATIC void Sync_Debug_Message(const wchar_t* msg)
+bool CMultiEvents::CheckWaitResult(DWORD result) const
 {
-    CString str;
-    DWORD err = GetLastError();
-    if (err) {
-        str.Format(L"%s : %08X\n", msg, err);
-        Beep(750,150);
-    }
-    else
-        str.Format(L"%s\n", msg);
+    if ((result >= WAIT_OBJECT_0) && (result < WAIT_OBJECT_0 + m_handles.size()))
+        return true;
 
-    WriteDebugConsole(str);
+    // WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
+
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents wait failed: %08X\n", result);
+    return false;
 }
 
-#endif
+
+int CMultiEvents::Reset(DWORD index)
+{
+    int retval = E_SO_OK;
+
+    if (index >= m_handles.size())
+        retval = E_SO_RESET_FAIL_INDEX;
+    else if (!ResetEvent(m_handles[ index ]))
+        retval = E_SO_RESET_FAIL;
+
+    if (retval != E_SO_OK)
+    {
+        m_last_error = GetLastError();
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Reset() failed. Error %u\n", m_last_error);
+    }
+
+    return retval;
+}
+
+
+
+
 
 
 CslotsSem::CslotsSem()
 {
-    m_refcount++;
-    m_name.Format(L"slotsSem-%-u", m_refcount);
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotSem constructor\n");
 
     // There's only one underlying semaphore object for all instances
-    if (m_hSem == nullptr)
+    if (m_hSem == INVALID_HANDLE_VALUE)
     {
-        m_hSem = CREATE_SEMAPHORE(
-            NULL,               // Default security attributes
-            1,                  // Initial count
-            1,                  // Maximum count
-            m_name );
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Creating underlying slots semaphore\n");
+        m_hSem = CREATE_SEMAPHORE( NULL, 1, 1, m_name);     // Initial count 1, max count 1
 
         if (m_hSem == NULL) {
             m_last_error = GetLastError();
-            SyncDebugMessage(L"Can't create slots semaphore");
+            LOG_PRINT(eLogFlags::FATAL, L"Can't create slots semaphore. Error %08X\n", m_last_error);
         }
-        else
-            SyncDebugMessage(L"** Base CSlotSem semaphore created");
     }
-    SyncDebugMessage(m_name + L" created");
+    else
+    {
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Slots semaphore already created\n");
+    }
 }
 
 
 CslotsSem::~CslotsSem()
 {
-    CString str;
-    str.Format(L"CslotsSem destructor for %s, refcount %d\n", (LPCWSTR) m_name, m_refcount);
-    SyncDebugMessage(str);
+    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor\n");
 
-    // There's only ONE underlying semaphore handle, so only close the last instance
-    if (m_refcount == 1)
-    {
-        if (CloseHandle(m_hSem) == 0)
-        {
-            m_last_error = GetLastError();
-            SyncDebugMessage(L"Can't delete base slots CslotsSem semaphore.");
-        }
+    // There's only one actual semaphore
+    if (m_hSem != INVALID_HANDLE_VALUE) {
+        CloseHandle(m_hSem);
+        m_hSem = INVALID_HANDLE_VALUE;
     }
+    else
+        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor. m_hSem already closed");
+}
 
-    m_refcount--;
+
+CslotsSem& CslotsSem::getInstance()
+{
+    LOG_PRINT(eLogFlags::SLOT_LOCK, L"CslotSem::getInstance()\n");
+
+    static CslotsSem instance;      // Guaranteed to be destroyed. Instantiated on first use.
+    return instance;
 }
 
 
 bool CslotsSem::Lock()
 {
-    ASSERT(m_hSem != nullptr);
+    ASSERT(m_hSem != INVALID_HANDLE_VALUE);
 
-    DWORD result = WaitForSingleObject(m_hSem, INFINITE);
-    if (CheckWaitResult(1, result))
+    DWORD result = WaitForSingleObject(m_hSem, SLOT_LOCK_TIMEOUT);
+    if (CheckWaitResult(result))
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::Lock() wait fail");
+
+    CString errmsg;
+    errmsg.Format(L"FATAL! CslotsSem::Lock() fail. Result %08X, Error %08X\n", result, m_last_error);
+    LogMsgWin( errmsg );
+    LOG_PRINT( eLogFlags::FATAL, errmsg );
+
+    return false;
+}
+
+
+bool CslotsSem::CheckWaitResult(DWORD result)
+{
+    if (result == WAIT_OBJECT_0)
+        return true;
+
+    m_last_error = GetLastError();
+
+    CString errmsg;
+    errmsg.Format(L"FATAL! CslotsSem::CheckWaitResult() fail. Result %08X, Error %08X\n", result, m_last_error);
+    LogMsgWin( errmsg );
+    LOG_PRINT( eLogFlags::FATAL, errmsg );
+
     return false;
 }
 
@@ -112,68 +180,13 @@ bool CslotsSem::Unlock()
 {
     static LONG last_count = -1;
 
+    ASSERT(m_hSem != INVALID_HANDLE_VALUE);
+
     if (ReleaseSemaphore(m_hSem, 1, &last_count) != 0)
         return true;
 
     m_last_error = GetLastError();
-    SyncDebugMessage(L"CslotsSem::Unlock() release fail");
+    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %ld\n", m_last_error, last_count);
+
     return false;
 }
-
-
-
-
-
-
-
-
-CMultiEvents::CMultiEvents(const HANDLE* handles, unsigned num_events)
-{
-    for (unsigned i = 0; i < num_events; i++)
-    {
-        m_handles.push_back(handles[i]);
-        m_bIsSignalled.push_back(false);
-    }
-    CString str;
-    str.Format(L"CMultiEvents created with %d handles", num_events);
-    SyncDebugMessage(str);
-}
-
-
-// Returns the index of a signalled event, or E_SO_WAIT_FAIL
-//
-int CMultiEvents::Wait()
-{
-    DWORD result = WaitForMultipleObjects( m_handles.size(), m_handles.data(), FALSE, INFINITE);
-
-    if (CheckWaitResult(m_handles.size(), result))
-    {
-        m_bIsSignalled[ result ] = true;
-        return result;
-    }
-
-    m_last_error = GetLastError();
-    SyncDebugMessage(L"CMultiEvents::Wait() failed");
-
-    return E_SO_WAIT_FAIL;
-}
-
-
-int CMultiEvents::Reset(DWORD index)
-{
-    if (index >= m_handles.size())
-        return E_SO_RESET_FAIL_INDEX;
-    if (m_bIsSignalled[ index ] == false)
-        return E_SO_RESET_FAIL_UNLOCK;
-
-    if (ResetEvent(m_handles[ index ])) {
-        m_bIsSignalled[ index ] = false;
-        return E_SO_OK;
-    }
-
-    m_last_error = GetLastError();
-    SyncDebugMessage(L"CMultiEvents::Reset() failed");
-
-    return E_SO_RESET_FAIL;
-}
-

@@ -16,10 +16,8 @@
 class cCurlJob
 {
 public:
-    cCurlJob() = delete;
-    explicit cCurlJob(const std::string _url) : m_url(_url)
+    cCurlJob(const std::string _url) : m_url(_url)
     {
-        Reset();
     }
 
     void Reset()

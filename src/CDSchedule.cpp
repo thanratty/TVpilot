@@ -10,8 +10,8 @@ using namespace boost;
 
 #include "common.hpp"
 
-#include "CepcheckDlg.hpp"
 #include "utils.hpp"
+#include "logging.hpp"
 
 #include "CDSchedule.hpp"
 
@@ -49,20 +49,20 @@ STATIC constexpr int COL_SCHED_NUM_COLS = 6;
 const tSortMap CDSchedule::m_sort_map = {
 	// 1st entry is used as the default sort order
 	{ COL_SCHED_DATE_STR, {
-			{ COL_SCHED_DATE_SORT, NumberCompareFunc  },
-			{ COL_SCHED_SHOW,      AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,    EpisodeCompareFunc }
+			{ COL_SCHED_DATE_SORT,	NumberCompareFunc  },
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}},
 
 	{ COL_SCHED_SHOW, {
-			{ COL_SCHED_SHOW,	   AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,	   EpisodeCompareFunc }
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}},
 
 	{ COL_SCHED_TITLE, {
-			{ COL_SCHED_TITLE,	   AlphaCompareFunc   },
-			{ COL_SCHED_SHOW,	   AlphaCompareFunc   },
-			{ COL_SCHED_EP_NUM,    EpisodeCompareFunc }
+			{ COL_SCHED_TITLE,		AlphaCompareFunc   },
+			{ COL_SCHED_SHOW,		AlphaCompareFunc   },
+			{ COL_SCHED_EP_NUM,		EpisodeCompareFunc }
 		}}
 };
 
@@ -113,15 +113,12 @@ END_MESSAGE_MAP()
 
 
 
-
-
 BOOL CDSchedule::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	DWORD style = m_schedlist.GetExtendedStyle();
-	style |= (LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_SINGLEROW);
-	m_schedlist.SetExtendedStyle(style);
+	m_schedlist.ModifyStyle(0, LVS_SINGLESEL);
+	m_schedlist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_SINGLEROW);
 
 	// This dialog box lives in the tab control, so resize to that.
 	CRect  rc;
@@ -223,7 +220,7 @@ void CDSchedule::AppendRow(const sScheduleListEntry* gle)
 
 void CDSchedule::OnOK()
 {
-	WriteMessageLog(L"CDSchedule::OnOK() discarded");
+	LogMsgWin(L"CDSchedule::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

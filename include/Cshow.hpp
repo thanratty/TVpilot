@@ -55,7 +55,7 @@ public:
     friend std::ostream& operator<< (std::ostream& wstream, const show& s);
     friend std::istream& operator>> (std::istream& wstream, show& s);
 
-    void Reset()
+    void Initialise()
     {
         title.clear();
         epguides_url.clear();
@@ -84,7 +84,7 @@ public:
 
     DWORD               hash{ DWORD_MAX };
     showflags           flags{ showflags::SH_FL_NONE };
-    showstate           state{ showstate::SH_ST_NONE };         // Ephemeral - ie  not save to disk.
+    showstate           state{ showstate::SH_ST_NONE };         // Ephemeral - do not save to disk.
 
     gregorian::date     last_airdate;
     std::string         last_airdate_string;

@@ -10,21 +10,20 @@
 
 #include "common.hpp"
 
-#include "utils.hpp"
 #include "CdataFile.hpp"
 
 
 
 
 
-/** In a release build, the database is in %APPDATALOCAL%\TVpilot
- *  For debugging, the local database is in same folder as the executable
+/** In a release build, the data file is in %APPDATALOCAL%\TVpilot
+ *  For debugging, the file is in same folder as the executable
  */
-#if USE_TEST_DATAFILE==0
-constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
-#else
+#if defined(_DEBUG) && (USE_TEST_DATAFILE==1)
 #pragma message ("!! CONFIGURED FOR TEST DATA FILE")
 constexpr wchar_t* DATAFILE_NAME = TEST_DATAFILE_NAME;
+#else
+constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
 #endif
 
 
@@ -33,6 +32,7 @@ constexpr wchar_t* DATAFILE_NAME = TEST_DATAFILE_NAME;
 
 CdataFile::CdataFile()
 {
+    // Concat folder & filename into m_filename
     BuildFilename();
 
     if (PathFileExists(m_filename.c_str()) == TRUE)

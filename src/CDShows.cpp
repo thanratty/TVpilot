@@ -8,10 +8,10 @@
 #include <string>
 
 #include "resource.h"
-#include "CDShows.hpp"
-#include "CepcheckDlg.hpp"
+#include "logging.hpp"
 
-#include "utils.hpp"
+#include "CDShows.hpp"
+
 
 
 
@@ -106,6 +106,7 @@ BOOL CDShows::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	m_showlist.ModifyStyle(0, LVS_SINGLESEL);
 	m_showlist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_SORTASCENDING );
 
 	// This dialog box lives in the tab control, so resize to that.
@@ -214,7 +215,7 @@ void CDShows::OnColumnClickShowList(NMHDR* pNMHDR, LRESULT* pResult)
  */
 void CDShows::OnCancel()
 {
-	WriteMessageLog(L"CDShows::OnCancel() discarded");
+	LogMsgWin(L"CDShows::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
@@ -227,7 +228,7 @@ void CDShows::OnCancel()
  */
 void CDShows::OnOK()
 {
-	WriteMessageLog(L"CDShows::OnOK() discarded");
+	LogMsgWin(L"CDShows::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

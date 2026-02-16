@@ -8,8 +8,9 @@
 #include "common.hpp"
 
 #include "utils.hpp"
+#include "logging.hpp"
+
 #include "CDarchive.hpp"
-#include "CepcheckDlg.hpp"
 
 
 
@@ -103,6 +104,7 @@ BOOL CDArchive::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	m_archivelist.ModifyStyle(0, LVS_SINGLESEL);
 	m_archivelist.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_SORTASCENDING );
 
 	// This dialog box lives in the tab control, so resize to that.
@@ -178,13 +180,13 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 
 void CDArchive::OnCancel()
 {
-	WriteMessageLog(L"CDArchive::OnCancel() discarded");
+	LogMsgWin(L"CDArchive::OnCancel() discarded");
 	//CDialog::OnCancel();
 }
 
 void CDArchive::OnOK()
 {
-	WriteMessageLog(L"CDArchive::OnOK() discarded");
+	LogMsgWin(L"CDArchive::OnOK() discarded");
 	//CDialog::OnOK();
 }
 

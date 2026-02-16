@@ -13,40 +13,17 @@
 
 #include "boost/algorithm/string/find.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
+using namespace boost;
 
 #include "common.hpp"
 
-#include "CDShows.hpp"
-#include "CDSchedule.hpp"
 #include "CDInputBox.hpp"
-#include "CsortContext.hpp"
-#include "CslotData.hpp"
-#include "debugConsole.h"
+#include "logging.hpp"
+
 #include "utils.hpp"
 
 
 
-using namespace boost;
-
-STATIC CEdit* pLoggingWindow = nullptr;
-
-
-
-
-
-/**
- * Check if a CMultiEvent wait result is within range for the # events waited on.
- */
-bool CheckWaitResult(unsigned numevents, DWORD result)
-{
-	if ((result >= WAIT_OBJECT_0) && (result < WAIT_OBJECT_0 + numevents))
-		return true;
-
-	// WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only)
-
-	WriteDebugConsole(L"CheckWaitResult() failed!\n");
-	return false;
-}
 
 
 
@@ -75,8 +52,8 @@ DWORD SimpleHash(const std::string& str)
  */
 DWORD SimpleHash(const CString& url)
 {
-	std::string new_url = CW2A(url, CP_UTF8);
-	return SimpleHash(new_url);
+	std::string ascii_url = CW2A(url, CP_UTF8);
+	return SimpleHash(ascii_url);
 }
 
 
@@ -84,15 +61,15 @@ DWORD SimpleHash(const CString& url)
 /**
  * Convert "SS-EE" formatted episode string to a number for temporal ordering
  */
-static unsigned EpisodeToNumber(const CString& epstring)
+STATIC unsigned EpisodeToNumber(const CString& epstring)
 {
 	int season{ 0 }, epnum{ 0 };
 
 	int hpos = epstring.Find('-');
 	if (hpos != -1)
 	{
-		season = _ttoi(epstring.Left(hpos));
-		epnum  = _ttoi(epstring.Mid(hpos + 1));
+		season = _wtoi(epstring.Left(hpos));
+		epnum  = _wtoi(epstring.Mid(hpos + 1));
 	}
 
 	return season * 1000 + epnum;
@@ -105,7 +82,7 @@ static unsigned EpisodeToNumber(const CString& epstring)
  */
 int EpisodeCompareFunc(const CString& episode1, const CString& episode2, bool ascending)
 {
-	int result{ 0 };
+	int result;
 
 	unsigned ep1 = EpisodeToNumber( episode1 );
 	unsigned ep2 = EpisodeToNumber( episode2 );
@@ -114,6 +91,8 @@ int EpisodeCompareFunc(const CString& episode1, const CString& episode2, bool as
 		result = -1;
 	else if (ep1 > ep2)
 		result = 1;
+	else
+		result = 0;
 
 	return (ascending) ? result : -result;
 }
@@ -239,124 +218,23 @@ void CopyOutShowInfo(sShowListEntry* sle, const show* pshow)
 
 
 
-/**
- * A few routines to allow writing debug/trace messages to the seperate debug
- * window.
- */
-void SetMessageLog(CEdit* pedit)
-{
-	pLoggingWindow = pedit;
-}
 
-void WriteMessageLog(CString& msg)
-{
-	if (pLoggingWindow)
-	{
-		CString str = msg + CString(L"\r\n");
-		int length = pLoggingWindow->GetWindowTextLength();
-		pLoggingWindow->SetSel(length, length);
-		pLoggingWindow->ReplaceSel(str);
-	}
-}
-
-void WriteMessageLog(const char* pchars)
-{
-	CString s(pchars);
-	WriteMessageLog(s);
-}
-
-void WriteMessageLog(const wchar_t* pwchars)
-{
-	CString s(pwchars);
-	WriteMessageLog(s);
-}
-
-void WriteMessageLog(const std::string& str)
-{
-	WriteMessageLog(str.c_str());
-}
-
-void MessageExit(const wchar_t* msg)
-{
-	AfxMessageBox(msg, MB_ICONERROR | MB_APPLMODAL | MB_OK);
-	ExitProcess(1);
-}
-
-
-
-
-
-bool EditUrl_Epguides(show* pshow)
+bool EditUrl(const CString&		title,
+			 std::string&		url )
 {
 	// Display an input dialog with an appropriate title & prompt
 	CDInputBox dlg;
-	dlg.m_title = L"Epguides";
-	dlg.m_prompt = L"Enter show URL for epguides.com";
-	dlg.m_input = pshow->epguides_url.c_str();
+	dlg.m_title  = title;
+	dlg.m_prompt = CString(L"Enter URL for ") + title + L".com";
+	dlg.m_input  = url.c_str();
 	if (dlg.DoModal() != IDOK)
 		return false;
 
 	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->epguides_url) == 0)
+	if (new_url.compare(url) == 0)
 		return false;
 
-	pshow->epguides_url = new_url;
-	return true;
-}
-
-bool EditUrl_TVmaze(show* pshow)
-{
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title = L"TVMaze";
-	dlg.m_prompt = L"Enter show URL for TVMaze.com";
-	dlg.m_input = pshow->tvmaze_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->tvmaze_url) == 0)
-		return false;
-
-	pshow->tvmaze_url = new_url;
-	return true;
-}
-
-bool EditUrl_IMDB(show* pshow)
-{
-	std::string new_url;
-
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title = L"IMDB";
-	dlg.m_prompt = L"Enter show URL for IMDB.com";
-	dlg.m_input = pshow->imdb_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->imdb_url) == 0)
-		return false;
-
-	pshow->imdb_url = new_url;
-	return true;
-}
-
-bool EditUrl_TheTVDB(show* pshow)
-{
-	// Display an input dialog with an appropriate title & prompt
-	CDInputBox dlg;
-	dlg.m_title = L"TheTVDB";
-	dlg.m_prompt = L"Enter show URL for TheTVDB.com";
-	dlg.m_input = pshow->thetvdb_url.c_str();
-	if (dlg.DoModal() != IDOK)
-		return false;
-
-	std::string new_url = dlg.m_input_str;
-	if (new_url.compare(pshow->thetvdb_url) == 0)
-		return false;
-
-	pshow->thetvdb_url = new_url;
+	url = new_url;
 	return true;
 }
 
@@ -407,7 +285,7 @@ void CopyToClipboard(const CString& str)
 {
 
 	int epname_len = str.GetLength();
-	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, epname_len + 1);
+	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, epname_len + 2);
 	if (hMem)
 	{
 		char* pdest = (char*) GlobalLock(hMem);
@@ -426,7 +304,6 @@ void CopyToClipboard(const CString& str)
 }
 
 
-
 /**
  * Copy C style string to clipboard
  */
@@ -437,7 +314,6 @@ void CopyToClipboard(const char *str)
 }
 
 
-
 /**
  * Copy std::string text to clipboard
  */
@@ -446,7 +322,6 @@ void CopyToClipboard(const std::string str)
 	const CString _str(str.c_str());
 	CopyToClipboard(_str);
 }
-
 
 
 /**
@@ -460,35 +335,4 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 		str.replace(i, len, len, ' ');
 }
 
-
-
-/**
- * Return first free slot index, or -1 if none free
- *
- * NB	The slot array must be locked for this to be safe
- */
-int FindFreeSlot(const CslotData* sd)
-{
-	for (int i = 0; i < NUM_WORKER_THREADS; i++)
-		if (sd[i].IsFree())
-			return i;
-
-	return -1;
-}
-
-
-
-/**
- * Return first _BUSY_ slot index, or -1 if all slots are free
- *
- * NB	The slot array must be locked for this to be thread safe.
- */
-int FindBusySlot(const CslotData* sd)
-{
-	for (int i=0 ; i < NUM_WORKER_THREADS ; i++)
-		if (sd[i].IsBusy())
-			return i;
-
-	return -1;
-}
 

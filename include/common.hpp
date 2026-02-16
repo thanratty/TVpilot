@@ -1,10 +1,12 @@
 #pragma once
 
-#include "resource.h"		// main symbols
+#include "resource.h"		// Need the resource symbols
+#include "enum_flags.h"     // Define bitwose operators for enums
 
 
 
-#if (NAME_SYNC_OBJECTS==1)
+
+#if (NAMED_OBJECTS==1)
 #define     CREATE_EVENT(a,b,c,d)           CreateEvent(a,b,c,d)
 #define     CREATE_SEMAPHORE(a,b,c,d)       CreateSemaphore(a,b,c,d)
 #else
@@ -40,15 +42,11 @@ constexpr int WM_TVP_SCHED_EP_FLAGS_CHANGED  = (WM_USER + 8000);
 
 
 
-// Status and return codes TODO Thread busy? Idle? ???
-//
-constexpr UINT E_THREAD_OK = 0;
-constexpr UINT E_THREAD_CURL = 1;
-constexpr UINT E_THREAD_XML = 2;
-constexpr UINT E_THREAD_PARSE = 3;
-constexpr UINT E_THREAD_DOC_ERR = 4;
 
 constexpr UINT E_APP_OK = 0;
 constexpr UINT E_APP_DATABASE = 1;
 
+
+
+constexpr DWORD THREAD_EXIT_TIMEOUT = 4000;
 
