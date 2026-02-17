@@ -335,4 +335,3 @@ void ReplaceAllSubstrings(std::string& str, const char* sub)
 		str.replace(i, len, len, ' ');
 }
 
-

@@ -117,6 +117,7 @@ BOOL CepcheckDlg::OnInitDialog()
 	SetWindowText(str);
 #endif
 
+
 	// Center the text in the two counters
 	GetDlgItem(IDC_PING_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
 	GetDlgItem(IDC_ERR_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
@@ -156,6 +157,11 @@ BOOL CepcheckDlg::OnInitDialog()
 	// Create the dialog box for debug messages
 	m_dlgMessages.Create(IDD_MESSAGES, this);
 	LogSetMsgWin(&m_dlgMessages.m_messages);
+
+	std::ostringstream info;
+	info << "Build date "  __DATE__  "  \n\rVersion "  VERSION_NUMBER  "\n\r";
+	LogMsgWin(info.str().c_str());
+//	LOG_PRINT(eLogFlags::INFO, info.str().c_str());
 
 
 	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.

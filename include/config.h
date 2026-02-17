@@ -21,6 +21,13 @@
 #define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG build only ]
 
 
+/**
+ * Release version
+ */
+#define         VERSION_NUMBER                  "1.1"
+
+
+
 
 
 /**

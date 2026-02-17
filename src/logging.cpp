@@ -11,6 +11,8 @@
 #include "boost/algorithm/string/trim.hpp"
 
 #include "common.hpp"
+#include "utils.hpp"
+
 #include "logging.hpp"
 
 
@@ -243,6 +245,7 @@ void LOG_EXIT()
 	SetEvent(hLogEvent);
 	WaitForSingleObject(hLogThread, THREAD_EXIT_TIMEOUT);
 	
+	// The destructor also closes the underlying handle
 	delete semQueue;
 	semQueue = nullptr;
 
@@ -331,11 +334,12 @@ void LogSetMsgWin(CEdit* pedit)
 
 void LogMsgWin(const CString& msg)
 {
-	LOG_PRINT(eLogFlags::CONSOLE_ECHO, msg);
+	CString str = msg + CString(L"\r\n");
+
+	LOG_PRINT(eLogFlags::CONSOLE_ECHO, str);
 
 	if (pMsgWindow)
 	{
-		CString str = msg + CString(L"\r\n");
 		int length = pMsgWindow->GetWindowTextLength();
 		pMsgWindow->SetSel(length, length);
 		pMsgWindow->ReplaceSel(str);

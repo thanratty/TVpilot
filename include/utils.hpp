@@ -191,3 +191,4 @@ void ReplaceAllSubstrings(std::string& str, const char* sub);
  */
 bool EditUrl(const CString& title, std::string& url);
 
+

@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by epcheck.rc
 //
+#define VS_VERSION_INFO                 1
 #define IDD_ARCHIVE                     105
 #define IDD_EPCHECK                     130
 #define IDD_SHOWS                       132

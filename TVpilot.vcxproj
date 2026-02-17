@@ -72,7 +72,8 @@
       <AdditionalDependencies>libcurl.lib;libxml2.lib;Pathcch.lib;iconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <MapExports>true</MapExports>
+      <MapExports>false</MapExports>
+      <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
