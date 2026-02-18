@@ -159,9 +159,9 @@ BOOL CepcheckDlg::OnInitDialog()
 	LogSetMsgWin(&m_dlgMessages.m_messages);
 
 	std::ostringstream info;
-	info << "Version "  VERSION_NUMBER  "  -  "  __DATE__  "\r\n";
+	info << "Version "  VERSION_NUMBER  "  -  "  __DATE__;
 	LogMsgWin(info.str().c_str());
-
+	LogMsgWin(L"Data file : %s\n", m_data.Filename());
 
 	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.
 

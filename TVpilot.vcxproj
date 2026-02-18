@@ -182,7 +182,6 @@
     <ResourceCompile Include="res\epcheck.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
     <None Include="res\epcheck.rc2" />
   </ItemGroup>
   <ItemGroup>

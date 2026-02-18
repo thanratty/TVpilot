@@ -138,7 +138,10 @@ inline unsigned NumActiveShows() const
             return m_active_shows.size();
         }
 
-
+inline const wchar_t* Filename() const
+        {
+            return m_datafile.Filename();
+        }
 
 
 private:
