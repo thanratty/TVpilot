@@ -1,7 +1,4 @@
 #pragma once
-#include "afxdialogex.h"
-
-#include "logging.hpp"
 
 
 

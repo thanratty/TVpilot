@@ -1,15 +1,12 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
 //--
 
 #include "common.hpp"
+
 #include "CDLogFlags.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
-
 
 #include "CDmessages.hpp"
 

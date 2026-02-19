@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -18,7 +16,6 @@
 #include "Cepisode.hpp"
 #include "Cshow.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "model.hpp"
 

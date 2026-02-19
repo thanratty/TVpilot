@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -9,9 +7,7 @@
 using namespace boost;
 
 #include "common.hpp"
-
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "CDSchedule.hpp"
 

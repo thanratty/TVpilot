@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -10,13 +8,9 @@
 #include "CsyncObjects.hpp"
 #include "Cslots.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "CdownloadManager.hpp"
 
-
-
-//extern Cslots gSlots;
 
 
 

@@ -1,4 +1,3 @@
-#include "config.h"
 
 #pragma warning( disable : 26812 )
 #include "pch.h"
@@ -10,7 +9,6 @@
 #include "curl/curl.h"
 
 #include "common.hpp"
-#include "logging.hpp"
 
 #include "CcurlJob.hpp"
 

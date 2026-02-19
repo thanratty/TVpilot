@@ -1,8 +1,11 @@
 #pragma once
 
+#include "config.h"
+
 #include "resource.h"		// Need the resource symbols
 #include "enum_flags.h"     // Define bitwose operators for enums
 
+#include "logging.hpp"
 
 
 

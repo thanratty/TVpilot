@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -10,6 +8,8 @@
 
 #include "boost/date_time/gregorian/gregorian.hpp"
 using namespace boost;
+
+#include "common.hpp"
 
 #include "Cepisode.hpp"
 

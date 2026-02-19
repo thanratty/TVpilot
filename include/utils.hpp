@@ -7,10 +7,7 @@
 #include "boost/date_time/gregorian/gregorian.hpp"
 using namespace boost;
 
-#include "common.hpp"
-
 #include "Cshow.hpp"
-
 
 
 enum class eAppevent

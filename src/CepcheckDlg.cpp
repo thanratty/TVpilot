@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -10,16 +8,15 @@
 #include "strsafe.h"
 #include "pathcch.h"
 
-#include "Resource.h"
+#include "common.hpp"
+
 #include "CDnewShow.hpp"
 #include "CDShowZoom.hpp"
 #include "CDInputBox.hpp"
 #include "CdownloadManager.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "CepcheckDlg.hpp"
-
 
 
 

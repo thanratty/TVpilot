@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -10,8 +8,8 @@
 
 #include "boost/algorithm/string/case_conv.hpp"
 
+#include "common.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "Cshow.hpp"
 

@@ -1,4 +1,3 @@
-#include "config.h"
 
 #pragma warning( disable : 26812 )
 #include "pch.h"
@@ -7,8 +6,7 @@
 
 #include <string>
 
-#include "resource.h"
-#include "logging.hpp"
+#include "common.hpp"
 
 #include "CDShows.hpp"
 

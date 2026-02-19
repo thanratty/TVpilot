@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -16,11 +14,12 @@
 #include "libxml/HTMLparser.h"
 #include "libxml/HTMLtree.h"
 
+#include "common.hpp"
+
 #include "Cepisode.hpp"
 #include "Cshow.hpp"
 #include "CcurlJob.hpp"
 #include "utils.hpp"
-#include "logging.hpp"
 
 #include "xmlParse.hpp"
 

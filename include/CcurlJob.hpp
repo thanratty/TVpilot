@@ -1,12 +1,9 @@
 #pragma once
 
-#include "config.h"
-
 //--
 
 #include <wininet.h>
 #include <string>
-#include <vector>
 
 #include "curl/curl.h"
 

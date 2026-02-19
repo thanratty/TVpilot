@@ -1,5 +1,3 @@
-#include "config.h"
-
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -9,9 +7,8 @@
 
 #include "Cslots.hpp"
 #include "CcurlJob.hpp"
-#include "xmlParse.hpp"
 #include "CsyncObjects.hpp"
-#include "logging.hpp"
+#include "xmlParse.hpp"
 
 #include "threadFuncs.hpp"
 

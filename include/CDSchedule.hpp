@@ -6,8 +6,6 @@
 
 // A sensible default os +/- two days to display
 //
-
-
 constexpr unsigned DEFAULT_DAYS_PRE  = 2;
 constexpr unsigned DEFAULT_DAYS_POST = 2;
 
