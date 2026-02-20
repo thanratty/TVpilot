@@ -280,9 +280,9 @@ void CDShows::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 
 void CDShows::EnsureVisible(DWORD hash)
 {
-	LVFINDINFOW findInfo;
-	findInfo.flags = LVFI_PARAM;
-	findInfo.lParam = hash;
+	LVFINDINFOW findInfo{};
+	findInfo.flags  = LVFI_PARAM;
+	findInfo.lParam = static_cast<LPARAM>(hash);
 	int nItem = m_showlist.FindItem(&findInfo);
 
 	if (nItem != -1) {
