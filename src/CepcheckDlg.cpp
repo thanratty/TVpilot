@@ -488,10 +488,8 @@ void CepcheckDlg::OnBtn_NewShow()
 	// Get things ready to start the download
 	//
 
-	m_adding_new_show = true;
-	m_new_show_hash   = SimpleHash(new_url);
-
-	m_ping_count = m_err_count = 0;
+	m_new_show_hash = SimpleHash(new_url);
+	m_ping_count    = m_err_count = 0;
 	m_ping_expected = 1;
 	UpdateOnscreenCounters();
 
@@ -528,10 +526,10 @@ void CepcheckDlg::UpdateShowList()
 	// Sort the list & redraw it
 	m_dlgShows.SortList();
 
-	// If a new show was added - make it visible
-	if (m_adding_new_show) {
-		m_adding_new_show = false;
+	// If a new show was added - make it visible & highlight it
+	if (m_new_show_hash) {
 		m_dlgShows.EnsureVisible(m_new_show_hash);
+		m_new_show_hash = 0;
 	}
 
 	m_dlgShows.Invalidate();
@@ -639,19 +637,6 @@ void CepcheckDlg::UpdateOnscreenCounters(void)
 
 
 /**
- * Update the UI ping & error counter boxes
- *
- */
-void CepcheckDlg::ResetOnscreenCounters(void)
-{
-	m_ping_count = m_err_count = 0;
-	UpdateOnscreenCounters();
-}
-
-
-
-
-/**
  * Sends the +/- days count to the database and updates the on-screen values
  *
  */
@@ -686,17 +671,14 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
 		AfxMessageBox(L"Download aborted.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		m_abort_download = false;
-		m_adding_new_show = false;
 		m_dlm.ClearAbortCondition();
+		m_abort_download = false;
 	}
 	else if (m_err_count > 0)
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
-		m_abort_download = false;
 		m_err_count = 0;
-		m_adding_new_show = false;
 	}
 	else
 	{
@@ -704,6 +686,8 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum
 		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
+	// In case this was a new show being downloaded, reset the 'flag'
+	m_new_show_hash = 0;
 
 	// Update the UI
 	UpdateShowList();
@@ -756,28 +740,25 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 	if (ashow == nullptr)
 		return 0;
 
-	CString url;
 
-	if (selection == ID_MNU_TVMAZE_GO) {
-		url = ashow->tvmaze_url.c_str();
-	}
-	else if (selection == ID_MNU_EPGUIDES_GO) {
-		url = ashow->epguides_url.c_str();
-	}
-	else if (selection == ID_MNU_IMDB_GO) {
-		url = ashow->imdb_url.c_str();
-	}
-	else if (selection == ID_MNU_THETVDB_GO) {
-		url = ashow->thetvdb_url.c_str();
-	}
-	else if (selection == ID_MNU_THETVDB_SEARCH)
+
+	CString url(L"https://thetvdb.com/search?query=");
+	switch(selection)
 	{
-		url = CString(L"https://thetvdb.com/search?query=") + CString(ashow->title.c_str());
-		url.Replace(' ', '+');
+		case ID_MNU_TVMAZE_GO:		url = ashow->tvmaze_url.c_str();		break;
+		case ID_MNU_EPGUIDES_GO:	url = ashow->epguides_url.c_str();		break;
+		case ID_MNU_IMDB_GO:		url = ashow->imdb_url.c_str();			break;
+		case ID_MNU_THETVDB_GO:		url = ashow->thetvdb_url.c_str();		break;
+
+		case ID_MNU_THETVDB_SEARCH:
+			url += ashow->title.c_str();
+			url.Replace(' ', '+');
+			break;
+
+		default:
+			break;
 	}
-	else
-		// Invalid selection!
-		return 0;
+
 
 	if (url.GetLength() > 0)
 	{
@@ -1345,9 +1326,9 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	{
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSING);
 
-		if ((originalShow) && (m_adding_new_show==false))
+		if ((originalShow) && (m_new_show_hash==0))
 			m_data.UpdateShow(resultShow);
-		else if (!originalShow && m_adding_new_show)
+		else if (!originalShow && (m_new_show_hash != 0))
 			m_data.AddNewShow(resultShow);
 		else
 			LogMsgWin(L"OnDownloadPing() : Unexpected showstate");

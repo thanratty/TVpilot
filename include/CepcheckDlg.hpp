@@ -88,8 +88,7 @@ private:
 			model				m_data;
 			CdownloadManager	m_dlm;
 			//
-			bool			m_adding_new_show{ false };
-			DWORD			m_new_show_hash{ DWORD_MAX };
+			DWORD			m_new_show_hash{ 0 };
 
 			unsigned		m_ping_expected{ 0 };
 			unsigned		m_ping_count{ 0 };
@@ -105,7 +104,6 @@ private:
 	virtual void		OnCancel();
 			void		UpdateTabTotals();
 			void		UpdateOnscreenCounters();
-			void		ResetOnscreenCounters();
 
 			void		UpdateShowList();
 			void		UpdateScheduleList();
