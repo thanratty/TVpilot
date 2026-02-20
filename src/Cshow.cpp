@@ -65,7 +65,7 @@ std::istream& operator>> (std::istream& istream, show& s)
     }
 
     // Evaluate last/next air dates
-    EvalShowLastNextDates(&s);
+    EvalShowLastNextDates(s);
 
     return istream;
 }

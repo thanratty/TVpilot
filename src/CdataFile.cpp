@@ -14,15 +14,26 @@
 
 
 
-/** In a release build, the data file is in %APPDATALOCAL%\TVpilot
+/** In a release build, the data file is always in %APPDATALOCAL%\TVpilot
  *  For debugging, the file is in same folder as the executable
  */
-#if defined(_DEBUG) && (USE_TEST_DATAFILE==1)
-#pragma message ("!! CONFIGURED FOR TEST DATA FILE")
+
+#if defined(_DEBUG)
+
+#if (USE_TEST_DATAFILE==1)
+#pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE TEST DATA FILE --- !!")
 constexpr wchar_t* DATAFILE_NAME = TEST_DATAFILE_NAME;
 #else
+#pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE RELEASE DATA FILE --- !!")
 constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
 #endif
+
+#else
+
+constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
+
+#endif
+
 
 
 

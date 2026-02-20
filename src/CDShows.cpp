@@ -32,7 +32,7 @@ STATIC constexpr int COL_SHOW_NUM_COLS       = 6;
 
 
 /**
- * Initialises the static const class member variable m_sort_cols
+ * Initialises the static const class member variable m_sort_map
  */
 const tSortMap CDShows::m_sort_map = {
 	// 1st entry is used as the default sort order
@@ -144,17 +144,17 @@ BOOL CDShows::OnInitDialog()
 
 	// Set column widths
 	int listWidth = rc.Width();
-	m_showlist.SetColumnWidth(COL_SHOW_TITLE, 5*listWidth / 10);				// 50%
-	m_showlist.SetColumnWidth(COL_SHOW_NUMBER, 1*listWidth / 10);				// 10%
-	m_showlist.SetColumnWidth(COL_SHOW_LAST_DATE_STR, 2*listWidth / 10);		// 20%
-	m_showlist.SetColumnWidth(COL_SHOW_NEXT_DATE_STR, 2*listWidth / 10);		// 20%
+	m_showlist.SetColumnWidth(COL_SHOW_TITLE,			5*listWidth / 10);		// 50%
+	m_showlist.SetColumnWidth(COL_SHOW_NUMBER,			1*listWidth / 10);		// 10%
+	m_showlist.SetColumnWidth(COL_SHOW_LAST_DATE_STR,	2*listWidth / 10);		// 20%
+	m_showlist.SetColumnWidth(COL_SHOW_NEXT_DATE_STR,	2*listWidth / 10);		// 20%
 	// Two hidden cols
 	m_showlist.SetColumnWidth(COL_SHOW_LAST_DATE_SORT, 0);
 	m_showlist.SetColumnWidth(COL_SHOW_NEXT_DATE_SORT, 0);
 
 	// Return TRUE unless you set the focus to a control
 
-	return TRUE;
+	return FALSE;
 }
 
 
@@ -234,31 +234,6 @@ void CDShows::OnOK()
 
 
 /**
- *  Save the index of the topmost visible iterm in the list.
- *  TODO This Save & the Restore could be done better!
- *
- */
-void CDShows::SaveTopIndex()
-{
-	m_top_index = m_showlist.GetTopIndex();
-}
-
-
-
-
-/**
- *  Scroll the list so the previously topmost item is visible again
- *
- */
-void CDShows::RestoreTopIndex()
-{
-	m_showlist.EnsureVisible(m_top_index, FALSE);
-}
-
-
-
-
-/**
  *  Double click a show to zoom-in on all its episodes
  *
  */
@@ -302,3 +277,20 @@ void CDShows::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 
 
 
+
+void CDShows::EnsureVisible(DWORD hash)
+{
+	LVFINDINFOW findInfo;
+	findInfo.flags = LVFI_PARAM;
+	findInfo.lParam = hash;
+	int nItem = m_showlist.FindItem(&findInfo);
+
+	if (nItem != -1) {
+		// Scroll down to the bottom then back up enough to it at the top
+		m_showlist.EnsureVisible(m_showlist.GetItemCount() - 1, TRUE);
+		m_showlist.EnsureVisible(nItem, FALSE);
+		// Highlight the new show and give it focus
+		m_showlist.SetItemState(nItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+		m_showlist.SetFocus();
+	}
+}

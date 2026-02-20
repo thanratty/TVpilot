@@ -171,14 +171,14 @@ void ScheduleListStringsToLocal(sScheduleListEntry* gle)
 /**
  * For the given show ptr, scan it's epsidos list and determine last & next airdates
  */
-void EvalShowLastNextDates( show* pshow )
+void EvalShowLastNextDates( show& aShow )
 {
 	// Prepare default dates
 	gregorian::date today = gregorian::day_clock::local_day();
 	gregorian::date _last = gregorian::date(gregorian::min_date_time);
 	gregorian::date _next = gregorian::date(gregorian::max_date_time);
 
-	for (const episode& ep : pshow->episodes)
+	for (const episode& ep : aShow.episodes)
 	{
 		// Track most recent before today
 		if ((ep.ep_date > _last) && (ep.ep_date < today))
@@ -189,10 +189,10 @@ void EvalShowLastNextDates( show* pshow )
 			_next = ep.ep_date;
 	}
 
-	pshow->last_airdate = _last;
-	pshow->next_airdate = _next;
-	pshow->last_airdate_string = (_last == gregorian::date(gregorian::min_date_time)) ? "" : gregorian::to_simple_string(_last);
-	pshow->next_airdate_string = (_next == gregorian::date(gregorian::max_date_time)) ? "" : gregorian::to_simple_string(_next);
+	aShow.last_airdate = _last;
+	aShow.next_airdate = _next;
+	aShow.last_airdate_string = (_last == gregorian::date(gregorian::min_date_time)) ? "" : gregorian::to_simple_string(_last);
+	aShow.next_airdate_string = (_next == gregorian::date(gregorian::max_date_time)) ? "" : gregorian::to_simple_string(_next);
 }
 
 

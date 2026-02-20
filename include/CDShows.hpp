@@ -34,12 +34,10 @@ public:
 		virtual void	OnOK();
 
 				void	AppendRow(const sShowListEntry* sle);
-				void	SaveTopIndex();
-				void	RestoreTopIndex();
+				void	EnsureVisible(DWORD hash);
 		inline  void	DeleteAllItems() { m_showlist.DeleteAllItems(); }
 
 private:
-		int				m_top_index{ 0 };
 		CPoint			m_click_point;
 		CListCtrl		m_showlist;
 static const tSortMap	m_sort_map;

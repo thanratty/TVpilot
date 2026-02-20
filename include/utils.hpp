@@ -161,7 +161,7 @@ void ScheduleListStringsToLocal(sScheduleListEntry* gle);
 /**
  * Scan a show's episode list and work out the last/next air dates & save the in the show data
  */
-void EvalShowLastNextDates(show* pshow);
+void EvalShowLastNextDates(show& aShow);
 
 
 

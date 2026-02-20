@@ -484,9 +484,15 @@ void CepcheckDlg::OnBtn_NewShow()
 		return;
 	}
 
+	//
 	// Get things ready to start the download
-	m_dlgShows.SaveTopIndex();
+	//
+
+	m_adding_new_show = true;
+	m_new_show_hash   = SimpleHash(new_url);
+
 	m_ping_count = m_err_count = 0;
+	m_ping_expected = 1;
 	UpdateOnscreenCounters();
 
 	// Start downloading the new show's info
@@ -508,7 +514,6 @@ void CepcheckDlg::UpdateShowList()
 	eGetAction		action{ eGetAction::GET_FIRST };
 
 	// Get the dialog box to do a few things
-	m_dlgShows.SaveTopIndex();
 	m_dlgShows.DeleteAllItems();
 
 	while (m_data.GetShow(eShowList::ACTIVE, action, &sle))
@@ -522,7 +527,13 @@ void CepcheckDlg::UpdateShowList()
 
 	// Sort the list & redraw it
 	m_dlgShows.SortList();
-	m_dlgShows.RestoreTopIndex();
+
+	// If a new show was added - make it visible
+	if (m_adding_new_show) {
+		m_adding_new_show = false;
+		m_dlgShows.EnsureVisible(m_new_show_hash);
+	}
+
 	m_dlgShows.Invalidate();
 
 	// Update # shows in Show tab text
@@ -676,13 +687,16 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
 		AfxMessageBox(L"Download aborted.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		m_abort_download = false;
+		m_adding_new_show = false;
 		m_dlm.ClearAbortCondition();
 	}
 	else if (m_err_count > 0)
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
 		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
+		m_abort_download = false;
 		m_err_count = 0;
+		m_adding_new_show = false;
 	}
 	else
 	{
@@ -1312,7 +1326,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	UpdateOnscreenCounters();
 
 	const show& resultShow = m_dlm.GetSlotShow(slotnum);
-	// If this is for a new show, there will be no database entry for it. [TODO or check showstate flags? ]
+	// If this is for a new show, there will be no database entry for it.
 	show* originalShow = m_data.FindShow(resultShow.hash, eShowList::ACTIVE);
 
 	
@@ -1331,10 +1345,10 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	{
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSING);
 
-		if (originalShow)
-			m_data.UpdateShow(m_dlm.GetSlotShow(slotnum));
-		else if (resultShow.state & showstate::SH_ST_NEW_SHOW)
-			m_data.AddNewShow(m_dlm.GetSlotShow(slotnum));
+		if ((originalShow) && (m_adding_new_show==false))
+			m_data.UpdateShow(resultShow);
+		else if (!originalShow && m_adding_new_show)
+			m_data.AddNewShow(resultShow);
 		else
 			LogMsgWin(L"OnDownloadPing() : Unexpected showstate");
 

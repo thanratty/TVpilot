@@ -13,7 +13,7 @@
  /**
   * Settings only active for DEBUG configuration
   */
-#define         USE_TEST_DATAFILE               0       // Force use of alternative datafile for testing NB Both DEBUG & RELEASE
+#define         USE_TEST_DATAFILE               1       // Force use of alternative datafile for testing NB Both DEBUG & RELEASE
 #define         ENABLE_CONSOLE_LOGGING          1       // Create a console window for log messages. Finer control in logging.hpp
 #define         ECHO_MSG_WINDOW_TO_CONSOLE      1
 #define			SAVE_WEBPAGE_ON_ERROR		    0		// Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]

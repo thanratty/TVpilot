@@ -406,18 +406,11 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
 
 
 
-
-
-
-
-
-
-
-
-
 void model::AddNewShow(const show& showtoadd)
 {
     m_active_shows.push_back(showtoadd);
+    int index = m_active_shows.size()-1;
+    EvalShowLastNextDates( m_active_shows[index]);
 }
 
 
@@ -447,7 +440,7 @@ bool model::UpdateShow(const show& showtoupdate)
         originalShow->tvmaze_url = showtoupdate.tvmaze_url;
     originalShow->thetvdb_url = showtoupdate.thetvdb_url;
     originalShow->state |= showstate::SH_ST_UPDATED;
-    EvalShowLastNextDates(originalShow);
+    EvalShowLastNextDates(*originalShow);
 
     VERIFY(dbLock.Unlock());
 

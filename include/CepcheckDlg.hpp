@@ -88,15 +88,18 @@ private:
 			model				m_data;
 			CdownloadManager	m_dlm;
 			//
+			bool			m_adding_new_show{ false };
+			DWORD			m_new_show_hash{ DWORD_MAX };
+
 			unsigned		m_ping_expected{ 0 };
 			unsigned		m_ping_count{ 0 };
 			unsigned		m_err_count{ 0 };
+			bool			m_abort_download{ false };
 
+			BOOL			m_missed_only{ FALSE };
 			int				m_spin_pre_val{ DEFAULT_DAYS_PRE };
 			int				m_spin_post_val{ DEFAULT_DAYS_POST };
-			bool			m_abort_download{ false };
-			//
-			BOOL			m_missed_only{ FALSE };
+
 
 	virtual void		OnOK();
 	virtual void		OnCancel();
