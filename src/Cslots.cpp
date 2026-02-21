@@ -158,7 +158,10 @@ HANDLE Cslot::GetRequestHandle() const {
 }
 
 void Cslot::SignalRequest() const  {
-    SetEvent(m_hEvRequest);
+    if (!SetEvent(m_hEvRequest)) {
+        LOG_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed");
+    }
+
 }
 
 void Cslot::SetMsgWin(HWND hMsgWin) {
@@ -178,8 +181,6 @@ HWND Cslot::GetMsgWin(void) const {
 
 
 
-Cslots::Cslots() {}
-Cslots::~Cslots() {}
 
 
 void Cslots::SetMsgWin(HWND hWin)

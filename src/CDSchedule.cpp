@@ -133,17 +133,17 @@ BOOL CDSchedule::OnInitDialog()
 	col.mask = LVCF_FMT | LVCF_TEXT;
 	col.cx   = -1;
 
-	col.pszText = L"Show";
+	col.pszText = (LPWSTR) L"Show";
 	m_schedlist.InsertColumn(COL_SCHED_SHOW, &col);
-	col.pszText = L"Episode";
+	col.pszText = (LPWSTR) L"Episode";
 	m_schedlist.InsertColumn(COL_SCHED_EP_NUM, &col);
-	col.pszText = L"Date";
+	col.pszText = (LPWSTR) L"Date";
 	m_schedlist.InsertColumn(COL_SCHED_DATE_STR, &col);
-	col.pszText = L"Title";
+	col.pszText = (LPWSTR) L"Title";
 	m_schedlist.InsertColumn(COL_SCHED_TITLE, &col);
-	col.pszText = L"D-sort";
+	col.pszText = (LPWSTR) L"D-sort";
 	m_schedlist.InsertColumn(COL_SCHED_DATE_SORT, &col);
-	col.pszText = L"EpFlags";
+	col.pszText = (LPWSTR) L"EpFlags";
 	m_schedlist.InsertColumn(COL_SCHED_EP_FLAGS, &col);
 
 	// Set the individual column widths

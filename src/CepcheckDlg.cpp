@@ -45,10 +45,15 @@ CepcheckDlg::CepcheckDlg(CWnd* pParent /*=nullptr*/) :
 void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_TAB1,			   m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST,   m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,    m_spin_pre);
-	DDX_Check(  pDX, IDC_CHK_MISSED_ONLY,  m_missed_only);
+	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE, m_spin_pre);
+	DDX_Control(pDX, IDC_BTN_LOAD, m_btn_load);
+	DDX_Control(pDX, IDC_BTN_SAVE, m_btn_save);
+	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_missed_only);
+	DDX_Control(pDX, IDC_BTN_DOWNLOAD, m_btn_download);
+	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
+	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
 }
 
 
@@ -217,6 +222,10 @@ BOOL CepcheckDlg::OnInitDialog()
 	if (m_data.IsNewDataFile())
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
 
+	// tstst
+	//SetButtonStates();
+
+
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
 }
@@ -274,9 +283,13 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
 {
 	int selectedTab = m_tabctrl.GetCurSel();
 
-	m_dlgShows.ShowWindow(   (selectedTab == TAB_NUM_SHOWS)    ? SW_SHOW : SW_HIDE);
-	m_dlgSchedule.ShowWindow((selectedTab == TAB_NUM_SCHEDULE) ? SW_SHOW : SW_HIDE);
-	m_dlgArchive.ShowWindow( (selectedTab == TAB_NUM_ARCHIVE)  ? SW_SHOW : SW_HIDE);
+	if (selectedTab == TAB_NUM_SHOWS)
+		m_dlgShows.ShowWindow( SW_SHOW );
+	else if (selectedTab == TAB_NUM_SCHEDULE)
+		m_dlgSchedule.ShowWindow( SW_SHOW );
+	else
+		// TAB_NUM_ARCHIVE
+		m_dlgArchive.ShowWindow( SW_SHOW );
 
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 
@@ -763,7 +776,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 	if (url.GetLength() > 0)
 	{
 		HINSTANCE h = ::ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
-		if ((INT_PTR)h <= 32) {
+		if (reinterpret_cast<INT_PTR>(h) <= 32) {
 			CString msg;
 			msg.Format(L"ShellExecute returned %08X", (INT_PTR) h);
 			LogMsgWin(msg);
@@ -996,66 +1009,68 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 	switch (event)
 	{
 		case eAppevent::AE_APP_STARTED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_load.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
 		case eAppevent::AE_DOWNLOAD_STARTED:
-			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(TRUE);
-
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_ENABLE);
+			//
+			m_btn_load.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_new_show.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_delete_show.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
 		case eAppevent::AE_DOWNLOAD_OK:
-			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			//
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow();
+			m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			// Also set tab appropriate buttons
 			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 			break;
 
 		case eAppevent::AE_DOWNLOAD_ABORTED:
-			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow();
+			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			//
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow(0);
+			m_btn_download.EnableWindow();
 			break;
 
 		case eAppevent::AE_DOWNLOAD_FAILED:
-			m_dlgMessages.GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
-
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			//
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_download.EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
 		case eAppevent::AE_FILE_LOADED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(1);
+			m_btn_load.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_download.EnableWindow();
 			break;
 
 		case eAppevent::AE_FILE_SAVED:
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
 		case eAppevent::AE_FILE_CREATED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(1);
-			GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_load.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
+			m_btn_new_show.EnableWindow();
+			m_btn_delete_show.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
 		// Can only happen on Schedule dialog
 		case eAppevent::AE_EP_FLAGS_CHANGED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow();
 			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			break;
 
@@ -1063,33 +1078,33 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 		case eAppevent::AE_SHOW_ADDED:
 		case eAppevent::AE_SHOW_REFRESHED:
 		case eAppevent::AE_SHOW_DELETED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
-			GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow();
+			m_btn_download.EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 			break;
 
 		case eAppevent::AE_ARCHIVE_CHANGED:
-			GetDlgItem(IDC_BTN_LOAD)->EnableWindow();
-			GetDlgItem(IDC_BTN_SAVE)->EnableWindow();
+			m_btn_load.EnableWindow();
+			m_btn_save.EnableWindow();
 			break;
 
 		case eAppevent::AE_TAB_CHANGED:
 			if (selectedTab == TAB_NUM_SHOWS) {
-				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow();
-				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0);
-				GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_new_show.EnableWindow();
+				m_btn_delete_show.EnableWindow(0);
+				m_btn_download.EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			}
 			else if (selectedTab == TAB_NUM_SCHEDULE) {
-				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(0);
-				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow(0);
-				GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_new_show.EnableWindow(0);
+				m_btn_delete_show.EnableWindow(0);
+				m_btn_download.EnableWindow((numActiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			}
 			else if (selectedTab == TAB_NUM_ARCHIVE)
 			{
-				GetDlgItem(IDC_BTN_NEW_SHOW)->EnableWindow(0);
-				GetDlgItem(IDC_BTN_DELETE_SHOW)->EnableWindow();
-				GetDlgItem(IDC_BTN_DOWNLOAD)->EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_new_show.EnableWindow(0);
+				m_btn_delete_show.EnableWindow();
+				m_btn_download.EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
 			}
 			break;
 

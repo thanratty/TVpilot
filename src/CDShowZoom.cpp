@@ -109,13 +109,13 @@ BOOL CDShowZoom::OnInitDialog()
 	col.cx = -1;
 
 	// NB Same # columns must be catered for in the column click (ie sort) handler
-	col.pszText = L"Title";
+	col.pszText = (LPWSTR) L"Title";
 	m_eplist.InsertColumn(COL_EPISODES_TITLE, &col);
-	col.pszText = L"Episode";
+	col.pszText = (LPWSTR) L"Episode";
 	m_eplist.InsertColumn(COL_EPISODES_NUMBER, &col);
-	col.pszText = L"Air Date";
+	col.pszText = (LPWSTR) L"Air Date";
 	m_eplist.InsertColumn(COL_EPISODES_DATE, &col);
-	col.pszText = L"D-Date";
+	col.pszText = (LPWSTR) L"D-Date";
 	m_eplist.InsertColumn(COL_EPISODES_DATE_SORT, &col);
 
 
@@ -139,7 +139,7 @@ BOOL CDShowZoom::OnInitDialog()
 		ui_airdate_string = ui_airdate_string.Right(2) + ui_airdate_string.Mid(4, 5) + ui_airdate_string.Left(4);
 
 		CString ui_episode_number(ep.ep_num.c_str());
-		CString ui_episode_title = CA2W(ep.ep_title.c_str(), CP_UTF8);
+		CString ui_episode_title = (LPCWSTR) CA2W(ep.ep_title.c_str(), CP_UTF8);
 
 		std::string str = std::to_string(ep.ep_date.julian_day());
 		CString ui_airdate_sort(str.c_str());

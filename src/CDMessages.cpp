@@ -32,9 +32,11 @@ void CDmessages::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDmessages, CDialogEx)
-	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtnClicked_Clear)
-	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtnClicked_AbortDownload)
+	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtn_Clear)
+	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtn_AbortDownload)
 	ON_BN_CLICKED(IDC_BTN_LOGGING,          &CDmessages::OnBtn_Logging)
+	ON_MESSAGE(WM_TVP_ABORT_BTN_ENABLE,		&CDmessages::OnMsg_AbortEnable)
+	ON_MESSAGE(WM_TVP_ABORT_BTN_DISABLE,	&CDmessages::OnMsg_AbortDisable)
 END_MESSAGE_MAP()
 
 
@@ -43,7 +45,7 @@ END_MESSAGE_MAP()
 //
 
 
-void CDmessages::OnBtnClicked_Clear()
+void CDmessages::OnBtn_Clear()
 {
 	GetDlgItem(IDC_MESSAGES)->SetWindowText(L"");
 }
@@ -67,7 +69,7 @@ void CDmessages::OnCancel()
 }
 
 
-void CDmessages::OnBtnClicked_AbortDownload()
+void CDmessages::OnBtn_AbortDownload()
 {
 	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_BTN_ABORT_DOWNLOAD, BN_CLICKED));
 }
@@ -79,5 +81,24 @@ void CDmessages::OnBtn_Logging()
 	CDLogFlags	dlog(this);
 	dlog.DoModal();
 #endif
+}
+
+
+LRESULT CDmessages::OnMsg_AbortEnable(WPARAM wParam, LPARAM lParam)
+{
+	wParam;
+	lParam;
+
+	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow();
+	return 0;
+}
+
+LRESULT CDmessages::OnMsg_AbortDisable(WPARAM wParam, LPARAM lParam)
+{
+	wParam;
+	lParam;
+
+	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
+	return 0;
 }
 

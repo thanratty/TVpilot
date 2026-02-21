@@ -28,7 +28,7 @@ DEFINE_ENUM_FLAG_OPERATORS(episodeflags)
 class episode
 {
 public:
-    episode::episode() : ep_flags(episodeflags::EP_FL_NONE){};
+    episode() : ep_flags(episodeflags::EP_FL_NONE){};
 
     friend std::ostream& operator<< (std::ostream& wstream, const episode& ep);
     friend std::istream& operator>> (std::istream& wstream, episode& ep);

@@ -118,18 +118,18 @@ BOOL CDArchive::OnInitDialog()
 	 */
 
 	LVCOLUMNW col = { 0 };
-	col.fmt = LVCFMT_LEFT;
+	col.fmt  = LVCFMT_LEFT;
 	col.mask = LVCF_FMT | LVCF_TEXT;
-	col.cx = -1;
+	col.cx   = -1;
 
-	col.pszText = L"Title";
+	col.pszText = (LPWSTR) L"Title";
 	m_archivelist.InsertColumn(COL_ARCHIVE_TITLE, &col);
-	col.pszText = L"Number";
+	col.pszText = (LPWSTR) L"Number";
 	m_archivelist.InsertColumn(COL_ARCHIVE_NUMBER, &col);
-	col.pszText = L"Last";
+	col.pszText = (LPWSTR) L"Last";
 	m_archivelist.InsertColumn(COL_ARCHIVE_LAST_DATE_STR, &col);
 	// 1 hidden date sort col
-	col.pszText = L"D-Last";
+	col.pszText = (LPWSTR) L"D-Last";
 	m_archivelist.InsertColumn(COL_ARCHIVE_LAST_DATE_SORT, &col);
 
 
@@ -149,12 +149,12 @@ BOOL CDArchive::OnInitDialog()
 
 
 
+/**
+ *  Add a row to the Shows list
+ */
 void CDArchive::AppendRow(sShowListEntry* sle)
 {
-	/**
-	 *  Add a row to the Shows list
-	 *
-	 */
+	// Prepare the string for the tab text
 	CString ui_numeps;
 	ui_numeps.Format(L"%u", sle->num_episodes);
 
@@ -168,7 +168,6 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 	m_archivelist.SetItemText(index, COL_ARCHIVE_LAST_DATE_SORT, sle->ui_last_airdate_sort);
 	// Set the hash
 	m_archivelist.SetItemData(index, sle->hash);
-
 }
 
 
@@ -177,18 +176,22 @@ void CDArchive::AppendRow(sShowListEntry* sle)
 void CDArchive::OnCancel()
 {
 	LogMsgWin(L"CDArchive::OnCancel() discarded");
-	//CDialog::OnCancel();
+	// Skip CDialog::OnCancel();
 }
 
 void CDArchive::OnOK()
 {
 	LogMsgWin(L"CDArchive::OnOK() discarded");
-	//CDialog::OnOK();
+	// Skip CDialog::OnOK();
 }
 
 
 
 
+/**
+ * Right mouse button click show the context menu.
+ *
+ */
 void CDArchive::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 {
 	static sPopupContext		context;
@@ -235,6 +238,11 @@ void CDArchive::OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult)
 
 
 
+
+/**
+ * Click on a column header to sort on that columns. Click again to reverse the sort order.
+ *
+ */
 void CDArchive::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	// This msg is always 'handled'
@@ -243,7 +251,7 @@ void CDArchive::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	int new_sort_col   = pNMLV->iSubItem;
 
-	// Set the new sort column - if needed re-sort the list control
+	// Set the new sort column - if needed (order or column changed) re-sort the list control
 	if (SetSortColumn(new_sort_col) == true)
 		SortList();
 }

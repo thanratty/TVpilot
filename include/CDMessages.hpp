@@ -19,11 +19,14 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+	afx_msg LRESULT OnMsg_AbortEnable( WPARAM wParam=0, LPARAM lParam=0);
+	afx_msg LRESULT OnMsg_AbortDisable(WPARAM wParam=0, LPARAM lParam=0);
+
 	DECLARE_MESSAGE_MAP()
 public:
 	CEdit m_messages;
-	afx_msg void OnBtnClicked_Clear();
-	afx_msg void OnBtnClicked_AbortDownload();
+	afx_msg void OnBtn_Clear();
+	afx_msg void OnBtn_AbortDownload();
 	afx_msg void OnBtn_Logging();
 
 	virtual void OnOK();

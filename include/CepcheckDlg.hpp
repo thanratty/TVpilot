@@ -75,6 +75,12 @@ public:
 
 
 private:
+			CButton			m_btn_load;
+			CButton			m_btn_save;
+			CButton			m_btn_download;
+			CButton			m_btn_new_show;
+			CButton			m_btn_delete_show;
+
 			CSpinButtonCtrl m_spin_post;
 			CSpinButtonCtrl m_spin_pre;
 			CTabCtrl		m_tabctrl;

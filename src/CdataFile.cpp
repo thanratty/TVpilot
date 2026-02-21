@@ -22,15 +22,15 @@
 
 #if (USE_TEST_DATAFILE==1)
 #pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE TEST DATA FILE --- !!")
-constexpr wchar_t* DATAFILE_NAME = TEST_DATAFILE_NAME;
+constexpr wchar_t* DATAFILE_NAME = (LPWSTR) TEST_DATAFILE_NAME;
 #else
 #pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE RELEASE DATA FILE --- !!")
-constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
+constexpr wchar_t* DATAFILE_NAME = (LPWSTR) RELEASE_DATAFILE_NAME;
 #endif
 
 #else
 
-constexpr wchar_t* DATAFILE_NAME = RELEASE_DATAFILE_NAME;
+constexpr wchar_t* DATAFILE_NAME = (LPWSTR) RELEASE_DATAFILE_NAME;
 
 #endif
 

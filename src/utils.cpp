@@ -49,7 +49,7 @@ DWORD SimpleHash(const std::string& str)
  */
 DWORD SimpleHash(const CString& url)
 {
-	std::string ascii_url = CW2A(url, CP_UTF8);
+	std::string ascii_url = (LPSTR) CW2A(url, CP_UTF8);
 	return SimpleHash(ascii_url);
 }
 
@@ -124,7 +124,7 @@ int NumberCompareFunc(const CString& item1, const CString& item2, bool ascending
 
 void ShowListStringsToLocal(sShowListEntry* sle)
 {
-	CString s_title = CA2W(sle->show_title.c_str(), CP_UTF8);
+	CString s_title = (LPWSTR) CA2W(sle->show_title.c_str(), CP_UTF8);
 	sle->ui_title = s_title;
 
 	CString s_last(sle->last_airdate_string.c_str());
@@ -149,7 +149,7 @@ void ScheduleListStringsToLocal(sScheduleListEntry* gle)
 {
 	const CString aDOW[7] = { L"Sun ", L"Mon ", L"Tue ", L"Wed ", L"Thr ", L"Fri ", L"Sat " };
 
-	CString s_show_title = CA2W(gle->show_title.c_str(), CP_UTF8);
+	CString s_show_title = (LPWSTR) CA2W(gle->show_title.c_str(), CP_UTF8);
 	gle->ui_show_title = s_show_title;
 
 	CString s_airdate_string(gle->airdate_string.c_str());
@@ -158,7 +158,7 @@ void ScheduleListStringsToLocal(sScheduleListEntry* gle)
 	CString s_episode_number(gle->episode_number.c_str());
 	gle->ui_episode_number = s_episode_number;
 
-	CString s_episode_title = CA2W(gle->episode_title.c_str(), CP_UTF8);
+	CString s_episode_title = (LPCWSTR) CA2W(gle->episode_title.c_str(), CP_UTF8);
 	gle->ui_episode_title = s_episode_title;
 
 	std::string str = std::to_string(gle->airdate.julian_day());

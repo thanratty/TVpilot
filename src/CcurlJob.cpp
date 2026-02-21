@@ -60,8 +60,8 @@ bool cCurlJob::fetchUrl()
     }
 
 
-    headers = curl_slist_append(headers, u8"Accept: */*");
-    headers = curl_slist_append(headers, u8"Host: epguides.com:443");
+    headers = curl_slist_append(headers, "Accept: */*");
+    headers = curl_slist_append(headers, "Host: epguides.com:443");
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
         
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, -1);        // Needed for multi-threaded use
@@ -73,7 +73,7 @@ bool cCurlJob::fetchUrl()
     curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_TRY );
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, this);
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, CURL_REPLY_TIMEOUT);
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, u8"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0");
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0");
 
     m_curl_result = curl_easy_perform(curl_handle);
     curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &m_http_response);

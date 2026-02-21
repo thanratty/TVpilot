@@ -26,8 +26,8 @@
 
 
 
-STATIC constexpr char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
-STATIC constexpr char* DEFAULT_EPISODE_NUMBER = "01-00";
+STATIC const char* DEFAULT_EPISODE_DATE   = "1900 Jan 01";
+STATIC const char* DEFAULT_EPISODE_NUMBER = "01-00";
 
 
 

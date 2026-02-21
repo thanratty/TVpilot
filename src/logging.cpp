@@ -374,7 +374,7 @@ void LogMsgWin(const char* format, ...)
 	size_t len = strlen(newstr);
 	if (len > 0)
 	{
-		CString str = CA2W(newstr, CP_UTF8);
+		CString str = (LPWSTR) CA2W(newstr, CP_UTF8);
 		LogMsgWin(str);
 	}
 }

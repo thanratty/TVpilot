@@ -126,8 +126,8 @@ private:
 class Cslots
 {
 public:
-    Cslots::Cslots();
-    Cslots::~Cslots();
+//    Cslots::Cslots();
+//    Cslots::~Cslots();
 
     void    TerminateSlotThreads();
     bool    AllSlotThreadsTerminated() const;

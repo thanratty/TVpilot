@@ -50,6 +50,7 @@
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(ProjectDir)external\curl-8.6.0_4-win32-mingw\bin;$(ProjectDir)external\libxml2-2.7.8.win32\lib;$(ProjectDir)external\iconv-1.9.2.win32\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>$(ProjectDir)include;$(ProjectDir)res;F:\Boost-Library\boost_1_78_0;$(ProjectDir)external\curl-8.6.0_4-win32-mingw\include;$(ProjectDir)external\libxml2-2.7.8.win32\include;$(ProjectDir)external\iconv-1.9.2.win32\include;$(IncludePath)</IncludePath>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -64,7 +65,7 @@
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;CURL_STATICLIB;DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

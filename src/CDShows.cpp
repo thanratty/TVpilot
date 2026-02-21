@@ -127,18 +127,18 @@ BOOL CDShows::OnInitDialog()
 	col.mask = LVCF_FMT | LVCF_TEXT;
 	col.cx = -1;
 
-	col.pszText = L"Title";
+	col.pszText = (LPWSTR) L"Title";
 	m_showlist.InsertColumn(COL_SHOW_TITLE, &col);
-	col.pszText = L"Number";
+	col.pszText = (LPWSTR) L"Number";
 	m_showlist.InsertColumn(COL_SHOW_NUMBER, &col);
-	col.pszText = L"Last";
+	col.pszText = (LPWSTR) L"Last";
 	m_showlist.InsertColumn(COL_SHOW_LAST_DATE_STR, &col);
-	col.pszText = L"Next";
+	col.pszText = (LPWSTR) L"Next";
 	m_showlist.InsertColumn(COL_SHOW_NEXT_DATE_STR, &col);
 	// 2 hidden date sort cols
-	col.pszText = L"D-Last";
+	col.pszText = (LPWSTR) L"D-Last";
 	m_showlist.InsertColumn(COL_SHOW_LAST_DATE_SORT, &col);
-	col.pszText = L"D-Next";
+	col.pszText = (LPWSTR) L"D-Next";
 	m_showlist.InsertColumn(COL_SHOW_NEXT_DATE_SORT, &col);
 
 
