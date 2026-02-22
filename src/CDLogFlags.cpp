@@ -6,6 +6,7 @@
 #include <array>
 
 #include "common.hpp"
+
 #include "utils.hpp"
 
 #include "CDLogFlags.hpp"

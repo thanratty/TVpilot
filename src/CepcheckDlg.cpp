@@ -46,14 +46,14 @@ void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE, m_spin_pre);
-	DDX_Control(pDX, IDC_BTN_LOAD, m_btn_load);
-	DDX_Control(pDX, IDC_BTN_SAVE, m_btn_save);
-	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_missed_only);
-	DDX_Control(pDX, IDC_BTN_DOWNLOAD, m_btn_download);
-	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST,  m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,   m_spin_pre);
+	DDX_Control(pDX, IDC_BTN_LOAD,        m_btn_load);
+	DDX_Control(pDX, IDC_BTN_SAVE,        m_btn_save);
+	DDX_Control(pDX, IDC_BTN_DOWNLOAD,    m_btn_download);
+	DDX_Control(pDX, IDC_BTN_NEW_SHOW,    m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
+	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_missed_only);
 }
 
 
@@ -283,13 +283,10 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
 {
 	int selectedTab = m_tabctrl.GetCurSel();
 
-	if (selectedTab == TAB_NUM_SHOWS)
-		m_dlgShows.ShowWindow( SW_SHOW );
-	else if (selectedTab == TAB_NUM_SCHEDULE)
-		m_dlgSchedule.ShowWindow( SW_SHOW );
-	else
-		// TAB_NUM_ARCHIVE
-		m_dlgArchive.ShowWindow( SW_SHOW );
+	// It's not enough to just SHOW the active tab, you must HIDE the inactive tabs too.
+	m_dlgShows.ShowWindow(    (selectedTab == TAB_NUM_SHOWS)    ? SW_SHOW : SW_HIDE);
+	m_dlgSchedule.ShowWindow( (selectedTab == TAB_NUM_SCHEDULE) ? SW_SHOW : SW_HIDE);
+	m_dlgArchive.ShowWindow(  (selectedTab == TAB_NUM_ARCHIVE)  ? SW_SHOW : SW_HIDE);
 
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_TAB_CHANGED));
 
@@ -727,6 +724,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LP
 	}
 	else
 	{
+		// Popup the Zoom window
 		CDShowZoom dlg(this, pshow);
 		dlg.DoModal();
 	}
@@ -1037,7 +1035,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
 			//
 			m_btn_load.EnableWindow();
-			m_btn_save.EnableWindow(0);
+			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			m_btn_download.EnableWindow();
 			break;
 

@@ -3,7 +3,7 @@
 /**
  * Settings applied to Both DEBUG and RELEASE
  */
-#define         KEEP_BUTTONS_ENABLED            0       // Keep all dialog buttons enabled for ease of testing/debugging
+#define         KEEP_BUTTONS_ENABLED            0       // Keep load/save/download dialog buttons enabled for ease of testing/debugging
 #define         CURL_MAX_TRIES                  3       // Max # curl download attempts including retries
 #define         CURL_RETRY_DELAY                2000    // Delay 2 seconds after a Curl download error
 #define         CURL_REPLY_TIMEOUT              8000    // Allow 8 seconds for https transaction to complete
@@ -24,7 +24,7 @@
 /**
  * Displayed release version
  */
-#define         VERSION_NUMBER                  "1.1"
+#define         VERSION_NUMBER                  "2.0"
 
 
 

@@ -14,6 +14,7 @@
 using namespace boost;
 
 #include "common.hpp"
+
 #include "Cshow.hpp"
 #include "CDInputBox.hpp"
 

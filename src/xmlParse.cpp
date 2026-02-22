@@ -9,7 +9,6 @@
 
 #include "boost/algorithm/string/trim.hpp"
 #include "iconv.h"
-
 #include "libxml/xpath.h"
 #include "libxml/HTMLparser.h"
 #include "libxml/HTMLtree.h"

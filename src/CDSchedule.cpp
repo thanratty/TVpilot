@@ -7,6 +7,7 @@
 using namespace boost;
 
 #include "common.hpp"
+
 #include "utils.hpp"
 
 #include "CDSchedule.hpp"

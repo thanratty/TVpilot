@@ -10,7 +10,7 @@ using namespace boost;
 #include "Cshow.hpp"
 
 
-enum class eAppevent
+enum class eAppevent : UINT32
 {
 	AE_APP_STARTED,
 	AE_TAB_CHANGED,
