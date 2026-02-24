@@ -54,7 +54,7 @@ std::istream& operator>> (std::istream& istream, show& s)
     s.imdb_url     = str_imdb_url;
     s.thetvdb_url  = str_thetvdb_url;
 
-    s.hash  = SimpleHash(s.epguides_url);
+    s.hash  = std::hash<std::string>()(s.epguides_url);
     s.state = showstate::SH_ST_LOADED;
 
     for (unsigned i = 0; i < numEpisodes; i++)

@@ -34,7 +34,7 @@ public:
 		virtual void	OnOK();
 
 				void	AppendRow(const sShowListEntry* sle);
-				void	EnsureVisible(DWORD hash);
+				void	EnsureVisible(size_t hash);
 		inline  void	DeleteAllItems() { m_showlist.DeleteAllItems(); }
 
 private:

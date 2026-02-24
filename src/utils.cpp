@@ -25,36 +25,6 @@ using namespace boost;
 
 
 
-/**
- * Compute a simple hash on the string parameter
- */
-DWORD SimpleHash(const std::string& str)
-{
-    constexpr unsigned int b = 378551;
-    unsigned int a = 63689;
-    DWORD hash = 0;
-
-    for(const char& c : str)
-    {
-        hash = hash * a + c;
-        a *= b;
-    }
-
-    return hash;
-}
-
-
-
-/**
- * Compute a simple hash on the CString parameter
- */
-DWORD SimpleHash(const CString& url)
-{
-	std::string ascii_url = (LPSTR) CW2A(url, CP_UTF8);
-	return SimpleHash(ascii_url);
-}
-
-
 
 /**
  * Convert "SS-EE" formatted episode string to a number for temporal ordering

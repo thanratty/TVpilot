@@ -94,7 +94,7 @@ private:
 			model				m_data;
 			CdownloadManager	m_dlm;
 			//
-			DWORD			m_new_show_hash{ 0 };
+			size_t			m_new_show_hash{ 0 };
 
 			unsigned		m_ping_expected{ 0 };
 			unsigned		m_ping_count{ 0 };
@@ -116,6 +116,6 @@ private:
 			void		UpdateArchiveList();
 			void		UpdateSchedulePeriod();
 
-			bool		RefreshShow(DWORD hash);
+			bool		RefreshShow(size_t hash);
 			void		CheckDownloadComplete();
 };

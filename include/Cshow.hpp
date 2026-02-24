@@ -63,7 +63,7 @@ public:
         imdb_url.clear();
         thetvdb_url.clear();
 
-        hash = DWORD_MAX;
+        hash  = 0;
         flags = SH_FL_NONE;
         state = SH_ST_NONE;
  
@@ -82,7 +82,7 @@ public:
     std::string         imdb_url;
     std::string         thetvdb_url;
 
-    DWORD               hash{ DWORD_MAX };
+    size_t              hash{ 0 };
     showflags           flags{ showflags::SH_FL_NONE };
     showstate           state{ showstate::SH_ST_NONE };         // Ephemeral - do not save to disk.
 
@@ -90,6 +90,7 @@ public:
     std::string         last_airdate_string;
     gregorian::date     next_airdate;
     std::string         next_airdate_string;
+
     std::string         next_episode_number;
 
     std::vector<episode> episodes;

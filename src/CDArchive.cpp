@@ -230,7 +230,7 @@ void CDArchive::OnDblclkListArchive(NMHDR* pNMHDR, LRESULT* pResult)
 
 	if (row != -1)
 	{
-		DWORD hash = m_archivelist.GetItemData(row);
+		size_t hash = m_archivelist.GetItemData(row);
 		GetParent()->PostMessage(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash), 0);
 	}
 

@@ -15,7 +15,6 @@
 
 
 
-
 Cslot::Cslot()
 {
     // NB The logging thread has not started at this point
@@ -61,8 +60,8 @@ void Cslot::TerminateThread()
     {
         // Terminates the worker thread for this slot
         m_exit_thread = true;
-        m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
-        SetEvent(m_hEvRequest);
+        m_slotstate   = eSlotState::SS_THREAD_EXIT_FLAGGED;
+        SignalRequest();
 
         if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
             m_slotstate = eSlotState::SS_THREAD_EXITED;
@@ -78,7 +77,7 @@ void Cslot::TerminateThread()
     }
     else
     {
-        LOG_PRINT(eLogFlags::SLOT_THREAD, L"Slot thread %u already NULL\n", m_SlotNumber);
+        LOG_PRINT(eLogFlags::SLOT_THREAD, L"Slot %u thread already NULL\n", m_SlotNumber);
     }
 }
 
@@ -93,7 +92,7 @@ void Cslot::SetUrl(const std::string& url)
         SetSlotState(eSlotState::SS_URL_SET);
 
         m_show.epguides_url = url;
-        m_show.hash = SimpleHash(url);
+        m_show.hash = std::hash<std::string>()(url);
     }
     else
     {

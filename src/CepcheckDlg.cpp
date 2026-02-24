@@ -222,8 +222,7 @@ BOOL CepcheckDlg::OnInitDialog()
 	if (m_data.IsNewDataFile())
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
 
-	// tstst
-	//SetButtonStates();
+	m_dlm.SetMsgWin(m_hWnd);
 
 
 	// return TRUE  unless you set the focus to a control
@@ -438,7 +437,7 @@ void CepcheckDlg::OnBtn_DeleteShow()
 		return;
 
 	// Get the show hash from the list control & ask the model to delete it
-	DWORD hash = m_dlgArchive.m_archivelist.GetItemData(nItem);
+	size_t hash = m_dlgArchive.m_archivelist.GetItemData(nItem);
 	m_data.DeleteShow(hash);
 
 	// Update the display
@@ -498,7 +497,7 @@ void CepcheckDlg::OnBtn_NewShow()
 	// Get things ready to start the download
 	//
 
-	m_new_show_hash = SimpleHash(new_url);
+	m_new_show_hash = std::hash<std::wstring>()((LPCWSTR)new_url);
 	m_ping_count    = m_err_count = 0;
 	m_ping_expected = 1;
 	UpdateOnscreenCounters();
@@ -744,7 +743,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LP
  */
 afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 {
-	DWORD hash = static_cast<DWORD>(wParam);
+	size_t hash    = static_cast<size_t>(wParam);
 	auto selection = static_cast<unsigned>(lParam);
 
 	const show* ashow = m_data.FindShow(hash, eShowList::BOTH);
@@ -796,7 +795,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]]
 {
 	sPopupContext* pcontext = reinterpret_cast<sPopupContext*>(wParam);
 
-	DWORD  hash  = pcontext->show_hash;
+	size_t hash  = pcontext->show_hash;
 	CPoint point = pcontext->click_point;
 	
 	show* pshow  = m_data.FindShow(hash, eShowList::BOTH);
@@ -1250,7 +1249,7 @@ void CepcheckDlg::OnBtn_Download()
  * Download a show's information from the URL and create a new database entry.
  *
  */
-bool CepcheckDlg::RefreshShow(DWORD hash)
+bool CepcheckDlg::RefreshShow(size_t hash)
 {
 	// Already downloading?
 	if (m_dlm.DownloadInProgress()) {

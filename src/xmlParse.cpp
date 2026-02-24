@@ -279,7 +279,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 	// curljob is the master data here. Setup the empty show object.
 	show.title        = curljob.Url();
 	show.epguides_url = curljob.Url();
-	show.hash         = SimpleHash(curljob.Url());
+	show.hash         = std::hash<std::string>()(curljob.Url());
 
 
 	// Create a thread-safe XML-parser context

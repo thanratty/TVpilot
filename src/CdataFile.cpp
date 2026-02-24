@@ -14,24 +14,13 @@
 
 
 
-/** In a release build, the data file is always in %APPDATALOCAL%\TVpilot
- *  For debugging, the file is in same folder as the executable
+/** The data file is always in %APPDATALOCAL%\TVpilot
  */
-
-#if defined(_DEBUG)
-
-#if (USE_TEST_DATAFILE==1)
+#if defined(_DEBUG) && (USE_TEST_DATAFILE==1)
 #pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE TEST DATA FILE --- !!")
 constexpr wchar_t* DATAFILE_NAME = (LPWSTR) TEST_DATAFILE_NAME;
 #else
-#pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE RELEASE DATA FILE --- !!")
 constexpr wchar_t* DATAFILE_NAME = (LPWSTR) RELEASE_DATAFILE_NAME;
-#endif
-
-#else
-
-constexpr wchar_t* DATAFILE_NAME = (LPWSTR) RELEASE_DATAFILE_NAME;
-
 #endif
 
 
@@ -88,11 +77,13 @@ wchar_t  buffer[MAX_PATH + 1] = {};
     wcscat_s(buffer, MAX_PATH, APP_NAME);
 
     if (PathFileExists(buffer) == FALSE)
+    {
         if (CreateDirectory(buffer, NULL) == FALSE)
         {
             AfxMessageBox(L"Can't create data folder. Aborting.", MB_ICONERROR | MB_OK | MB_APPLMODAL);
             AfxPostQuitMessage(1);
         }
+    }
 
     m_filename = buffer;
     m_filename.append(DATAFILE_NAME);

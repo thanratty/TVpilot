@@ -43,7 +43,7 @@ typedef struct PopupContext_tag
 	int				dialog_id{ 0 };			// Dialog ID
 	CListCtrl*		pList{ nullptr };		// Dialog objecy pointer
 	int				list_index{ 0 };		// Item # in the list control
-	DWORD			show_hash{ DWORD_MAX };
+	size_t			show_hash{ 0 };
 	CPoint			click_point{ (0,0) };
 	episodeflags	ep_flags{ episodeflags::EP_FL_NONE };			// If present - episode flags. Schedule list only?
 	CString			ep_num;
@@ -67,7 +67,7 @@ typedef struct ShowListEntry_tag
 {
 	std::string     show_title;
 	std::string		epguides_url;
-	DWORD           hash{ DWORD_MAX };
+	size_t          hash{ 0 };
 	size_t          num_episodes{ 0 };
 	gregorian::date	last_airdate;
 	gregorian::date	next_airdate;
@@ -102,7 +102,7 @@ typedef struct sScheduleListEntry_tag
 	std::string         airdate_string;
 	std::string         episode_number;
 	std::string         episode_title;
-	DWORD               hash{ DWORD_MAX };
+	size_t              hash{ 0 };
 	gregorian::date     airdate;
 	episodeflags		episode_flags{ episodeflags::EP_FL_NONE };
 	//
@@ -118,21 +118,6 @@ typedef struct sScheduleListEntry_tag
 
 
 
-
-
-
-
-
-
-
-
-
-
-/**
- * Hash a URL into a unique numeric identifier
- */
-DWORD SimpleHash(const std::string& str);
-DWORD SimpleHash(const CString& str);
 
 
 void CopyOutShowInfo(sShowListEntry* sle, const show* pshow);

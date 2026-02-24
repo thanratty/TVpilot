@@ -55,3 +55,29 @@ constexpr UINT E_APP_DATABASE = 1;
 
 constexpr DWORD THREAD_EXIT_TIMEOUT = 4000;
 
+
+
+
+
+
+/**
+ * For a DEBUG build it's handy to have ALL symbols in the map file
+ */
+#ifdef _DEBUG
+#define		STATIC
+#else
+#define		STATIC      static
+#endif
+
+
+
+
+ /**
+  * Declare COMPILE_MESSAGE() macro for outputting compile time messages from the preprocessor
+  */
+#define COMPILE_MESSAGE(t) message(__FILE__ "(" __STRINGXXX(__LINE__) ") : " t)
+#define __STRINGXXX(x) __STRINGYYY(x)
+#define __STRINGYYY(x) #x
+
+
+

@@ -55,11 +55,11 @@ STATIC HANDLE	hLogEvent  { INVALID_HANDLE_VALUE };
 STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
 
 
-STATIC std::queue<const wchar_t*>	msgQueue;						// FIFO of ptrs to message strings
-STATIC CSemaphore*					semQueue{nullptr};				// Semaphore to control access to the message queue
+STATIC std::queue<const wchar_t*>	msgQueue;					// FIFO of ptrs to message strings
+STATIC CSemaphore*					semQueue{nullptr};			// Semaphore to control access to the message queue
 
-STATIC bool			bConsoleReady{ false };
-STATIC DWORD		bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
+STATIC bool		bConsoleReady{ false };
+STATIC bool		bExitThreadFlag{ false };						// Set non-zero to exit the logging thread on the next event
 
 
 STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
@@ -163,7 +163,8 @@ const	wchar_t* msg;
 			::MessageBox(NULL, L"Wait error!\n", L"Console Thread", MB_OK | MB_ICONEXCLAMATION);
 		}
 
-		if (bExitThreadFlag != 0)
+		// Exit the thread if the flag is set true
+		if (bExitThreadFlag)
 			return 0;
 	}
 }
@@ -236,7 +237,7 @@ void LOG_EXIT()
 	// Wait till all current messages are printed
 	while (!MsgQueueIsEmpty());
 
-	bExitThreadFlag = 1;
+	bExitThreadFlag = true;
 	SetEvent(hLogEvent);
 	WaitForSingleObject(hLogThread, THREAD_EXIT_TIMEOUT);
 	
@@ -254,7 +255,7 @@ void LOG_PRINT(eLogFlags type, const wchar_t* format, ...)
 	while (!bConsoleReady) SwitchToThread();
 
 	// Can't print anything once we're shutting down.
-	if (bExitThreadFlag == 1)
+	if (bExitThreadFlag)
 		return;
 
 	// Only print enable messages
@@ -284,7 +285,7 @@ void LOG_PRINT(eLogFlags type, const char* format, ...)
 	while (!bConsoleReady) SwitchToThread();
 
 	// Can't print anything once we're shutting down.
-	if (bExitThreadFlag == 1)
+	if (bExitThreadFlag)
 		return;
 
 	// Only print enable messages

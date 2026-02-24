@@ -8,7 +8,7 @@
 #include <fstream>
 #include <map>
 #include <strsafe.h>
-
+#include <string>
 #include "boost/algorithm/string/trim.hpp"
 
 #include "common.hpp"
@@ -30,14 +30,13 @@
  */
 struct fnoMatchShowHash
 {
-    fnoMatchShowHash() = delete;
-    explicit fnoMatchShowHash(DWORD h) : hash(h) {}
+    explicit fnoMatchShowHash(size_t h) : hash(h) {}
     bool operator()(const show& s) const
     {
         return s.hash == hash;
     }
 private:
-    DWORD hash;
+    size_t hash;
 };
 
 
@@ -45,11 +44,9 @@ private:
 
 struct fnoMatchEpisodeNumber
 {
-    fnoMatchEpisodeNumber() = delete;
     explicit fnoMatchEpisodeNumber(const CString& epnum)
         : ep_num(CW2A(epnum, CP_UTF8))
     {
-//        ep_num = CW2A(epnum, CP_UTF8);
     }
 
     bool operator()(const episode& test_ep) const
@@ -133,12 +130,12 @@ std::istream& operator>>(std::istream& istream, model& model)
  * Search the active and/or the archived lists for a show with the given hash
  *
  */
-show* model::FindShow(DWORD search_hash, eShowList source) 
+show* model::FindShow(size_t search_hash, eShowList source)
 {
     show* retval = nullptr;
     auto funcObject = fnoMatchShowHash(search_hash);
 
-    if (search_hash == DWORD_MAX)
+    if (search_hash == 0)
     {
         LogMsgWin(L"model::FindShow() bad hash");
     }
@@ -166,7 +163,8 @@ show* model::FindShow(DWORD search_hash, eShowList source)
 
 show* model::FindShow(const CString& url, eShowList source) 
 {
-    return FindShow(SimpleHash(url), source);
+    size_t hash = std::hash<std::wstring>()((LPCWSTR) url);
+    return FindShow(hash, source);
 }
 
 
@@ -176,7 +174,7 @@ show* model::FindShow(const CString& url, eShowList source)
  * Shows can only be deleted from the archived tab
  * 
  */
-void model::DeleteShow(DWORD hash)
+void model::DeleteShow(size_t hash)
 {
     m_archive_shows.erase( std::remove_if(m_archive_shows.begin(), m_archive_shows.end(), fnoMatchShowHash(hash)),
         m_archive_shows.end());
@@ -494,7 +492,7 @@ void model::SetDateInterval(int lower, int upper)
 
 
 
-bool model::ArchiveShow(DWORD hash)
+bool model::ArchiveShow(size_t hash)
 {
     auto funcObject = fnoMatchShowHash(hash);
     auto show = std::find_if(m_active_shows.begin(), m_active_shows.end(), funcObject);
@@ -516,7 +514,7 @@ bool model::ArchiveShow(DWORD hash)
 
 
 
-bool model::UnarchiveShow(DWORD hash)
+bool model::UnarchiveShow(size_t hash)
 {
     auto funcObject = fnoMatchShowHash(hash);
     auto show = std::find_if(m_archive_shows.begin(), m_archive_shows.end(), funcObject);
@@ -540,7 +538,7 @@ bool model::UnarchiveShow(DWORD hash)
 
 bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
 {
-    DWORD hash = pcontext->show_hash;
+    size_t hash = pcontext->show_hash;
     bool retval = true;
 
     show* pshow = FindShow(hash, eShowList::ACTIVE);

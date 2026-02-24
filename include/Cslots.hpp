@@ -126,35 +126,26 @@ private:
 class Cslots
 {
 public:
-//    Cslots::Cslots();
-//    Cslots::~Cslots();
-
     void    TerminateSlotThreads();
     bool    AllSlotThreadsTerminated() const;
 
-    void SetMsgWin( HWND hWin );
+    void    SetMsgWin( HWND hWin );
 
-    bool IsFree(unsigned slotnum) const;
-    bool IsBusy(unsigned slotnum) const;
+    bool    IsFree(unsigned slotnum) const;
+    bool    IsBusy(unsigned slotnum) const;
+    int     FirstFreeSlot() const;
+    int     FirstBusySlot() const;
+    void    ReleaseSlot(unsigned slotnum);
 
     const show& GetSlotShow(unsigned slotnum) const;
-
-    eSlotState GetSlotState(unsigned slotnum) const;
-    void SetSlotState(unsigned slotnum, eSlotState state);
-
-    void SetUrl(unsigned slotnum, const std::string& url);
-
-    void SignalRequest(unsigned slotnum) const;
-
+    eSlotState  GetSlotState(unsigned slotnum) const;
+    void        SetSlotState(unsigned slotnum, eSlotState state);
+    void        SetUrl(unsigned slotnum, const std::string& url);
     const std::string& GetErrorString(unsigned slotnum) const;
 
-    void ReleaseSlot(unsigned slotnum);
-
-    int FirstFreeSlot() const;
-    int FirstBusySlot() const;
-
+    void        SignalRequest(unsigned slotnum) const;
 
 private:
-    // The actual slot 'array'
+    // The actual slot array
     std::vector<Cslot>  m_slots = std::vector<Cslot>(NUMBER_OF_DOWNLOAD_THREADS);
 };

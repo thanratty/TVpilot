@@ -204,7 +204,7 @@ void CDSchedule::AppendRow(const sScheduleListEntry* gle)
 	m_schedlist.SetItemText(index, COL_SCHED_DATE_STR,  gle->ui_airdate_string);
 	m_schedlist.SetItemText(index, COL_SCHED_TITLE,     gle->ui_episode_title);
 	m_schedlist.SetItemText(index, COL_SCHED_DATE_SORT, gle->ui_airdate_sort);
-	// The show Hash is stored as the row's DWORD data item
+	// The show Hash is stored as the row's data item
 	m_schedlist.SetItemData(index, gle->hash);
 	// Episode flags stored in a hidden column
 	CString flags;
@@ -252,7 +252,7 @@ void CDSchedule::OnDblclkSchedList(NMHDR* pNMHDR, LRESULT* pResult)
 
 	if (row != -1)
 	{
-		DWORD hash = m_schedlist.GetItemData(row);
+		size_t hash = m_schedlist.GetItemData(row);
 		GetParent()->PostMessageW(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash));
 	}
 
@@ -316,7 +316,6 @@ void CDSchedule::OnCustomdrawSchedList(NMHDR* pNMHDR, LRESULT* pResult)
 			break;
 
 		case (CDDS_ITEMPREPAINT | CDDS_SUBITEM):
-			//DWORD hash = pNMCD->nmcd.lItemlParam;
 			int index = pNMCD->nmcd.dwItemSpec;
 
 			CString      str = m_schedlist.GetItemText(index, COL_SCHED_EP_FLAGS);
@@ -368,7 +367,7 @@ BOOL CDSchedule::PreTranslateMessage(MSG* pMsg)
 		{
 			if (pMsg->wParam == VK_RETURN)
 			{
-				DWORD hash = m_schedlist.GetItemData(index);
+				size_t hash = m_schedlist.GetItemData(index);
 				GetParent()->PostMessageW(WM_TVP_ZOOM_EPISODES, hash);
 				return TRUE;
 			}
