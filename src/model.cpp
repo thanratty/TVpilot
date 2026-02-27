@@ -416,7 +416,7 @@ bool model::UpdateShow(const show& showtoupdate)
 {
     show* originalShow = FindShow(showtoupdate.hash, eShowList::ACTIVE);
     if (originalShow == nullptr) {
-        LOG_PRINT(eLogFlags::MODEL, L"UpdateShow() hash not found!\n");
+        CONSOLE_PRINT(eLogFlags::MODEL, L"UpdateShow() hash not found!\n");
         return false;
     }
 

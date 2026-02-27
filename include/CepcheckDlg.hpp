@@ -51,6 +51,7 @@ protected:
 	afx_msg void	OnTcnSelchangeTab1(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDownloadPing(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnThreadWaitFail(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnZoomEpisodes(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnLaunchUrl(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnShowContextMenu(WPARAM wParam, LPARAM lParam);
@@ -75,25 +76,32 @@ public:
 
 
 private:
+			/**
+			 * UI DDX variables
+			 */
 			CButton			m_btn_load;
 			CButton			m_btn_save;
 			CButton			m_btn_download;
 			CButton			m_btn_new_show;
 			CButton			m_btn_delete_show;
-
 			CSpinButtonCtrl m_spin_post;
 			CSpinButtonCtrl m_spin_pre;
 			CTabCtrl		m_tabctrl;
 			CFont			m_headerFont;
-			//
 			CDShows			m_dlgShows;
 			CDSchedule		m_dlgSchedule;
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
-			//
+
+			/**
+			 * The 'database' and the download manager
+			 */
 			model				m_data;
 			CdownloadManager	m_dlm;
-			//
+
+			/**
+			 * Simple variables
+			 */
 			size_t			m_new_show_hash{ 0 };
 
 			unsigned		m_ping_expected{ 0 };

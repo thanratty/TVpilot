@@ -84,6 +84,7 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
 	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
 	ON_MESSAGE( WM_TVP_SIGNAL_APP_EVENT,			&CepcheckDlg::OnSignalAppEvent)
+	ON_MESSAGE( WM_TVP_THREAD_WAIT_FAIL,			&CepcheckDlg::OnThreadWaitFail)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -163,7 +164,7 @@ BOOL CepcheckDlg::OnInitDialog()
 	std::ostringstream info;
 	info << "Version "  VERSION_NUMBER  "  -  "  __DATE__;
 	LogMsgWin(info.str().c_str());
-	LogMsgWin(L"Data file : %s\n", m_data.Filename());
+	LogMsgWin(L"Data file : %s", m_data.Filename());
 
 	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.
 
@@ -237,8 +238,8 @@ BOOL CepcheckDlg::OnInitDialog()
  */
 void CepcheckDlg::OnOK()
 {
-	LogMsgWin(L"CepcheckDlg::OnOK() discarded");
-	//CDialog::OnOK();
+	CONSOLE_PRINT(eLogFlags::INFO, L"CepcheckDlg::OnOK() discarded");
+	// Don't call base class CDialog::OnOK();
 }
 
 /**
@@ -470,7 +471,7 @@ void CepcheckDlg::OnBtn_NewShow()
 	if (new_url.IsEmpty())
 		return;
 
-	// For consistant hash calculation strip leading www & ensure there;s a trailing slash
+	// For consistant hash calculation strip leading www & ensure there's a trailing slash
 	new_url.Replace(L"www.", L"");
 	if (new_url.Right(1) != L"/")
 		new_url += '/';
@@ -497,13 +498,14 @@ void CepcheckDlg::OnBtn_NewShow()
 	// Get things ready to start the download
 	//
 
-	m_new_show_hash = std::hash<std::wstring>()((LPCWSTR)new_url);
+	CW2A asciiz(new_url);
+	m_new_show_hash = std::hash<std::string>()(asciiz.m_psz);
+
 	m_ping_count    = m_err_count = 0;
 	m_ping_expected = 1;
 	UpdateOnscreenCounters();
 
 	// Start downloading the new show's info
-	CW2A asciiz(new_url);
 	m_dlm.DownloadShow(asciiz.m_psz);
 	PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_STARTED));
 }
@@ -646,6 +648,42 @@ void CepcheckDlg::UpdateOnscreenCounters(void)
 
 
 /**
+ * Check every minute if the day has changed. If so, update the schedule list.
+ */
+void CepcheckDlg::OnTimer(UINT_PTR nTimerID)
+{
+	static int day = 0;
+
+	if (nTimerID == TIMER_ID_ONE_MINUTE)
+	{
+		// Only update the CListCtrl if the day has rolled over. GetDay() returns 1-31.
+		int newday = CTime::GetCurrentTime().GetDay();
+		if (newday != day)
+		{
+			day = newday;
+
+			// Save (any) currently selected item & the list scroll position
+			int nSelectedItem = m_dlgSchedule.GetSelectedItem();
+			int nTopIndex = m_dlgSchedule.GetTopIndex();
+
+			// Set the new date filter in the model & re-do the schedule list
+			m_data.SetTodaysDate();
+			UpdateScheduleList();
+
+			// Restore any selection and scroll position
+			if (nSelectedItem != -1)
+				m_dlgSchedule.SetSelectedItem(nSelectedItem);
+			m_dlgSchedule.SetTopIndex(nTopIndex);
+		}
+	}
+
+	CDialog::OnTimer(nTimerID);
+}
+
+
+
+
+/**
  * Sends the +/- days count to the database and updates the on-screen values
  *
  */
@@ -662,47 +700,6 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
 
 	str.Format(L"+ %2d", m_spin_post_val);
 	GetDlgItem(IDC_STATIC_DAYS_POST)->SetWindowText(str);
-}
-
-
-
-
-/**
- * Handler for WM_DOWNLOAD_COMPLETE message
- *
- */
-afx_msg LRESULT CepcheckDlg::OnDownloadComplete( [[maybe_unused]] WPARAM slotnum,
-												 [[maybe_unused]] LPARAM lParam )
-{
-	LogMsgWin(L"Download complete");
-
-	if (m_abort_download)
-	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
-		AfxMessageBox(L"Download aborted.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
-		m_dlm.ClearAbortCondition();
-		m_abort_download = false;
-	}
-	else if (m_err_count > 0)
-	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
-		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
-		m_err_count = 0;
-	}
-	else
-	{
-		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_OK));
-		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
-	}
-
-	// In case this was a new show being downloaded, reset the 'flag'
-	m_new_show_hash = 0;
-
-	// Update the UI
-	UpdateShowList();
-	UpdateScheduleList();
-
-	return 0;
 }
 
 
@@ -996,7 +993,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 	LogMsgWin(L"eAppevent %u", event);
 #endif
 
-	LOG_PRINT(eLogFlags::APP_EVENT, L"eAppevent %u\n", event);
+	CONSOLE_PRINT(eLogFlags::APP_EVENT, L"eAppevent %u\n", event);
 
 	// Have a few useful values handy
 	unsigned numActiveShows  = m_data.NumShows(eShowList::ACTIVE);
@@ -1166,42 +1163,6 @@ void CepcheckDlg::OnBtn_AbortDownload()
 
 
 /**
- * Check every minute if the day has changed. If so, update the schedule list.
- */
-void CepcheckDlg::OnTimer(UINT_PTR nTimerID)
-{
-static int day = 0;
-
-	if (nTimerID == TIMER_ID_ONE_MINUTE)
-	{
-		// Only update the CListCtrl if the day has rolled over. GetDay() returns 1-31.
-		int newday = CTime::GetCurrentTime().GetDay();
-		if (newday != day)
-		{
-			day = newday;
-
-			// Save (any) currently selected item & the list scroll position
-			int nSelectedItem = m_dlgSchedule.GetSelectedItem();
-			int nTopIndex     = m_dlgSchedule.GetTopIndex();
-
-			// Set the new date filter in the model & re-do the schedule list
-			m_data.SetTodaysDate();
-			UpdateScheduleList();
-
-			// Restore any selection and scroll position
-			if (nSelectedItem != -1)
-				m_dlgSchedule.SetSelectedItem(nSelectedItem);
-			m_dlgSchedule.SetTopIndex(nTopIndex);
-		}
-	}
-
-	CDialog::OnTimer(nTimerID);
-}
-
-
-
-
-/**
  * Download from the internet. Update all shows / episodes.
  *
  * Return:  true    Download started
@@ -1329,10 +1290,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 		if (originalShow)
 			originalShow->state |= (showstate::SH_ST_UPDATE_FAILED | resultShow.state);
 
-		CString msg;
-		msg.Format(L"ERROR! Pinged on an slot %u results not ready : %u", slotnum, slotstate);
-		LogMsgWin(msg);
-		LOG_PRINT(eLogFlags::INFO, msg);
+		LogMsgWin(L"ERROR! Download ping on slot %u, results not ready : %u", slotnum, slotstate);
 	}
 	else
 	{
@@ -1343,7 +1301,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 		else if (!originalShow && (m_new_show_hash != 0))
 			m_data.AddNewShow(resultShow);
 		else
-			LogMsgWin(L"OnDownloadPing() : Unexpected showstate");
+			LogMsgWin("OnDownloadPing() : Unexpected showstate");
 
 		m_dlm.SetSlotState(slotnum, eSlotState::SS_RESULTS_PROCESSED);
 	}
@@ -1357,3 +1315,62 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
 	return 0;
 }
 
+
+
+
+/**
+ * Handler for WM_DOWNLOAD_COMPLETE message
+ *
+ */
+afx_msg LRESULT CepcheckDlg::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
+												[[maybe_unused]] LPARAM lParam)
+{
+	LogMsgWin(L"Download complete");
+
+	if (m_abort_download)
+	{
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
+		AfxMessageBox(L"Download aborted.", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+		m_dlm.ClearAbortCondition();
+		m_abort_download = false;
+	}
+	else if (m_err_count > 0)
+	{
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_FAILED));
+		AfxMessageBox(L"DOWNLOAD ERRORS FOUND!", MB_ICONERROR | MB_APPLMODAL | MB_OK);
+		m_err_count = 0;
+	}
+	else
+	{
+		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_OK));
+		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
+	}
+
+	// Update the model & the UI
+	m_data.BuildEpisodeList();
+	UpdateShowList();
+	UpdateScheduleList();
+
+	return 0;
+}
+
+
+
+
+/**
+ * The download thread encountered a wait error while waiting for a request event.
+ * We can requeue or cancel that slot's download.
+ * 
+ */
+afx_msg LRESULT CepcheckDlg::OnThreadWaitFail(WPARAM slotnum, LPARAM wait_result)
+{
+	LogMsgWin("Wait failed slot %u, error %08X. Requeuing \"%s\".", slotnum, wait_result, m_dlm.GetSlotShow(slotnum).epguides_url.c_str());
+
+	// No need to adjust ping/error counters if we retry it.
+
+	auto& url = m_dlm.GetSlotShow(slotnum).epguides_url;
+	m_dlm.ReleaseSlot(slotnum);
+	m_dlm.DownloadShow(url);
+
+	return 0;
+}

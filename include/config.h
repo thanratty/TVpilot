@@ -1,5 +1,6 @@
 #pragma once
 
+
 /**
  * Settings applied to Both DEBUG and RELEASE
  */
@@ -16,9 +17,10 @@
 #define         USE_TEST_DATAFILE               1       // Force use of alternative datafile for testing NB Both DEBUG & RELEASE
 #define         ENABLE_CONSOLE_LOGGING          1       // Create a console window for log messages. Finer control in logging.hpp
 #define         ECHO_MSG_WINDOW_TO_CONSOLE      1
-#define         SAVE_WEBPAGE_ON_ERROR           0       // Creates file webpage.txt if there's an XML parse error [ DEBUG build only ]
-#define         PAUSE_BEFORE_EXIT               0       // Waits for an 'OK' before closing. Allows copying console & log window contents etc. [DEBUG build only]
-#define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG build only ]
+#define         SAVE_WEBPAGE_ON_ERROR           0       // Creates file webpage.txt if there's an XML parse error [ DEBUG only ]
+#define         PAUSE_BEFORE_EXIT               1       // Wait for <RETURN> key in the console. Allows copying console window contents etc. [DEBUG only]
+#define         TRACE_APP_EVENTS                0       // Print all eAppevents in the message window [ DEBUG only ]
+
 
 
 /**
@@ -28,20 +30,18 @@
 
 
 
-
-
 /**
  * Use different filename for RELEASE and DEBUG builds depending
  * on USE_TEST_DATAFILE defined above.
  */
-#define     TEST_DATAFILE_NAME          L"\\TV-Pilot-Test"          // DEBUG build only if enabled above
-#define     RELEASE_DATAFILE_NAME       L"\\TV-Pilot-Data"
+#define         TEST_DATAFILE_NAME              L"\\TV-Pilot-Test"          // DEBUG build only if enabled above
+#define         RELEASE_DATAFILE_NAME           L"\\TV-Pilot-Data"
 
 
 
 /**
  * Name of the executable
  */
-#define     APP_NAME                    L"TVpilot"
+#define         APP_NAME                        L"TVpilot"
 
 

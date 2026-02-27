@@ -5,8 +5,6 @@ VisualStudioVersion = 17.14.36811.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TVpilot", "TVpilot.vcxproj", "{690CE880-8B15-4576-8A69-957A55DC083D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vec-test", "vec-test\vec-test.vcxproj", "{6F4155BB-8E9F-4431-91E4-E65B795BE87C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -17,10 +15,6 @@ Global
 		{690CE880-8B15-4576-8A69-957A55DC083D}.Debug|x86.Build.0 = Debug|Win32
 		{690CE880-8B15-4576-8A69-957A55DC083D}.Release|x86.ActiveCfg = Release|Win32
 		{690CE880-8B15-4576-8A69-957A55DC083D}.Release|x86.Build.0 = Release|Win32
-		{6F4155BB-8E9F-4431-91E4-E65B795BE87C}.Debug|x86.ActiveCfg = Debug|Win32
-		{6F4155BB-8E9F-4431-91E4-E65B795BE87C}.Debug|x86.Build.0 = Debug|Win32
-		{6F4155BB-8E9F-4431-91E4-E65B795BE87C}.Release|x86.ActiveCfg = Release|Win32
-		{6F4155BB-8E9F-4431-91E4-E65B795BE87C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

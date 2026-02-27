@@ -99,7 +99,6 @@ public:
         void        AddNewShow(const show& showtoadd);
         bool        UpdateShow(const show& showtoupdate);
 
-
         void        DeleteShow(size_t hash);
         bool        ArchiveShow(size_t hash);
         bool        UnarchiveShow(size_t hash);
@@ -123,25 +122,21 @@ public:
         }
 
 
-inline  void ShowMissedOnly(bool missed_only)
-        {
-            m_missed_edpisodes_only = missed_only;
-        }
+inline  void ShowMissedOnly(bool missed_only) {
+        m_missed_edpisodes_only = missed_only;
+}
 
-inline  bool IsNewDataFile() const
-        {
-            return m_datafile.IsNewFile();
-        }
+inline  bool IsNewDataFile() const {
+        return m_datafile.IsNewFile();
+}
 
-inline unsigned NumActiveShows() const
-        {
-            return m_active_shows.size();
-        }
+inline unsigned NumActiveShows() const {
+        return m_active_shows.size();
+}
 
-inline const wchar_t* Filename() const
-        {
-            return m_datafile.Filename();
-        }
+inline const wchar_t* Filename() const {
+        return m_datafile.Filename();
+}
 
 
 private:

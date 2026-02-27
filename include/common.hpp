@@ -33,15 +33,16 @@
 
 // Define our own private Windows Messages, all prefixed with WM_TVP_
 //
-constexpr int WM_TVP_DOWNLOAD_COMPLETE		 = (WM_USER + 7000);
+constexpr int WM_TVP_DOWNLOAD_COMPLETE	 = (WM_USER + 7000);
 constexpr int WM_TVP_DOWNLOAD_PING			 = (WM_USER + 7001);
 constexpr int WM_TVP_ZOOM_EPISODES			 = (WM_USER + 7002);
-constexpr int WM_TVP_LAUNCH_URL				 = (WM_USER + 7003);
-constexpr int WM_TVP_SHOW_CONTEXT_MENU		 = (WM_USER + 7004);
+constexpr int WM_TVP_LAUNCH_URL				   = (WM_USER + 7003);
+constexpr int WM_TVP_SHOW_CONTEXT_MENU	 = (WM_USER + 7004);
 constexpr int WM_TVP_SIGNAL_APP_EVENT		 = (WM_USER + 7005);
-constexpr int WM_TVP_ABORT_BTN_ENABLE        = (WM_USER + 7006);
-constexpr int WM_TVP_ABORT_BTN_DISABLE       = (WM_USER + 7007);
-constexpr int WM_TVP_ABORT_DOWNLOAD          = (WM_USER + 7008);
+constexpr int WM_TVP_ABORT_BTN_ENABLE    = (WM_USER + 7006);
+constexpr int WM_TVP_ABORT_BTN_DISABLE   = (WM_USER + 7007);
+constexpr int WM_TVP_ABORT_DOWNLOAD      = (WM_USER + 7008);
+constexpr int WM_TVP_THREAD_WAIT_FAIL    = (WM_USER + 7009);
 //
 constexpr int WM_TVP_SCHED_EP_FLAGS_CHANGED  = (WM_USER + 8000);
 
