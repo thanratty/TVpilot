@@ -82,7 +82,7 @@ BOOL CepcheckApp::InitInstance()
 
 	// If enabled, start the logging thread & open a console. Logging functionality must
 	// be available before the main dialog & its member objects are instantiated.
-	LOG_INIT();
+	CONSOLE_INIT();
 
 	/**
 	 * We used to need the CSV file for TVmaze show numbers but we now
@@ -115,15 +115,15 @@ BOOL CepcheckApp::InitInstance()
 #endif
 
 	/**
-	 * This gives you a chance to copy msgs out of console or message log windows
+	 * This gives you a chance to copy msgs out of console windows
 	 */
-#if (PAUSE_BEFORE_EXIT==1) && defined(_DEBUG)
-	while (::MessageBox(NULL, L"About to close - press OK", APP_NAME, MB_OK) != IDOK);
+#if (PAUSE_BEFORE_EXIT==1) && (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
+	CONSOLE_WAIT_FOR_CR();
 #endif
 
 
 	// Terminate the logging thread / console
-	LOG_EXIT();
+	CONSOLE_EXIT();
 
 	xmlCleanupParser();
 	curl_global_cleanup();

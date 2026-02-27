@@ -41,25 +41,27 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 {
 	Cslot&		slot	  = *static_cast<Cslot*>(pParam);
 	DWORD		wait_result;
+	HANDLE		hEvent    = slot.GetRequestHandle();
+
+	CONSOLE_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u created\n", slot.m_SlotNumber);
 
 	slot.SetThreadState(eThreadState::TS_RUNNING);
-
-	LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u created\n", slot.m_SlotNumber);
 
 	while (true)
 	{
 		// Wait for request event
 		//
 		slot.SetThreadState(eThreadState::TS_WAITING);
-		wait_result = WaitForSingleObject(slot.GetRequestHandle(), INFINITE);
+		wait_result = WaitForSingleObject(hEvent, INFINITE);
 		slot.SetThreadState(eThreadState::TS_RUNNING);
-
 
 		// If the Wait fails - just loop & try again.
 		//
  		if (wait_result != WAIT_OBJECT_0)
 		{
-			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed : %08X\n", slot.m_SlotNumber, wait_result);
+			// Let the download manager know, it can retry or give up.
+			CONSOLE_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u wait failed : %08X\n", slot.m_SlotNumber, wait_result);
+			::PostMessage(slot.GetMsgWin(), WM_TVP_THREAD_WAIT_FAIL, slot.m_SlotNumber, wait_result);
 			continue;
 		}
 
@@ -68,7 +70,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		//
 		if (slot.GetExitFlag())
 		{
-			LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
+			CONSOLE_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u exiting\n", slot.m_SlotNumber);
 
 			slot.SetSlotState(eSlotState::SS_THREAD_EXITING);
 			slot.SetThreadState(eThreadState::TS_FINISHED);
@@ -79,21 +81,18 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		// Got a good event. Check slot state to determine what to do next
 		//
 		eSlotState state = slot.GetSlotState();
-		switch (state)
+		if (state == eSlotState::SS_URL_SET)
 		{
-			case eSlotState::SS_URL_SET:
-				{
-					bool curl_ok = CurlAndParse(slot);
-					if (curl_ok) {
-						slot.SetSlotState(eSlotState::SS_RESULTS_READY);
-					}
-					::PostMessage(slot.GetMsgWin(), WM_TVP_DOWNLOAD_PING, slot.m_SlotNumber, 0);
-				}
-				break;
+			if (CurlAndParse(slot)) 
+				slot.SetSlotState(eSlotState::SS_RESULTS_READY);
 
-			default:
-				LOG_PRINT(eLogFlags::SLOT_THREAD, L"thrSlotThread %u : Unhandled slotstate %u\n", slot.m_SlotNumber, state);
-				break;
+			::PostMessage(slot.GetMsgWin(), WM_TVP_DOWNLOAD_PING, slot.m_SlotNumber, 0);
+		}
+		else
+		{
+			CONSOLE_PRINT( eLogFlags::SLOT_THREAD | eLogFlags::FATAL,
+					   L"thrSlotThread %u : Unhandled slotstate %u\n",
+					   slot.m_SlotNumber, state);
 		}
 	}
 }
@@ -171,7 +170,7 @@ void SAVE_WEB_PAGE(const cCurlJob& curljob)
 	cfile.Flush();
 	cfile.Close();
 
-	LOG_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
+	CONSOLE_PRINT(eLogFlags::THREAD_FUNC, L"webpage.txt saved\n");
 }
 
 #endif

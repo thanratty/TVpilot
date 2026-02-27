@@ -56,16 +56,20 @@ typedef struct tag_sLogFlags {
  */
 #if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 
-void        LOG_INIT( void );
-void        LOG_PRINT(eLogFlags type, const wchar_t* format, ...);
-void        LOG_PRINT(eLogFlags type, const char* format, ...);
-void        LOG_EXIT( void );
+void        CONSOLE_INIT( void );
+void        CONSOLE_PRINT(eLogFlags type, const wchar_t* format, ...);
+void        CONSOLE_PRINT(eLogFlags type, const char* format, ...);
+void        CONSOLE_EXIT( void );
+
+#if (PAUSE_BEFORE_EXIT==1)
+void        CONSOLE_WAIT_FOR_CR(void);
+#endif
 
 #else
 
-#define     LOG_INIT()          do {} while(0)
-#define     LOG_PRINT(x,...)    do {} while(0)
-#define     LOG_EXIT()          do {} while(0)
+#define     CONSOLE_INIT()          do {} while(0)
+#define     CONSOLE_PRINT(x,...)    do {} while(0)
+#define     CONSOLE_EXIT()          do {} while(0)
 
 #endif
 

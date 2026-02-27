@@ -15,7 +15,6 @@
 
 
 
-
 Cslot::Cslot()
 {
     // NB The logging thread has not started at this point
@@ -27,7 +26,7 @@ Cslot::Cslot()
     m_SlotName.Format(L"slot-%02u", m_SlotNumber);
 
     str.Format(L"evRequest-%-d", m_SlotNumber);
-    m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state
+    m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state unsignalled
 
     StartThread();
 }
@@ -45,32 +44,34 @@ void Cslot::StartThread()
     m_pWinThread = AfxBeginThread(thrSlotThread, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
     ASSERT(m_pWinThread);
     m_pWinThread->m_bAutoDelete = false;
-    m_pWinThread->ResumeThread();
 
 #if (NAMED_OBJECTS==1)
     SetThreadDescription(m_pWinThread->m_hThread, m_SlotName);
 #endif
+
+    m_pWinThread->ResumeThread();
 }
 
 
 void Cslot::TerminateThread()
 {
-    LOG_PRINT(eLogFlags::SLOT_THREAD,L"CSlot::TerminateThread() %u\n", m_SlotNumber);
+    CONSOLE_PRINT(eLogFlags::SLOT_THREAD,L"CSlot::TerminateThread() %u\n", m_SlotNumber);
 
     if (m_pWinThread)
     {
         // Terminates the worker thread for this slot
         m_exit_thread = true;
-        m_slotstate = eSlotState::SS_THREAD_EXIT_FLAGGED;
-        SetEvent(m_hEvRequest);
+        m_slotstate   = eSlotState::SS_THREAD_EXIT_FLAGGED;
+        SignalRequest();
 
-        if (WAIT_OBJECT_0 == WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT))
-            m_slotstate = eSlotState::SS_THREAD_EXITED;
+        DWORD result = WaitForSingleObject(m_pWinThread->m_hThread, THREAD_TERMINATE_TIMEOUT);
+        if (result == WAIT_OBJECT_0)
+                m_slotstate = eSlotState::SS_THREAD_EXITED;
         else {
             CString errmsg;
-            errmsg.Format(L"Slot thread %u didn't terminate within timeout. Error %08X", m_SlotNumber, GetLastError());
+            errmsg.Format(L"Slot thread %u didn't terminate within timeout. Result %08X, Error %08X", m_SlotNumber, result, GetLastError());
             LogMsgWin(errmsg);
-            LOG_PRINT(eLogFlags::SLOT_THREAD, errmsg);
+            CONSOLE_PRINT(eLogFlags::SLOT_THREAD, errmsg);
         }
 
         delete m_pWinThread;
@@ -78,7 +79,7 @@ void Cslot::TerminateThread()
     }
     else
     {
-        LOG_PRINT(eLogFlags::SLOT_THREAD, L"Slot thread %u already NULL\n", m_SlotNumber);
+        CONSOLE_PRINT(eLogFlags::SLOT_THREAD, L"Slot %u thread already NULL\n", m_SlotNumber);
     }
 }
 
@@ -93,11 +94,11 @@ void Cslot::SetUrl(const std::string& url)
         SetSlotState(eSlotState::SS_URL_SET);
 
         m_show.epguides_url = url;
-        m_show.hash = SimpleHash(url);
+        m_show.hash = std::hash<std::string>()(url);
     }
     else
     {
-        LOG_PRINT(eLogFlags::INFO, L"SetUrl() slot %u not free!", m_SlotNumber);
+        CONSOLE_PRINT(eLogFlags::INFO, L"SetUrl() slot %u not free!", m_SlotNumber);
     }
 }
 
@@ -159,8 +160,8 @@ HANDLE Cslot::GetRequestHandle() const {
 }
 
 void Cslot::SignalRequest() const  {
-    if (!SetEvent(m_hEvRequest)) {
-        LOG_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed");
+    if (SetEvent(m_hEvRequest) == 0) {
+        CONSOLE_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed. Error %08X", GetLastError());
     }
 
 }
@@ -191,39 +192,39 @@ void Cslots::SetMsgWin(HWND hWin)
 }
 
 bool Cslots::IsFree(unsigned slotnum) const {
-    return m_slots.at(slotnum).IsFree();
+    return m_slots[slotnum].IsFree();
 }
 
 bool Cslots::IsBusy(unsigned slotnum) const {
-    return m_slots.at(slotnum).IsBusy();
+    return m_slots[slotnum].IsBusy();
 }
 
 const show& Cslots::GetSlotShow(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetShow();
+    return m_slots[slotnum].GetShow();
 }
 
 eSlotState Cslots::GetSlotState(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetSlotState();
+    return m_slots[slotnum].GetSlotState();
 }
 
 void Cslots::SetSlotState(unsigned slotnum, eSlotState state) {
-    m_slots.at(slotnum).SetSlotState(state);
+    m_slots[slotnum].SetSlotState(state);
 }
 
 void Cslots::SetUrl(unsigned slotnum, const std::string& url) {
-    m_slots.at(slotnum).SetUrl(url);
+    m_slots[slotnum].SetUrl(url);
 }
 
 void Cslots::SignalRequest(unsigned slotnum) const {
-    m_slots.at(slotnum).SignalRequest();
+    m_slots[slotnum].SignalRequest();
 }
 
 const std::string& Cslots::GetErrorString(unsigned slotnum) const {
-    return m_slots.at(slotnum).GetErrorString();
+    return m_slots[slotnum].GetErrorString();
 }
 
 void Cslots::ReleaseSlot(unsigned slotnum) {
-    m_slots.at(slotnum).Reset();
+    m_slots[slotnum].Reset();
 }
 
 int Cslots::FirstFreeSlot() const

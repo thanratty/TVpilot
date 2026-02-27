@@ -13,9 +13,14 @@
 
 
 
+/**
+ * LogMsgWin() automatically adds CRLF
+ * CONSOLE_PRINT() does not
+ */
+
+
 
 constexpr unsigned LOG_BUFFER_LEN = 256;
-
 
 
 /**
@@ -50,24 +55,27 @@ std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags {{
 
 
 
-STATIC HANDLE	hLogHandle { INVALID_HANDLE_VALUE };
-STATIC HANDLE	hLogEvent  { INVALID_HANDLE_VALUE };
-STATIC HANDLE	hLogThread { INVALID_HANDLE_VALUE };
+STATIC HANDLE	hConsoleOutput { INVALID_HANDLE_VALUE };
+STATIC HANDLE	hConsoleInput  { INVALID_HANDLE_VALUE };
+STATIC HANDLE	hConsoleEvent  { INVALID_HANDLE_VALUE };
+STATIC HANDLE	hConsoleThread { INVALID_HANDLE_VALUE };
 
 
-STATIC std::queue<const wchar_t*>	msgQueue;						// FIFO of ptrs to message strings
-STATIC CSemaphore*					semQueue{nullptr};				// Semaphore to control access to the message queue
+STATIC std::queue<const wchar_t*>	msgQueue;					// FIFO of ptrs to message strings
+STATIC CSemaphore*					semQueue{ nullptr };		// Semaphore to control access to the message queue
 
-STATIC bool			bConsoleReady{ false };
-STATIC DWORD		bExitThreadFlag{ 0 };							// Set non-zero to exit the logging thread on the next event
+STATIC bool		bConsoleReady{ false };
+STATIC bool		bExitThreadFlag{ false };						// Set non-zero to exit the logging thread on the next event
 
 
-STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  |
-									 eLogFlags::TEST  |
-									 eLogFlags::FATAL |
+STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  | 
+									 eLogFlags::TEST  | 
+									 eLogFlags::FATAL | 
 									 eLogFlags::CONSOLE_ECHO;
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)
+
+
 
 
 
@@ -137,7 +145,7 @@ STATIC const wchar_t*  PopFromMsgQueue()
 
 #if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
-DWORD WINAPI LogThread([[maybe_unused]] LPVOID pParam)
+STATIC DWORD WINAPI LogThread([[maybe_unused]] LPVOID pParam)
 {
 DWORD	dwCharsWritten;
 const	wchar_t* msg;
@@ -146,13 +154,13 @@ const	wchar_t* msg;
 
 	while (true)
 	{
-		DWORD dwResult = WaitForSingleObject(hLogEvent, INFINITE);
+		DWORD dwResult = WaitForSingleObject(hConsoleEvent, INFINITE);
 		if (dwResult == WAIT_OBJECT_0)
 		{
 			msg = PopFromMsgQueue();
 			while (msg != nullptr)
 			{
-				WriteConsole(hLogHandle, msg, wcslen(msg), &dwCharsWritten, NULL);
+				WriteConsole(hConsoleOutput, msg, wcslen(msg), &dwCharsWritten, NULL);
 				delete[] msg;
 
 				msg = PopFromMsgQueue();
@@ -163,7 +171,8 @@ const	wchar_t* msg;
 			::MessageBox(NULL, L"Wait error!\n", L"Console Thread", MB_OK | MB_ICONEXCLAMATION);
 		}
 
-		if (bExitThreadFlag != 0)
+		// Exit the thread if the flag is set true
+		if (bExitThreadFlag)
 			return 0;
 	}
 }
@@ -184,26 +193,58 @@ STATIC void LogConsoleCreate(void)
 	}
 
 
-	hLogHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (INVALID_HANDLE_VALUE == hLogHandle) {
+	hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	hConsoleInput  = GetStdHandle(STD_INPUT_HANDLE);
+
+	if ((INVALID_HANDLE_VALUE == hConsoleOutput) || (INVALID_HANDLE_VALUE == hConsoleInput)) {
 		AfxMessageBox(L"Can't get console handle. Logging disabled.", MB_OK);
 		FreeConsole();
 		return;
 	}
 
-	SetConsoleTitle(L"TV Pilot Console Output");
+	SetConsoleTitle(L"TV Pilot Debug Console");
 }
 
 
 STATIC void LogConsoleClose(void)
 {
-	LOG_PRINT(eLogFlags::INFO, L"Closing console\n");
+	CONSOLE_PRINT(eLogFlags::INFO, L"Closing console\n");
 
 	FreeConsole();
-	hLogHandle = INVALID_HANDLE_VALUE;
+	hConsoleOutput = INVALID_HANDLE_VALUE;
 }
 
-#endif		// (ENABLE_CONSOLE_LOGGING==1)
+
+#if (PAUSE_BEFORE_EXIT==1)
+
+void CONSOLE_WAIT_FOR_CR(void)
+{
+	INPUT_RECORD		inRec{ 0 };
+	DWORD				dwCount{ 0 };
+	
+	CONSOLE_PRINT(eLogFlags::TEST, L"\nPress <RETURN> to close...\n");
+
+	while (true)
+	{
+		FlushConsoleInputBuffer(hConsoleInput);
+
+		if (0 == ReadConsoleInput(hConsoleInput, &inRec, 1, &dwCount))
+		{
+			LogMsgWin(L"Console read error %08X", GetLastError());
+			continue;
+		}
+
+		// Exit if the <RETURN> key is pressed
+		if ((inRec.EventType == KEY_EVENT) && (inRec.Event.KeyEvent.bKeyDown == TRUE) && (inRec.Event.KeyEvent.uChar.AsciiChar == 13))
+		{
+			return;
+		}
+	}
+}
+#endif		// (PAUSE_BEFORE_EXIT==1)
+
+
+#endif		// (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
 
 
@@ -212,49 +253,49 @@ STATIC void LogConsoleClose(void)
 
 #if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
-void LOG_INIT()
+void CONSOLE_INIT()
 {
 	LogConsoleCreate();
 
-	semQueue   = new CSemaphore(1,1,L"semQueue", NULL);
-	hLogEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hLogEvent");         // NOT manual reset, initial state unsignalled
-	hLogThread = CreateThread(NULL, 0, LogThread, NULL, 0, NULL);
+	semQueue       = new CSemaphore(1,1,L"semQueue", NULL);
+	hConsoleEvent  = CREATE_EVENT(NULL, FALSE, FALSE, L"hConsoleEvent");         // NOT manual reset, initial state unsignalled
+	hConsoleThread = CreateThread(NULL, 0, LogThread, NULL, 0, NULL);
 
 #if (NAMED_OBJECTS==1)
-	if (hLogThread)
-		SetThreadDescription(hLogThread, L"thrLogging");
+	if (hConsoleThread)
+		SetThreadDescription(hConsoleThread, L"thrConsole");
 #endif
 
-	LOG_PRINT(eLogFlags::INFO, L"Console Ready\n\n");
+	CONSOLE_PRINT(eLogFlags::INFO, L"Console Ready\n\n");
 
 	return;
 }
 
 
-void LOG_EXIT()
+void CONSOLE_EXIT()
 {
 	// Wait till all current messages are printed
 	while (!MsgQueueIsEmpty());
 
-	bExitThreadFlag = 1;
-	SetEvent(hLogEvent);
-	WaitForSingleObject(hLogThread, THREAD_EXIT_TIMEOUT);
+	bExitThreadFlag = true;
+	SetEvent(hConsoleEvent);
+	WaitForSingleObject(hConsoleThread, THREAD_EXIT_TIMEOUT);
 	
 	// The destructor also closes the underlying handle
 	delete semQueue;
 	semQueue = nullptr;
 
-	CloseHandle(hLogThread);
-	CloseHandle(hLogEvent);
+	CloseHandle(hConsoleThread);
+	CloseHandle(hConsoleEvent);
 }
 
 
-void LOG_PRINT(eLogFlags type, const wchar_t* format, ...)
+void CONSOLE_PRINT(eLogFlags type, const wchar_t* format, ...)
 {
 	while (!bConsoleReady) SwitchToThread();
 
 	// Can't print anything once we're shutting down.
-	if (bExitThreadFlag == 1)
+	if (bExitThreadFlag)
 		return;
 
 	// Only print enable messages
@@ -273,18 +314,18 @@ void LOG_PRINT(eLogFlags type, const wchar_t* format, ...)
 		if (len > 0)
 		{
 			PushToMsgQueue(newstr);
-			SetEvent(hLogEvent);
+			SetEvent(hConsoleEvent);
 		}
 	}
 }
 
 
-void LOG_PRINT(eLogFlags type, const char* format, ...)
+void CONSOLE_PRINT(eLogFlags type, const char* format, ...)
 {
 	while (!bConsoleReady) SwitchToThread();
 
 	// Can't print anything once we're shutting down.
-	if (bExitThreadFlag == 1)
+	if (bExitThreadFlag)
 		return;
 
 	// Only print enable messages
@@ -303,7 +344,7 @@ void LOG_PRINT(eLogFlags type, const char* format, ...)
 		if (len > 0)
 		{
 			std::wstring wstr(CA2W(newstr, CP_UTF8));
-			LOG_PRINT(type, wstr.c_str());
+			CONSOLE_PRINT(type, wstr.c_str());
 		}
 	}
 }
@@ -316,7 +357,7 @@ void LOG_PRINT(eLogFlags type, const char* format, ...)
 
 
 /**
- * A few routines to allow writing debug/trace messages to the seperate debug
+ * Routines to support writing debug/trace messages to the seperate debug
  * window.
  */
 void LogSetMsgWin(CEdit* pedit)
@@ -325,13 +366,11 @@ void LogSetMsgWin(CEdit* pedit)
 }
 
 
-
-
 void LogMsgWin(const CString& msg)
 {
 	CString str = msg + CString(L"\r\n");
 
-	LOG_PRINT(eLogFlags::CONSOLE_ECHO, str);
+	CONSOLE_PRINT(eLogFlags::CONSOLE_ECHO, str);
 
 	if (pMsgWindow)
 	{
@@ -340,6 +379,7 @@ void LogMsgWin(const CString& msg)
 		pMsgWindow->ReplaceSel(str);
 	}
 }
+
 
 void LogMsgWin(const wchar_t* format, ...)
 {
@@ -360,6 +400,7 @@ void LogMsgWin(const wchar_t* format, ...)
 	}
 }
 
+
 void LogMsgWin(const char* format, ...)
 {
 	char newstr[ LOG_BUFFER_LEN ];
@@ -379,7 +420,13 @@ void LogMsgWin(const char* format, ...)
 	}
 }
 
+
 void LogMsgWin(const std::string& str)
 {
 	LogMsgWin(str.c_str());
 }
+
+
+
+
+

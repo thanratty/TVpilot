@@ -244,7 +244,7 @@ void CDShows::OnDblClkShowList(NMHDR* pNMHDR, LRESULT* pResult)
 	int row = pItem->iItem;
 	if (row != -1)
 	{
-		DWORD hash = m_showlist.GetItemData(row);
+		size_t hash = m_showlist.GetItemData(row);
 		GetParent()->PostMessage(WM_TVP_ZOOM_EPISODES, static_cast<WPARAM>(hash));
 	}
 
@@ -278,17 +278,20 @@ void CDShows::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 
 
 
-void CDShows::EnsureVisible(DWORD hash)
+void CDShows::EnsureVisible(size_t hash)
 {
 	LVFINDINFOW findInfo{};
 	findInfo.flags  = LVFI_PARAM;
 	findInfo.lParam = static_cast<LPARAM>(hash);
-	int nItem = m_showlist.FindItem(&findInfo);
 
-	if (nItem != -1) {
+	int nItem       = m_showlist.FindItem(&findInfo);
+
+	if (nItem != -1)
+	{
 		// Scroll down to the bottom then back up enough to it at the top
 		m_showlist.EnsureVisible(m_showlist.GetItemCount() - 1, TRUE);
 		m_showlist.EnsureVisible(nItem, FALSE);
+	
 		// Highlight the new show and give it focus
 		m_showlist.SetItemState(nItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 		m_showlist.SetFocus();

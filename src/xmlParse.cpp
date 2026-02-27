@@ -192,7 +192,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 
 		// If both episode number and date are bad skip this node. Some epguides.com pages had different formatting/layout.
 		if (!bGoodDate && !bGoodNumber) {
-			LOG_PRINT(eLogFlags::XML, L"Bad date & episode number. Node discarded\n");
+			CONSOLE_PRINT(eLogFlags::XML, L"Bad date & episode number. Node discarded\n");
 			continue;
 		}
 
@@ -202,7 +202,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 			std::ostringstream msg;
 			msg << "Bad episode date [" << ep_date << "]. Set to default\n";
 			LogMsgWin(msg.str());
-			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
+			CONSOLE_PRINT(eLogFlags::XML, msg.str().c_str());
 			ep_date_fixed = DEFAULT_EPISODE_DATE;
 		}
 		else
@@ -217,10 +217,7 @@ bool extractEpisodeDetails( xmlXPathObjectPtr nodes, sMyXpathResults& results )
 		// Validate the episode number format & fix if necessary
 		if (!bGoodNumber)
 		{
-			std::ostringstream msg;
-			msg << "Bad episode number [" << ep_number << "]. Set to default\n";
-			LogMsgWin(msg.str());
-			LOG_PRINT(eLogFlags::XML, msg.str().c_str());
+			LogMsgWin("Bad episode number [%s]. Set to default.", ep_number.c_str());
 			ep_number = DEFAULT_EPISODE_NUMBER;
 		}
 
@@ -279,7 +276,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 	// curljob is the master data here. Setup the empty show object.
 	show.title        = curljob.Url();
 	show.epguides_url = curljob.Url();
-	show.hash         = SimpleHash(curljob.Url());
+	show.hash         = std::hash<std::string>()(curljob.Url());
 
 
 	// Create a thread-safe XML-parser context
@@ -307,7 +304,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		}
 		xmlCtxtResetLastError(context);
 
-		LOG_PRINT(eLogFlags::XML, L"E_XPARSE_DOC_FORMAT_ERROR: %s\n", curljob.Url().c_str());
+		CONSOLE_PRINT(eLogFlags::XML, L"E_XPARSE_DOC_FORMAT_ERROR: %s\n", curljob.Url().c_str());
 		retval = E_XPARSE_DOC_FORMAT_ERROR;
 	}
 	else
@@ -337,7 +334,7 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		if (!bGotTitles || !bGotDetails || (show.title.length() == 0))
 		{
 			show.state |= showstate::SH_ST_UPDATE_FAILED;
-			LOG_PRINT(eLogFlags::XML, L"E_XPARSE_PAGE_FORMAT_ERROR: %s\n", curljob.Url().c_str());
+			CONSOLE_PRINT(eLogFlags::XML, L"E_XPARSE_PAGE_FORMAT_ERROR: %s\n", curljob.Url().c_str());
 			retval = E_XPARSE_PAGE_FORMAT_ERROR;
 		}
 		else

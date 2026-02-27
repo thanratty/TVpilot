@@ -24,17 +24,17 @@ constexpr DWORD SLOT_LOCK_TIMEOUT = 5000;
 
 CMultiEvents::CMultiEvents(const std::vector<HANDLE>&handles)
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() constructor");
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() constructor");
 
     m_handles.insert(m_handles.end(), handles.begin(), handles.end());
 
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents created with %u handles\n", m_handles.size());
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents created with %u handles\n", m_handles.size());
 }
 
 
 CMultiEvents::~CMultiEvents()
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() destructor\n");
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents() destructor\n");
 }
 
 
@@ -47,7 +47,7 @@ int CMultiEvents::Wait()
     if (!CheckWaitResult(result))
     {
         m_last_error = GetLastError();
-        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
+        CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Wait() failed. Error %u\n", m_last_error);
         return E_SO_WAIT_FAIL;
     }
 
@@ -65,7 +65,7 @@ bool CMultiEvents::CheckWaitResult(DWORD result) const
 
     // WAIT_TIMEOUT  WAIT_FAILED.   WAIT_ABANDONED (mutexes only?)
 
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents wait failed: %08X\n", result);
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents wait failed: %08X\n", result);
     return false;
 }
 
@@ -82,7 +82,7 @@ int CMultiEvents::Reset(DWORD index)
     if (retval != E_SO_OK)
     {
         m_last_error = GetLastError();
-        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Reset() failed. Error %u\n", m_last_error);
+        CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CMultiEvents::Reset() failed. Error %u\n", m_last_error);
     }
 
     return retval;
@@ -95,29 +95,29 @@ int CMultiEvents::Reset(DWORD index)
 
 CslotsSem::CslotsSem()
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotSem constructor\n");
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotSem constructor\n");
 
     // There's only one underlying semaphore object for all instances
     if (m_hSem == INVALID_HANDLE_VALUE)
     {
-        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Creating underlying slots semaphore\n");
+        CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"Creating underlying slots semaphore\n");
         m_hSem = CREATE_SEMAPHORE( NULL, 1, 1, m_name);     // Initial count 1, max count 1
 
         if (m_hSem == NULL) {
             m_last_error = GetLastError();
-            LOG_PRINT(eLogFlags::FATAL, L"Can't create slots semaphore. Error %08X\n", m_last_error);
+            CONSOLE_PRINT(eLogFlags::FATAL, L"Can't create slots semaphore. Error %08X\n", m_last_error);
         }
     }
     else
     {
-        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"Slots semaphore already created\n");
+        CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"Slots semaphore already created\n");
     }
 }
 
 
 CslotsSem::~CslotsSem()
 {
-    LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor\n");
+    CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor\n");
 
     // There's only one actual semaphore
     if (m_hSem != INVALID_HANDLE_VALUE) {
@@ -125,13 +125,13 @@ CslotsSem::~CslotsSem()
         m_hSem = INVALID_HANDLE_VALUE;
     }
     else
-        LOG_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor. m_hSem already closed");
+        CONSOLE_PRINT(eLogFlags::SYNC_OBJECTS, L"CslotsSem destructor. m_hSem already closed");
 }
 
 
 CslotsSem& CslotsSem::getInstance()
 {
-    LOG_PRINT(eLogFlags::SLOT_LOCK, L"CslotSem::getInstance()\n");
+    CONSOLE_PRINT(eLogFlags::SLOT_LOCK, L"CslotSem::getInstance()\n");
 
     static CslotsSem instance;      // Guaranteed to be destroyed. Instantiated on first use.
     return instance;
@@ -151,7 +151,7 @@ bool CslotsSem::Lock()
     CString errmsg;
     errmsg.Format(L"FATAL! CslotsSem::Lock() fail. Result %08X, Error %08X\n", result, m_last_error);
     LogMsgWin( errmsg );
-    LOG_PRINT( eLogFlags::FATAL, errmsg );
+    CONSOLE_PRINT( eLogFlags::FATAL, errmsg );
 
     return false;
 }
@@ -167,7 +167,7 @@ bool CslotsSem::CheckWaitResult(DWORD result)
     CString errmsg;
     errmsg.Format(L"FATAL! CslotsSem::CheckWaitResult() fail. Result %08X, Error %08X\n", result, m_last_error);
     LogMsgWin( errmsg );
-    LOG_PRINT( eLogFlags::FATAL, errmsg );
+    CONSOLE_PRINT( eLogFlags::FATAL, errmsg );
 
     return false;
 }
@@ -183,7 +183,7 @@ bool CslotsSem::Unlock()
         return true;
 
     m_last_error = GetLastError();
-    LOG_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %ld\n", m_last_error, last_count);
+    CONSOLE_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %ld\n", m_last_error, last_count);
 
     return false;
 }

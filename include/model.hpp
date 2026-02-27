@@ -46,7 +46,7 @@ public:
 
     showflags           show_flags{ showflags::SH_FL_NONE };
     episodeflags        episode_flags{ episodeflags::EP_FL_NONE };
-    DWORD               hash{ DWORD_MAX };
+    size_t              hash{ 0 };
 
     // Used by std::sort, std::upper_bound and std::lower_bound
     inline bool operator<(const sGuideEntry& rhs) const
@@ -99,12 +99,11 @@ public:
         void        AddNewShow(const show& showtoadd);
         bool        UpdateShow(const show& showtoupdate);
 
+        void        DeleteShow(size_t hash);
+        bool        ArchiveShow(size_t hash);
+        bool        UnarchiveShow(size_t hash);
 
-        void        DeleteShow(DWORD hash);
-        bool        ArchiveShow(DWORD hash);
-        bool        UnarchiveShow(DWORD hash);
-
-        show* FindShow(DWORD searchhash, eShowList source);
+        show* FindShow(size_t searchhash, eShowList source);
         show* FindShow(const CString& url, eShowList source);
 
         unsigned NumShows(eShowList list) const
@@ -123,25 +122,21 @@ public:
         }
 
 
-inline  void ShowMissedOnly(bool missed_only)
-        {
-            m_missed_edpisodes_only = missed_only;
-        }
+inline  void ShowMissedOnly(bool missed_only) {
+        m_missed_edpisodes_only = missed_only;
+}
 
-inline  bool IsNewDataFile() const
-        {
-            return m_datafile.IsNewFile();
-        }
+inline  bool IsNewDataFile() const {
+        return m_datafile.IsNewFile();
+}
 
-inline unsigned NumActiveShows() const
-        {
-            return m_active_shows.size();
-        }
+inline unsigned NumActiveShows() const {
+        return m_active_shows.size();
+}
 
-inline const wchar_t* Filename() const
-        {
-            return m_datafile.Filename();
-        }
+inline const wchar_t* Filename() const {
+        return m_datafile.Filename();
+}
 
 
 private:

@@ -38,25 +38,21 @@ enum class eSlotState
 class CslotData
 {
 public:
-    // This slot's instance number
-    unsigned        m_SlotNumber{ 0 };
+    unsigned        m_SlotNumber{ 0 };                          // This slot's instance number
+    CWinThread*     m_pWinThread{ nullptr };                    // The associated worker/download thread for this slot
+    show            m_show;                                     // The show this slot is currently downloading
 
-    show            m_show;
-
-    // Status & errors
-    //
+    /**
+     * Status & errors
+     */
     std::string     m_error_string;
     int             m_http_status{ INT_MAX };
     int             m_curl_status{ INT_MAX };
     int             m_xml_status{ INT_MAX };
 
-    CWinThread*     m_pWinThread{ nullptr };
-
 protected:
     bool            m_exit_thread{ false };
-
     HANDLE          m_hEvRequest { INVALID_HANDLE_VALUE };
-
     eThreadState    m_thread_state{ eThreadState::TS_NOT_STARTED };
     eSlotState      m_slotstate{ eSlotState::SS_FREE };
 };
@@ -126,35 +122,26 @@ private:
 class Cslots
 {
 public:
-//    Cslots::Cslots();
-//    Cslots::~Cslots();
+    void        TerminateSlotThreads();
+    bool        AllSlotThreadsTerminated() const;
 
-    void    TerminateSlotThreads();
-    bool    AllSlotThreadsTerminated() const;
+    void        SetMsgWin( HWND hWin );
 
-    void SetMsgWin( HWND hWin );
-
-    bool IsFree(unsigned slotnum) const;
-    bool IsBusy(unsigned slotnum) const;
+    bool        IsFree(unsigned slotnum) const;
+    bool        IsBusy(unsigned slotnum) const;
+    int         FirstFreeSlot() const;
+    int         FirstBusySlot() const;
+    void        ReleaseSlot(unsigned slotnum);
 
     const show& GetSlotShow(unsigned slotnum) const;
-
-    eSlotState GetSlotState(unsigned slotnum) const;
-    void SetSlotState(unsigned slotnum, eSlotState state);
-
-    void SetUrl(unsigned slotnum, const std::string& url);
-
-    void SignalRequest(unsigned slotnum) const;
-
+    eSlotState  GetSlotState(unsigned slotnum) const;
+    void        SetSlotState(unsigned slotnum, eSlotState state);
+    void        SetUrl(unsigned slotnum, const std::string& url);
     const std::string& GetErrorString(unsigned slotnum) const;
 
-    void ReleaseSlot(unsigned slotnum);
-
-    int FirstFreeSlot() const;
-    int FirstBusySlot() const;
-
+    void        SignalRequest(unsigned slotnum) const;
 
 private:
-    // The actual slot 'array'
+    // The actual slot array
     std::vector<Cslot>  m_slots = std::vector<Cslot>(NUMBER_OF_DOWNLOAD_THREADS);
 };
