@@ -26,7 +26,7 @@
 /**
  * Displayed release version
  */
-#define         VERSION_NUMBER                  "2.0"
+#define         VERSION_NUMBER                  "2.1"
 
 
 

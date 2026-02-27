@@ -125,9 +125,9 @@ BOOL CDShowZoom::OnInitDialog()
 	m_eplist.GetClientRect(&rc);
 	int listWidth = rc.Width();
 
-	m_eplist.SetColumnWidth(COL_EPISODES_TITLE,   55 * listWidth / 100);
+	m_eplist.SetColumnWidth(COL_EPISODES_TITLE,   52 * listWidth / 100);
 	m_eplist.SetColumnWidth(COL_EPISODES_NUMBER,  20 * listWidth / 100);
-	m_eplist.SetColumnWidth(COL_EPISODES_DATE,    20 * listWidth / 100);
+	m_eplist.SetColumnWidth(COL_EPISODES_DATE,    25 * listWidth / 100);
 	// Zero width (ie hide) the date sort column
 	m_eplist.SetColumnWidth(COL_EPISODES_DATE_SORT, 0);
 

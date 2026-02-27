@@ -709,9 +709,8 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
  * A row on the Shows or Schedule tab was double-clicked. Popup a modal dialog listing all episodes for that Show.
  *
  */
-afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
+afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM hash, [[ maybe_unused ]] LPARAM lParam )
 {
-	DWORD hash = static_cast<DWORD>(wParam);
 	const show* pshow = m_data.FindShow(hash, eShowList::BOTH);
 
 	if (pshow == nullptr) {

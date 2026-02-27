@@ -52,7 +52,7 @@ protected:
 	afx_msg LRESULT OnDownloadComplete(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDownloadPing(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnThreadWaitFail(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnZoomEpisodes(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnZoomEpisodes(WPARAM hash, LPARAM lParam);
 	afx_msg LRESULT OnLaunchUrl(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnShowContextMenu(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnSignalAppEvent(WPARAM wParam, LPARAM lParam);

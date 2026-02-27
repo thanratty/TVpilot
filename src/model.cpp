@@ -137,7 +137,7 @@ show* model::FindShow(size_t search_hash, eShowList source)
 
     if (search_hash == 0)
     {
-        LogMsgWin(L"model::FindShow() bad hash");
+        LogMsgWin(L"model::FindShow() hash not found");
     }
     else
     {
@@ -163,7 +163,8 @@ show* model::FindShow(size_t search_hash, eShowList source)
 
 show* model::FindShow(const CString& url, eShowList source) 
 {
-    size_t hash = std::hash<std::wstring>()((LPCWSTR) url);
+    CW2A asciiz(url); 
+    size_t hash = std::hash<std::string>()(asciiz.m_psz);
     return FindShow(hash, source);
 }
 
