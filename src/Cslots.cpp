@@ -17,14 +17,15 @@
 
 Cslot::Cslot()
 {
-    // NB The logging thread has not started at this point
-
-    CString str;
+    /**
+     *  NB The console logging thread has not started at this point.
+     */
 
     // Increment & copy the singleton variable to identify this slot instance (starts at -1)
     m_SlotNumber = InterlockedIncrement(&gSlotCount);
     m_SlotName.Format(L"slot-%02u", m_SlotNumber);
 
+    CString str;
     str.Format(L"evRequest-%-d", m_SlotNumber);
     m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state unsignalled
 
@@ -34,6 +35,11 @@ Cslot::Cslot()
 
 Cslot::~Cslot()
 {
+    /**
+     *  NB The console logging thread has been killed by this point.
+     */
+
+    TerminateThread();
     CloseHandle(m_hEvRequest);
     m_hEvRequest = INVALID_HANDLE_VALUE;
 }
@@ -42,7 +48,6 @@ Cslot::~Cslot()
 void Cslot::StartThread()
 {
     m_pWinThread = AfxBeginThread(thrSlotThread, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
-    ASSERT(m_pWinThread);
     m_pWinThread->m_bAutoDelete = false;
 
 #if (NAMED_OBJECTS==1)
@@ -69,7 +74,7 @@ void Cslot::TerminateThread()
                 m_slotstate = eSlotState::SS_THREAD_EXITED;
         else {
             CString errmsg;
-            errmsg.Format(L"Slot thread %u didn't terminate within timeout. Result %08X, Error %08X", m_SlotNumber, result, GetLastError());
+            errmsg.Format(L"Slot thread %u terminate timeout. Result %08X, Error %08X", m_SlotNumber, result, GetLastError());
             LogMsgWin(errmsg);
             CONSOLE_PRINT(eLogFlags::SLOT_THREAD, errmsg);
         }
@@ -115,35 +120,35 @@ void Cslot::Reset()
     SetSlotState(eSlotState::SS_FREE);
 }
 
-void Cslot::SetExitFlag() {
+inline void Cslot::SetExitFlag() {
     m_exit_thread = true;
 }
 
-bool Cslot::GetExitFlag() const {
+bool Cslot::GetExitFlag(void) const {
     return m_exit_thread;
 }
 
-bool Cslot::IsBusy() const {
+inline bool Cslot::IsBusy() const {
     return !IsFree();
 }
 
-bool Cslot::IsFree() const {
+inline bool Cslot::IsFree() const {
     return m_slotstate == eSlotState::SS_FREE;
 }
 
-void Cslot::SetSlotState(eSlotState state) {
+inline void Cslot::SetSlotState(eSlotState state) {
     m_slotstate = state;
 }
 
-eSlotState Cslot::GetSlotState() const {
+inline eSlotState Cslot::GetSlotState() const {
     return m_slotstate;
 }
 
-const show& Cslot::GetShow() const {
+inline const show& Cslot::GetShow() const {
     return m_show;
 }
 
-eThreadState Cslot::GetThreadState() const {
+inline eThreadState Cslot::GetThreadState() const {
     return m_thread_state;
 }
 
@@ -151,7 +156,7 @@ void Cslot::SetThreadState(eThreadState state) {
     m_thread_state = state;
 }
 
-const std::string& Cslot::GetErrorString() const {
+inline const std::string& Cslot::GetErrorString() const {
     return m_error_string;
 }
 
@@ -166,7 +171,7 @@ void Cslot::SignalRequest() const  {
 
 }
 
-void Cslot::SetMsgWin(HWND hMsgWin) {
+inline void Cslot::SetMsgWin(HWND hMsgWin) {
     m_hMsgWin = hMsgWin;
 }
 
@@ -183,7 +188,15 @@ HWND Cslot::GetMsgWin(void) const {
 
 
 
+Cslots::Cslots()
+{
+    CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Cslots() constructor\n");
+}
 
+Cslots::~Cslots()
+{
+    CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Cslots() destructor\n");
+}
 
 void Cslots::SetMsgWin(HWND hWin)
 {

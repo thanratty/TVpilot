@@ -66,7 +66,7 @@ public:
 	afx_msg void	OnBtn_NewShow();
 	afx_msg void	OnBtn_Break();
 	afx_msg void    OnBtn_ChkMissedOnly();
-	afx_msg void    OnBtn_ShowLog();
+	afx_msg void    OnBtn_ChkShowLog();
 	afx_msg void	OnBtn_ResetDays();
 	afx_msg void	OnBtn_Explorer();
 	afx_msg void    OnBtn_AbortDownload();
@@ -92,6 +92,9 @@ private:
 			CDSchedule		m_dlgSchedule;
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
+			BOOL			m_chk_missed_only{ FALSE };
+			BOOL			m_chk_show_log{ FALSE };
+
 
 			/**
 			 * The 'database' and the download manager
@@ -109,7 +112,6 @@ private:
 			unsigned		m_err_count{ 0 };
 			bool			m_abort_download{ false };
 
-			BOOL			m_missed_only{ FALSE };
 			int				m_spin_pre_val{ DEFAULT_DAYS_PRE };
 			int				m_spin_post_val{ DEFAULT_DAYS_POST };
 

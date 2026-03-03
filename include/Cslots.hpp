@@ -84,32 +84,32 @@ public:
 
     void        Reset();
 
-    void        SetExitFlag();
-    bool        GetExitFlag() const;
+    inline void        SetExitFlag();
+    bool               GetExitFlag(void) const;
 
     inline bool IsBusy() const;
     inline bool IsFree() const;
 
-    eSlotState  GetSlotState() const;
-    void        SetSlotState(eSlotState state);
+    inline eSlotState  GetSlotState() const;
+    inline void        SetSlotState(eSlotState state);
 
-    eThreadState    GetThreadState() const;
-    void            SetThreadState(eThreadState state);
+    inline eThreadState    GetThreadState() const;
+    void                   SetThreadState(eThreadState state);
 
-    inline const show& GetShow() const;
-    const std::string& GetErrorString() const;
+    inline const show&        GetShow() const;
+    inline const std::string& GetErrorString() const;
 
-    HANDLE      GetRequestHandle() const;
-    void        SignalRequest() const;
+    HANDLE          GetRequestHandle() const;
+    void            SignalRequest() const;
 
-    void        SetMsgWin(HWND hMsgWin);
-    HWND        GetMsgWin(void) const;
+    inline void     SetMsgWin(HWND hMsgWin);
+    HWND            GetMsgWin(void) const;
 
 
 
 private:
     // One instance of this variable is shared between all Cslot objects
-    inline static LONG  gSlotCount{ -1 };
+    inline static volatile LONG  gSlotCount{ -1 };
     CString             m_SlotName;
     HWND                m_hMsgWin;
 };
@@ -122,6 +122,10 @@ private:
 class Cslots
 {
 public:
+    Cslots();
+    ~Cslots();
+
+
     void        TerminateSlotThreads();
     bool        AllSlotThreadsTerminated() const;
 

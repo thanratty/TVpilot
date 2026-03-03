@@ -54,7 +54,7 @@ void CDmessages::OnBtn_Clear()
 void CDmessages::OnOK()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_SHOW_LOG, BN_CLICKED));
 
 	//CDialogEx::OnOK();
 }
@@ -63,7 +63,7 @@ void CDmessages::OnOK()
 void CDmessages::OnCancel()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_SHOW_LOG, BN_CLICKED));
 
 	//CDialogEx::OnCancel();
 }

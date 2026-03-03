@@ -79,12 +79,16 @@ void CdownloadManager::DownloadShow(const std::string& url)
 	{
 		if ((freeslot = FirstFreeSlot()) != -1)
 		{
+			CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Slot % u downloading %s\n", url.c_str());
+
 			SetUrl(freeslot, url);
 			SetSlotState(freeslot, eSlotState::SS_URL_SET);
 			SignalRequest(freeslot);
 		}
 		else
+		{
 			Push(url);
+		}
 
 		slotslock.Unlock();
 	}

@@ -53,7 +53,8 @@ void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_DOWNLOAD,    m_btn_download);
 	DDX_Control(pDX, IDC_BTN_NEW_SHOW,    m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
-	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_missed_only);
+	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_chk_missed_only);
+	DDX_Check(pDX,   IDC_CHK_SHOW_LOG,    m_chk_show_log);
 }
 
 
@@ -76,8 +77,8 @@ BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtn_Break)
 	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtn_Explorer)
 	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtn_ResetDays)
-	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtn_ChkMissedOnly)
-	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtn_ShowLog)
+	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CepcheckDlg::OnBtn_ChkMissedOnly)
+	ON_BN_CLICKED( IDC_CHK_SHOW_LOG,				&CepcheckDlg::OnBtn_ChkShowLog)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
 	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CepcheckDlg::OnZoomEpisodes)
@@ -225,7 +226,6 @@ BOOL CepcheckDlg::OnInitDialog()
 
 	m_dlm.SetMsgWin(m_hWnd);
 
-
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
 }
@@ -254,10 +254,11 @@ void CepcheckDlg::OnCancel()
 	}
 
 	// Stop all the slotthreads & wait for them to exit
-	m_dlm.TerminateSlotThreads();
+	//m_dlm.TerminateSlotThreads();
 
 	CDialog::OnCancel();
 }
+
 
 /**
  * As soon as the main dialog window is created, notity the model.
@@ -343,7 +344,7 @@ void CepcheckDlg::OnBtn_Save()
 void CepcheckDlg::OnBtn_ChkMissedOnly()
 {
 	UpdateData();
-	m_data.ShowMissedOnly(m_missed_only);
+	m_data.ShowMissedOnly(m_chk_missed_only);
 
 	UpdateScheduleList();
 }
@@ -379,16 +380,16 @@ void CepcheckDlg::OnBtn_Break()
  * Show/Hide the logging messages window
  *
  */
-void CepcheckDlg::OnBtn_ShowLog()
+void CepcheckDlg::OnBtn_ChkShowLog()
 {
-	static BOOL visible = false;
+	UpdateData();
 
-	visible = !visible;
+	m_dlgMessages.ShowWindow( m_chk_show_log ? SW_SHOW : SW_HIDE);
 
-	auto chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
-	chkbox->SetCheck(visible);
 
-	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
+//	auto chkbox = (CButton*) GetDlgItem(IDC_CHK_SHOW_LOG);
+//	chkbox->SetCheck(visible);
+
 }
 
 

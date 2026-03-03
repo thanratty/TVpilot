@@ -15,15 +15,16 @@
 enum class eLogFlags : UINT32
 {
     INFO            = 0x00000001,
-    SLOT_THREAD     = 0x00000002,
-    WM_MSGS         = 0x00000004,
-    MODEL           = 0x00000008,
-    CURL            = 0x00000010,
-    XML             = 0x00000020,
-    FATAL           = 0x00000040,
+    WM_MSGS         = 0x00000002,
+    MODEL           = 0x00000004,
+    CURL            = 0x00000008,
+    XML             = 0x00000010,
+    FATAL           = 0x00000020,
 
-    SLOT_LOCK       = 0x00000080,
-    SLOT_USE        = 0x00000100,
+    SLOT_LOCK       = 0x00000040,
+    SLOT_USE        = 0x00000080,
+    SLOT_THREAD     = 0x00000100,
+
     SYNC_OBJECTS    = 0x00000200,
 
     TEST            = 0x00000400,

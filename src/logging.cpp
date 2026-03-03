@@ -70,7 +70,8 @@ STATIC bool		bExitThreadFlag{ false };						// Set non-zero to exit the logging 
 
 STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  | 
 									 eLogFlags::TEST  | 
-									 eLogFlags::FATAL | 
+									 eLogFlags::FATAL |
+									 eLogFlags::SLOT_USE |
 									 eLogFlags::CONSOLE_ECHO;
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)
@@ -295,7 +296,7 @@ void CONSOLE_PRINT(eLogFlags type, const wchar_t* format, ...)
 	while (!bConsoleReady) SwitchToThread();
 
 	// Can't print anything once we're shutting down.
-	if (bExitThreadFlag)
+	if ((bExitThreadFlag) || (hConsoleThread==INVALID_HANDLE_VALUE))
 		return;
 
 	// Only print enable messages
@@ -368,16 +369,22 @@ void LogSetMsgWin(CEdit* pedit)
 
 void LogMsgWin(const CString& msg)
 {
-	CString str = msg + CString(L"\r\n");
+	CString str = msg + L"\r\n";
 
 	CONSOLE_PRINT(eLogFlags::CONSOLE_ECHO, str);
 
-	if (pMsgWindow)
+	if (pMsgWindow && pMsgWindow->m_hWnd)
 	{
 		int length = pMsgWindow->GetWindowTextLength();
 		pMsgWindow->SetSel(length, length);
 		pMsgWindow->ReplaceSel(str);
 	}
+}
+
+
+void LogMsgWin(const std::string& str)
+{
+	LogMsgWin(str.c_str());
 }
 
 
@@ -419,13 +426,6 @@ void LogMsgWin(const char* format, ...)
 		LogMsgWin(str);
 	}
 }
-
-
-void LogMsgWin(const std::string& str)
-{
-	LogMsgWin(str.c_str());
-}
-
 
 
 
