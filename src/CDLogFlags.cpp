@@ -38,7 +38,8 @@ CDLogFlags::CDLogFlags(CWnd* pParent /*=nullptr*/)
 
 CDLogFlags::~CDLogFlags()
 {
-	for (unsigned i = 0; i < NUM_LOG_FLAGS; i++) {
+	for (unsigned i = 0; i < NUM_LOG_FLAGS; i++)
+	{
 		if (bptrs[i] != nullptr) {
 			delete bptrs[i];
 			bptrs[i] = nullptr;
@@ -128,7 +129,7 @@ BOOL CDLogFlags::OnInitDialog()
 	int btn_width     = dialog_width / 4;
 
 
-	for (unsigned btn_num = 0; btn_num < log_flags.size(); btn_num++)
+	for (size_t btn_num = 0; btn_num < log_flags.size(); btn_num++)
 	{
 		// Buttons are deleted in the dialog's destructor
 		bptrs[btn_num] = new CButton();

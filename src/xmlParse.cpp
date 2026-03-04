@@ -269,6 +269,8 @@ bool extractEpisodeTitles( xmlXPathObjectPtr nodes, sMyXpathResults& results)
 
 int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info )
 {
+	CONSOLE_PRINT(eLogFlags::XML, "xmlParse() on %s\n", curljob.Url().c_str());
+
 	// Presume success
 	int retval = E_XPARSE_OK;
 	xml_error_info.xmlErrorCode = XML_ERR_NONE;
@@ -329,6 +331,8 @@ int xmlParse( show& show, const cCurlJob& curljob, sXmlErrorInfo& xml_error_info
 		xmlXPathFreeObject(showTVMazeurl);
 		xmlXPathFreeObject(episodeTitleNodes);
 		xmlXPathFreeObject(episodeDetailNodes);
+
+		CONSOLE_PRINT(eLogFlags::XML, "Parsing episodes for %s\n", show.title.c_str());
 
 		// Make sure everything looks valid
 		if (!bGotTitles || !bGotDetails || (show.title.length() == 0))

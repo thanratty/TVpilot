@@ -24,11 +24,14 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CEdit m_messages;
+	CEdit   m_messages;
+	CButton m_btn_abort;
+
 	afx_msg void OnBtn_Clear();
 	afx_msg void OnBtn_AbortDownload();
 	afx_msg void OnBtn_Logging();
 
 	virtual void OnOK();
 	virtual void OnCancel();
+	CButton m_btn_logging;
 };

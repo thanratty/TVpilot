@@ -79,7 +79,7 @@ void CdownloadManager::DownloadShow(const std::string& url)
 	{
 		if ((freeslot = FirstFreeSlot()) != -1)
 		{
-			CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Slot % u downloading %s\n", url.c_str());
+			CONSOLE_PRINT(eLogFlags::SLOT_USE, "Slot %2u downloading %s\n", freeslot, url.c_str());
 
 			SetUrl(freeslot, url);
 			SetSlotState(freeslot, eSlotState::SS_URL_SET);
@@ -131,11 +131,8 @@ void CdownloadManager::AbortDownload()
 void CdownloadManager::ClearAbortCondition()
 {
 	m_abort_pending = false;
-
-	for (unsigned i=0 ; i<NUMBER_OF_DOWNLOAD_THREADS ; i++)
-		Cslots::ReleaseSlot(i);
+	ReleaseAllSlots();
 }
-
 
 
 

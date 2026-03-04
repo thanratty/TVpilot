@@ -240,6 +240,11 @@ void Cslots::ReleaseSlot(unsigned slotnum) {
     m_slots[slotnum].Reset();
 }
 
+void Cslots::ReleaseAllSlots(void) {
+    for(auto& slot : m_slots)
+        slot.Reset();
+}
+
 int Cslots::FirstFreeSlot() const
 {
     auto iter = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& s) { return s.IsFree(); });

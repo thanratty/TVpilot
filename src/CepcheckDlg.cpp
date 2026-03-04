@@ -1251,9 +1251,8 @@ void CepcheckDlg::CheckDownloadComplete()
 		// More slots still active? Wait for them to complete & ping
 		if (m_dlm.DownloadInProgress())
 			return;
-		else {
+		else
 			PostMessage(WM_TVP_DOWNLOAD_COMPLETE);
-		}
 	}
 
 	// We're not mid-abort. Just check the ping count
@@ -1345,6 +1344,8 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_OK));
 		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
+
+	m_dlgSchedule.SetFocus();
 
 	// Update the model & the UI
 	m_data.BuildEpisodeList();

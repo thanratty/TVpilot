@@ -28,6 +28,8 @@ void CDmessages::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_MESSAGES, m_messages);
+	DDX_Control(pDX, IDC_BTN_ABORT_DOWNLOAD, m_btn_abort);
+	DDX_Control(pDX, IDC_BTN_LOGGING, m_btn_logging);
 }
 
 
@@ -84,21 +86,15 @@ void CDmessages::OnBtn_Logging()
 }
 
 
-LRESULT CDmessages::OnMsg_AbortEnable(WPARAM wParam, LPARAM lParam)
+LRESULT CDmessages::OnMsg_AbortEnable(WPARAM, LPARAM )
 {
-	wParam;
-	lParam;
-
-	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow();
+	m_btn_abort.EnableWindow();
 	return 0;
 }
 
-LRESULT CDmessages::OnMsg_AbortDisable(WPARAM wParam, LPARAM lParam)
+LRESULT CDmessages::OnMsg_AbortDisable(WPARAM, LPARAM )
 {
-	wParam;
-	lParam;
-
-	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
+	m_btn_abort.EnableWindow(FALSE);
 	return 0;
 }
 

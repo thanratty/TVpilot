@@ -53,6 +53,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		//
 		slot.SetThreadState(eThreadState::TS_WAITING);
 		wait_result = WaitForSingleObject(hEvent, INFINITE);
+		slot.m_EventCounter++;
 		slot.SetThreadState(eThreadState::TS_RUNNING);
 
 		// If the Wait fails - just loop & try again.

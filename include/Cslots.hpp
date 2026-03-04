@@ -49,6 +49,7 @@ public:
     int             m_http_status{ INT_MAX };
     int             m_curl_status{ INT_MAX };
     int             m_xml_status{ INT_MAX };
+    unsigned        m_EventCounter{ 0 };
 
 protected:
     bool            m_exit_thread{ false };
@@ -136,6 +137,7 @@ public:
     int         FirstFreeSlot() const;
     int         FirstBusySlot() const;
     void        ReleaseSlot(unsigned slotnum);
+    void        ReleaseAllSlots(void);
 
     const show& GetSlotShow(unsigned slotnum) const;
     eSlotState  GetSlotState(unsigned slotnum) const;
