@@ -21,8 +21,7 @@ extern std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags;
 constexpr UINT32 BTN_BASE_ID = 100;
 
 // Large anough to hold a pointer to each newly minted button
-STATIC CButton* bptrs[ NUM_LOG_FLAGS ]{};
-
+STATIC std::array<CButton*, NUM_LOG_FLAGS> bptrs{};
 
 
 
@@ -38,11 +37,11 @@ CDLogFlags::CDLogFlags(CWnd* pParent /*=nullptr*/)
 
 CDLogFlags::~CDLogFlags()
 {
-	for (unsigned i = 0; i < NUM_LOG_FLAGS; i++)
+	for (auto& btn : bptrs)
 	{
-		if (bptrs[i] != nullptr) {
-			delete bptrs[i];
-			bptrs[i] = nullptr;
+		if (btn) {
+			delete btn;
+			btn = nullptr;
 		}
 	}
 }
@@ -82,6 +81,7 @@ BOOL CDLogFlags::OnInitDialog()
 
 	//
 	// Add the four buttons to a layout manager so they're repositioned when the dialog is resized
+	// after the check boxes have been added.
 	//
 
 	EnableDynamicLayout();
@@ -174,7 +174,7 @@ afx_msg void CDLogFlags::OnChkBoxClicked(UINT nID)
 
 	m_edited = true;
 
-	unsigned chk_state = bptrs[btn_index]->GetCheck();
+	auto chk_state = bptrs[btn_index]->GetCheck();
 	chk_state = (chk_state == BST_CHECKED) ? BST_UNCHECKED : BST_CHECKED;
 	bptrs[btn_index]->SetCheck(chk_state);
 
@@ -209,7 +209,7 @@ void CDLogFlags::UpdateUI() const
 {
 	for (unsigned btn_num = 0; btn_num < log_flags.size(); btn_num++)
 	{
-		int state = flags(m_temp_flags & log_flags[btn_num].mask) ? BST_CHECKED : BST_UNCHECKED;
+		auto state = flags(m_temp_flags & log_flags[btn_num].mask) ? BST_CHECKED : BST_UNCHECKED;
 		bptrs[btn_num]->SetCheck(state);
 	}
 }

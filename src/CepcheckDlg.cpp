@@ -253,9 +253,6 @@ void CepcheckDlg::OnCancel()
 		return;
 	}
 
-	// Stop all the slotthreads & wait for them to exit
-	//m_dlm.TerminateSlotThreads();
-
 	CDialog::OnCancel();
 }
 
@@ -358,7 +355,10 @@ void CepcheckDlg::OnBtn_ChkMissedOnly()
  */
 void CepcheckDlg::OnBtn_Explorer()
 {
-	m_data.OpenDataFileFolder();
+	wchar_t args[MAX_PATH + 1];
+
+	swprintf(args, MAX_PATH, L"/select, \"%s\"", m_data.Filename());
+	ShellExecute(NULL, L"open", L"explorer.exe", args, NULL, SW_SHOWDEFAULT);
 }
 
 
@@ -383,13 +383,7 @@ void CepcheckDlg::OnBtn_Break()
 void CepcheckDlg::OnBtn_ChkShowLog()
 {
 	UpdateData();
-
 	m_dlgMessages.ShowWindow( m_chk_show_log ? SW_SHOW : SW_HIDE);
-
-
-//	auto chkbox = (CButton*) GetDlgItem(IDC_CHK_SHOW_LOG);
-//	chkbox->SetCheck(visible);
-
 }
 
 

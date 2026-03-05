@@ -84,7 +84,6 @@ public:
         // Read/Write data file
         bool        LoadFile();
         bool        SaveFile();
-        void        OpenDataFileFolder();
 
         bool        EpisodeFlagsChange(const sPopupContext* pcontext);
  
@@ -98,15 +97,14 @@ public:
 
         void        AddNewShow(const show& showtoadd);
         bool        UpdateShow(const show& showtoupdate);
-
         void        DeleteShow(size_t hash);
         bool        ArchiveShow(size_t hash);
         bool        UnarchiveShow(size_t hash);
 
-        show* FindShow(size_t searchhash, eShowList source);
-        show* FindShow(const CString& url, eShowList source);
+        show*       FindShow(size_t searchhash, eShowList source);
+        show*       FindShow(const CString& url, eShowList source);
 
-        unsigned NumShows(eShowList list) const
+        unsigned    NumShows(eShowList list) const
         { 
             if (list == eShowList::ACTIVE)
                 return m_active_shows.size();

@@ -35,84 +35,61 @@ enum class eSlotState
 
 
 
-class CslotData
+class Cslot
 {
 public:
-    unsigned        m_SlotNumber{ 0 };                          // This slot's instance number
-    CWinThread*     m_pWinThread{ nullptr };                    // The associated worker/download thread for this slot
-    show            m_show;                                     // The show this slot is currently downloading
+        Cslot();
+        ~Cslot();
 
-    /**
-     * Status & errors
-     */
-    std::string     m_error_string;
-    int             m_http_status{ INT_MAX };
-    int             m_curl_status{ INT_MAX };
-    int             m_xml_status{ INT_MAX };
-    unsigned        m_EventCounter{ 0 };
-
-protected:
-    bool            m_exit_thread{ false };
-    HANDLE          m_hEvRequest { INVALID_HANDLE_VALUE };
-    eThreadState    m_thread_state{ eThreadState::TS_NOT_STARTED };
-    eSlotState      m_slotstate{ eSlotState::SS_FREE };
-};
+        void         SetUrl(const std::string& url);
+        void         Reset();
+        bool         IsBusy() const;
+        bool         IsFree() const;
 
 
+        void         SetExitFlag();
+        bool         GetExitFlag(void) const;
+        void         SetMsgWin(HWND hMsgWin);
+        HWND         GetMsgWin(void) const;
+        eThreadState GetThreadState() const;
+        void         SetThreadState(eThreadState state);
+        eSlotState   GetSlotState() const;
+        void         SetSlotState(eSlotState state);
 
+        show&           GetShow();
+ const std::string&     GetErrorString() const;
 
-
-
-
-
-
-
-
-
-
-
-
-class Cslot : public CslotData
-{
-public:
-    Cslot();
-    ~Cslot();
-
-    void        SetUrl(const std::string& url);
-
-    void        StartThread();
-    void        TerminateThread();
-
-    void        Reset();
-
-    inline void        SetExitFlag();
-    bool               GetExitFlag(void) const;
-
-    inline bool IsBusy() const;
-    inline bool IsFree() const;
-
-    inline eSlotState  GetSlotState() const;
-    inline void        SetSlotState(eSlotState state);
-
-    inline eThreadState    GetThreadState() const;
-    void                   SetThreadState(eThreadState state);
-
-    inline const show&        GetShow() const;
-    inline const std::string& GetErrorString() const;
-
-    HANDLE          GetRequestHandle() const;
-    void            SignalRequest() const;
-
-    inline void     SetMsgWin(HWND hMsgWin);
-    HWND            GetMsgWin(void) const;
-
-
+        HANDLE       GetRequestHandle() const;
+        void         SignalRequest() const;
 
 private:
-    // One instance of this variable is shared between all Cslot objects
-    inline static volatile LONG  gSlotCount{ -1 };
-    CString             m_SlotName;
-    HWND                m_hMsgWin;
+        void        StartThread();
+        void        TerminateThread();
+
+
+        // One instance of this variable is shared between all Cslot objects
+        inline static volatile LONG  gSlotCount{ -1 };
+
+        CString         m_SlotName;
+        HWND            m_hMsgWin;
+        CWinThread*     m_pWinThread{ nullptr };                    // The associated worker/download thread for this slot
+        bool            m_exit_thread{ false };
+        HANDLE          m_hEvRequest{ INVALID_HANDLE_VALUE };
+        show            m_show;                                     // The show this slot is currently downloading
+        eThreadState    m_thread_state{ eThreadState::TS_NOT_STARTED };
+        eSlotState      m_slotstate{ eSlotState::SS_FREE };
+
+        /**
+         * Status & errors
+         */
+public:
+        unsigned        m_SlotNumber{ 0 };                          // This slot's instance number
+        unsigned        m_EventCounter{ 0 };
+
+        std::string     m_error_string;
+        int             m_http_status{ INT_MAX };
+        int             m_curl_status{ INT_MAX };
+        int             m_xml_status{ INT_MAX };
 };
 
 
@@ -126,10 +103,6 @@ public:
     Cslots();
     ~Cslots();
 
-
-    void        TerminateSlotThreads();
-    bool        AllSlotThreadsTerminated() const;
-
     void        SetMsgWin( HWND hWin );
 
     bool        IsFree(unsigned slotnum) const;
@@ -139,7 +112,7 @@ public:
     void        ReleaseSlot(unsigned slotnum);
     void        ReleaseAllSlots(void);
 
-    const show& GetSlotShow(unsigned slotnum) const;
+    show&       GetSlotShow(unsigned slotnum);
     eSlotState  GetSlotState(unsigned slotnum) const;
     void        SetSlotState(unsigned slotnum, eSlotState state);
     void        SetUrl(unsigned slotnum, const std::string& url);

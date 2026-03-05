@@ -120,7 +120,7 @@ void Cslot::Reset()
     SetSlotState(eSlotState::SS_FREE);
 }
 
-inline void Cslot::SetExitFlag() {
+void Cslot::SetExitFlag() {
     m_exit_thread = true;
 }
 
@@ -128,27 +128,27 @@ bool Cslot::GetExitFlag(void) const {
     return m_exit_thread;
 }
 
-inline bool Cslot::IsBusy() const {
-    return !IsFree();
-}
-
-inline bool Cslot::IsFree() const {
+bool Cslot::IsFree() const {
     return m_slotstate == eSlotState::SS_FREE;
 }
 
-inline void Cslot::SetSlotState(eSlotState state) {
+bool Cslot::IsBusy() const {
+    return !IsFree();
+}
+
+void Cslot::SetSlotState(eSlotState state) {
     m_slotstate = state;
 }
 
-inline eSlotState Cslot::GetSlotState() const {
+eSlotState Cslot::GetSlotState() const {
     return m_slotstate;
 }
 
-inline const show& Cslot::GetShow() const {
+show& Cslot::GetShow() {
     return m_show;
 }
 
-inline eThreadState Cslot::GetThreadState() const {
+eThreadState Cslot::GetThreadState() const {
     return m_thread_state;
 }
 
@@ -156,7 +156,7 @@ void Cslot::SetThreadState(eThreadState state) {
     m_thread_state = state;
 }
 
-inline const std::string& Cslot::GetErrorString() const {
+const std::string& Cslot::GetErrorString() const {
     return m_error_string;
 }
 
@@ -164,19 +164,18 @@ HANDLE Cslot::GetRequestHandle() const {
     return m_hEvRequest;
 }
 
-void Cslot::SignalRequest() const  {
-    if (SetEvent(m_hEvRequest) == 0) {
-        CONSOLE_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed. Error %08X", GetLastError());
-    }
-
-}
-
-inline void Cslot::SetMsgWin(HWND hMsgWin) {
+void Cslot::SetMsgWin(HWND hMsgWin) {
     m_hMsgWin = hMsgWin;
 }
 
 HWND Cslot::GetMsgWin(void) const {
     return m_hMsgWin;
+}
+
+void Cslot::SignalRequest() const  {
+    if (SetEvent(m_hEvRequest) == 0) {
+        CONSOLE_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed. Error %08X", GetLastError());
+    }
 }
 
 
@@ -212,7 +211,7 @@ bool Cslots::IsBusy(unsigned slotnum) const {
     return m_slots[slotnum].IsBusy();
 }
 
-const show& Cslots::GetSlotShow(unsigned slotnum) const {
+show& Cslots::GetSlotShow(unsigned slotnum) {
     return m_slots[slotnum].GetShow();
 }
 
@@ -257,13 +256,3 @@ int Cslots::FirstBusySlot() const
     return (iter == m_slots.end()) ? -1 : (iter - m_slots.begin());
 }
 
-void Cslots::TerminateSlotThreads()
-{
-    std::for_each(m_slots.begin(), m_slots.end(), [](Cslot& slot){ slot.TerminateThread();});
-}
-
-bool Cslots::AllSlotThreadsTerminated() const
-{
-    auto it = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& slot) { return slot.GetSlotState() != eSlotState::SS_THREAD_EXITED; });
-    return (it == m_slots.end());
-}

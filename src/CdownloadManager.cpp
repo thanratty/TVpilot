@@ -13,16 +13,16 @@
 
 
 
+/**
+ * Individual slots now start & shutdown their own threads 
+ * and event handles in the constructors/destructors.
+ */
 
 CdownloadManager::CdownloadManager()
-{
-}
-
+{}
 
 CdownloadManager::~CdownloadManager()
-{
-	// Individual slots shutdown their own threads & close event handles.
-}
+{}
 
 
 void CdownloadManager::Push(const std::string& url)
@@ -97,22 +97,10 @@ void CdownloadManager::DownloadShow(const std::string& url)
 
 
 
-void CdownloadManager::SetMsgWin(HWND hMsgWin)
-{
-	m_hMsgWin = hMsgWin;
-
-	Cslots::SetMsgWin( hMsgWin );
-}
-
-
-
-
 bool CdownloadManager::DownloadInProgress() const
 {
-	if (FirstBusySlot() != -1)
-			return true;
-
-	return false;
+	// If there's a busy slot, we're mid-download
+	return (FirstBusySlot() != -1);
 }
 
 
@@ -134,11 +122,3 @@ void CdownloadManager::ClearAbortCondition()
 	ReleaseAllSlots();
 }
 
-
-
-void CdownloadManager::TerminateSlotThreads()
-{
-	Cslots::TerminateSlotThreads();
-
-	while (!AllSlotThreadsTerminated());
-}

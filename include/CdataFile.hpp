@@ -8,15 +8,13 @@ class CdataFile
 public:
         CdataFile();
 
-inline  const wchar_t* Filename() const
-        {
-            return m_filename.c_str();
-        }
+const wchar_t* Filename() const {
+    return m_filename.c_str();
+}
 
-inline  bool IsNewFile() const
-        {
-            return m_IsNewFile;
-        }
+bool IsNewFile() const {
+    return m_IsNewFile;
+}
 
 private:
         void             BuildFilename();

@@ -7,8 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <strsafe.h>
 #include <string>
+
 #include "boost/algorithm/string/trim.hpp"
 
 #include "common.hpp"
@@ -563,21 +563,4 @@ bool model::EpisodeFlagsChange(const sPopupContext* pcontext)
     return retval;
 }
 
-
-
-
-
-/**
- * Open an explorer window in the datafile location
- *
- */
-void model::OpenDataFileFolder(void)
-{
-    wchar_t filepath[ MAX_PATH ];
-
-    StringCchCopy(filepath, MAX_PATH, m_datafile.Filename());
-    PathRemoveFileSpec(filepath);
-
-    ShellExecute(NULL, L"open", filepath, NULL, NULL, SW_SHOWDEFAULT);
-}
 

@@ -71,7 +71,6 @@ STATIC bool		bExitThreadFlag{ false };						// Set non-zero to exit the logging 
 STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  | 
 									 eLogFlags::TEST  | 
 									 eLogFlags::FATAL |
-									 eLogFlags::SLOT_USE |
 									 eLogFlags::CONSOLE_ECHO;
 
 #endif	// (ENABLE_CONSOLE_LOGGING==1)

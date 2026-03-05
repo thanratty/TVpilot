@@ -18,19 +18,23 @@
  */
 #if defined(_DEBUG) && (USE_TEST_DATAFILE==1)
 #pragma message ("!! --- DEBUG BUILD CONFIGURED TO USE TEST DATA FILE --- !!")
-constexpr wchar_t* DATAFILE_NAME = (LPWSTR) TEST_DATAFILE_NAME;
+constexpr wchar_t DATAFILE_NAME[]{ TEST_DATAFILE_NAME };
 #else
-constexpr wchar_t* DATAFILE_NAME = (LPWSTR) RELEASE_DATAFILE_NAME;
+constexpr wchar_t DATAFILE_NAME[]{ RELEASE_DATAFILE_NAME };
 #endif
 
 
 
 
 
-
+/**
+ *
+ * Check the datafile exists, optionally create a new one if it doesn't.
+ * 
+ */
 CdataFile::CdataFile()
 {
-    // Concat folder & filename into m_filename
+    // Concat folder & filename into full path m_filename
     BuildFilename();
 
     if (PathFileExists(m_filename.c_str()) == TRUE)
@@ -62,11 +66,16 @@ CdataFile::CdataFile()
 
 
 
+/**
+ *
+ * Construct the full pathname of the data file in %APPDATALOCAL%\APP_NAME
+ * and save in m_filename. If the folder doesn't exist, create it.
+ * 
+ */
 void CdataFile::BuildFilename()
 {
-wchar_t  buffer[MAX_PATH + 1] = {};
-
-    PWSTR ppath = nullptr;
+wchar_t  buffer[MAX_PATH + 1]{};
+PWSTR    ppath{ nullptr };
 
     SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, NULL, &ppath);
     wcscpy_s(buffer, MAX_PATH, ppath);
