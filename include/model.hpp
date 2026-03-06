@@ -151,7 +151,7 @@ private:
         // Where to post 'ping' and 'complete' msgs to.
         HWND                        m_hMsgWin { NULL };
 
-        // Default # days interval. Updated in CepcheckDlg::OnInitDialog()
+        // Default # days interval. Updated in CDmain::OnInitDialog()
         int                         m_pre_days { 2 };
         int                         m_post_days{ 2 };
 

@@ -22,12 +22,12 @@ static constexpr int TAB_NUM_ARCHIVE  = 2;
 
 
 
-// CepcheckDlg dialog
-class CepcheckDlg : public CDialog
+// CDmain dialog
+class CDmain : public CDialog
 {
 // Construction
 public:
-	CepcheckDlg(CWnd* pParent = nullptr);	// standard constructor
+	CDmain(CWnd* pParent = nullptr);	// standard constructor
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

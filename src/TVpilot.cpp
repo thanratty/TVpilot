@@ -8,7 +8,7 @@
 
 #include "common.hpp"
 
-#include "CepcheckDlg.hpp"
+#include "CDmain.hpp"
 #include "utils.hpp"
 
 #include "TVpilot.hpp"
@@ -94,7 +94,7 @@ BOOL CepcheckApp::InitInstance()
 #endif
 
 
-	CepcheckDlg dlg;
+	CDmain dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == -1)

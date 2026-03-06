@@ -18,7 +18,7 @@
     <ClInclude Include="include\TVpilot.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CepcheckDlg.hpp">
+    <ClInclude Include="include\CDmain.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\targetver.h">
@@ -110,7 +110,7 @@
     <ClCompile Include="src\TVpilot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CepcheckDlg.cpp">
+    <ClCompile Include="src\CDmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pch.cpp">
