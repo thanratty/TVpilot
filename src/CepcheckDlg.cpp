@@ -46,15 +46,14 @@ void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST,  m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,   m_spin_pre);
-	DDX_Control(pDX, IDC_BTN_LOAD,        m_btn_load);
-	DDX_Control(pDX, IDC_BTN_SAVE,        m_btn_save);
-	DDX_Control(pDX, IDC_BTN_DOWNLOAD,    m_btn_download);
-	DDX_Control(pDX, IDC_BTN_NEW_SHOW,    m_btn_new_show);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE, m_spin_pre);
+	DDX_Control(pDX, IDC_BTN_LOAD, m_btn_load);
+	DDX_Control(pDX, IDC_BTN_SAVE, m_btn_save);
+	DDX_Control(pDX, IDC_BTN_DOWNLOAD, m_btn_download);
+	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
-	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_chk_missed_only);
-	DDX_Check(pDX,   IDC_CHK_SHOW_LOG,    m_chk_show_log);
+	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_chk_missed_only);
 }
 
 
@@ -377,13 +376,20 @@ void CepcheckDlg::OnBtn_Break()
 
 
 /**
- * Show/Hide the logging messages window
+ * Show/Hide the logging messages window.Don't use a member var,
+ * keep the state here as a static.
  *
  */
 void CepcheckDlg::OnBtn_ChkShowLog()
 {
-	UpdateData();
-	m_dlgMessages.ShowWindow( m_chk_show_log ? SW_SHOW : SW_HIDE);
+	static BOOL visible = false;
+
+	visible = !visible;
+
+	auto chkbox = static_cast<CButton*>(GetDlgItem(IDC_CHK_SHOW_LOG));
+	chkbox->SetCheck(visible ? BST_CHECKED : BST_UNCHECKED);
+
+	m_dlgMessages.ShowWindow( visible ? SW_SHOW : SW_HIDE);
 }
 
 
@@ -1092,7 +1098,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 			{
 				m_btn_new_show.EnableWindow(0);
 				m_btn_delete_show.EnableWindow();
-				m_btn_download.EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			}
 			break;
 

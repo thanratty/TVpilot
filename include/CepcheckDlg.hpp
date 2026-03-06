@@ -93,7 +93,6 @@ private:
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
 			BOOL			m_chk_missed_only{ FALSE };
-			BOOL			m_chk_show_log{ FALSE };
 
 
 			/**
