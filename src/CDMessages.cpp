@@ -27,7 +27,9 @@ CDmessages::~CDmessages()
 void CDmessages::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_MESSAGES, m_messages);
+	DDX_Control(pDX, IDC_MESSAGES,			 m_messages);
+	DDX_Control(pDX, IDC_BTN_ABORT_DOWNLOAD, m_btn_abort);
+	DDX_Control(pDX, IDC_BTN_LOGGING,		 m_btn_logging);
 }
 
 
@@ -38,6 +40,22 @@ BEGIN_MESSAGE_MAP(CDmessages, CDialogEx)
 	ON_MESSAGE(WM_TVP_ABORT_BTN_ENABLE,		&CDmessages::OnMsg_AbortEnable)
 	ON_MESSAGE(WM_TVP_ABORT_BTN_DISABLE,	&CDmessages::OnMsg_AbortDisable)
 END_MESSAGE_MAP()
+
+
+
+BOOL CDmessages::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+#if !defined(_DEBUG) || (ENABLE_CONSOLE_LOGGING==0)
+	m_btn_logging.EnableWindow(0);
+	m_btn_logging.ShowWindow(SW_HIDE);
+#endif
+
+	return TRUE;	// return TRUE unless you set the focus to a control
+					// EXCEPTION: OCX Property Pages should return FALSE
+}
+
 
 
 //
@@ -54,7 +72,7 @@ void CDmessages::OnBtn_Clear()
 void CDmessages::OnOK()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_SHOW_LOG, BN_CLICKED));
 
 	//CDialogEx::OnOK();
 }
@@ -63,7 +81,7 @@ void CDmessages::OnOK()
 void CDmessages::OnCancel()
 {
 	// Let the parent look after the SHOW/HIDE logic
-	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_DEBUG_LOG, BN_CLICKED));
+	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_CHK_SHOW_LOG, BN_CLICKED));
 
 	//CDialogEx::OnCancel();
 }
@@ -77,28 +95,22 @@ void CDmessages::OnBtn_AbortDownload()
 
 void CDmessages::OnBtn_Logging()
 {
-#if defined(_DEBUG)
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 	CDLogFlags	dlog(this);
 	dlog.DoModal();
 #endif
 }
 
 
-LRESULT CDmessages::OnMsg_AbortEnable(WPARAM wParam, LPARAM lParam)
+LRESULT CDmessages::OnMsg_AbortEnable(WPARAM, LPARAM )
 {
-	wParam;
-	lParam;
-
-	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow();
+	m_btn_abort.EnableWindow();
 	return 0;
 }
 
-LRESULT CDmessages::OnMsg_AbortDisable(WPARAM wParam, LPARAM lParam)
+LRESULT CDmessages::OnMsg_AbortDisable(WPARAM, LPARAM )
 {
-	wParam;
-	lParam;
-
-	GetDlgItem(IDC_BTN_ABORT_DOWNLOAD)->EnableWindow(FALSE);
+	m_btn_abort.EnableWindow(FALSE);
 	return 0;
 }
 

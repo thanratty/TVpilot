@@ -150,8 +150,8 @@ bool CslotsSem::Lock()
 
     CString errmsg;
     errmsg.Format(L"FATAL! CslotsSem::Lock() fail. Result %08X, Error %08X\n", result, m_last_error);
-    LogMsgWin( errmsg );
-    CONSOLE_PRINT( eLogFlags::FATAL, errmsg );
+    LogMsgWin(errmsg);
+    CONSOLE_PRINT(eLogFlags::FATAL, errmsg);
 
     return false;
 }
@@ -183,7 +183,11 @@ bool CslotsSem::Unlock()
         return true;
 
     m_last_error = GetLastError();
-    CONSOLE_PRINT(eLogFlags::FATAL, L"CslotsSem::Unlock() release fail. Error %08X. Count %ld\n", m_last_error, last_count);
+
+    CString errmsg;
+    errmsg.Format(L"FATAL! CslotsSem::Unlock() fail. Error %08X. Count %ld\n", m_last_error, last_count);
+    LogMsgWin(errmsg);
+    CONSOLE_PRINT(eLogFlags::FATAL, errmsg);
 
     return false;
 }

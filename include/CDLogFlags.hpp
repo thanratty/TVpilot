@@ -30,8 +30,10 @@ public:
 	afx_msg void OnChkBoxClicked(UINT nID);
 	afx_msg void OnBtnClicked_LogAll();
 	afx_msg void OnBtnClicked_LogNone();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 
 private:
 	eLogFlags	m_temp_flags{ 0 };
-	void		UpdateUI();
+	void		UpdateUI() const;
+	bool		m_edited{ false };
 };

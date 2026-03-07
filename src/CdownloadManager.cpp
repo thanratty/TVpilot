@@ -13,16 +13,16 @@
 
 
 
+/**
+ * Individual slots now start & shutdown their own threads 
+ * and event handles in the constructors/destructors.
+ */
 
 CdownloadManager::CdownloadManager()
-{
-}
-
+{}
 
 CdownloadManager::~CdownloadManager()
-{
-	// Individual slots shutdown their own threads & close event handles.
-}
+{}
 
 
 void CdownloadManager::Push(const std::string& url)
@@ -79,12 +79,16 @@ void CdownloadManager::DownloadShow(const std::string& url)
 	{
 		if ((freeslot = FirstFreeSlot()) != -1)
 		{
+			CONSOLE_PRINT(eLogFlags::SLOT_USE, "Slot %2u downloading %s\n", freeslot, url.c_str());
+
 			SetUrl(freeslot, url);
 			SetSlotState(freeslot, eSlotState::SS_URL_SET);
 			SignalRequest(freeslot);
 		}
 		else
+		{
 			Push(url);
+		}
 
 		slotslock.Unlock();
 	}
@@ -93,22 +97,10 @@ void CdownloadManager::DownloadShow(const std::string& url)
 
 
 
-void CdownloadManager::SetMsgWin(HWND hMsgWin)
-{
-	m_hMsgWin = hMsgWin;
-
-	Cslots::SetMsgWin( hMsgWin );
-}
-
-
-
-
 bool CdownloadManager::DownloadInProgress() const
 {
-	if (FirstBusySlot() != -1)
-			return true;
-
-	return false;
+	// If there's a busy slot, we're mid-download
+	return (FirstBusySlot() != -1);
 }
 
 
@@ -127,17 +119,6 @@ void CdownloadManager::AbortDownload()
 void CdownloadManager::ClearAbortCondition()
 {
 	m_abort_pending = false;
-
-	for (unsigned i=0 ; i<NUMBER_OF_DOWNLOAD_THREADS ; i++)
-		Cslots::ReleaseSlot(i);
+	ReleaseAllSlots();
 }
 
-
-
-
-void CdownloadManager::TerminateSlotThreads()
-{
-	Cslots::TerminateSlotThreads();
-
-	while (!AllSlotThreadsTerminated());
-}

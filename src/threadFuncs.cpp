@@ -53,6 +53,7 @@ UINT __cdecl thrSlotThread(LPVOID pParam)
 		//
 		slot.SetThreadState(eThreadState::TS_WAITING);
 		wait_result = WaitForSingleObject(hEvent, INFINITE);
+		slot.m_EventCounter++;
 		slot.SetThreadState(eThreadState::TS_RUNNING);
 
 		// If the Wait fails - just loop & try again.
@@ -109,7 +110,7 @@ STATIC bool CurlAndParse(Cslot& slot)
 {
 	slot.SetSlotState(eSlotState::SS_CURLING);
 
-	cCurlJob  curljob(slot.m_show.epguides_url);
+	cCurlJob  curljob(slot.GetShow().epguides_url);
 	bool curl_ok = curljob.downloadShow();
 
 	// Handy status/error codes for debugging.
@@ -131,7 +132,7 @@ STATIC bool CurlAndParse(Cslot& slot)
 
 	// No download errors. Parse the HTML into the show object
 	sXmlErrorInfo xml_error_info;
-	slot.m_xml_status = xmlParse(slot.m_show, curljob, xml_error_info);
+	slot.m_xml_status = xmlParse(slot.GetShow(), curljob, xml_error_info);
 	if (slot.m_xml_status != E_XPARSE_OK)
 	{
 		slot.SetSlotState(eSlotState::SS_PARSE_ERROR);

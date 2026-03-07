@@ -16,7 +16,7 @@
 #include "CdownloadManager.hpp"
 #include "utils.hpp"
 
-#include "CepcheckDlg.hpp"
+#include "CDmain.hpp"
 
 
 
@@ -32,9 +32,9 @@ STATIC UINT_PTR	TIMER_ID_ONE_MINUTE = 60;
 
 
 
-// CepcheckDlg dialog constructor
+// CDmain dialog constructor
 //
-CepcheckDlg::CepcheckDlg(CWnd* pParent /*=nullptr*/) :
+CDmain::CDmain(CWnd* pParent /*=nullptr*/) :
 	CDialog(IDD_EPCHECK, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -42,18 +42,18 @@ CepcheckDlg::CepcheckDlg(CWnd* pParent /*=nullptr*/) :
 
 
 
-void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
+void CDmain::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TAB1, m_tabctrl);
-	DDX_Control(pDX, IDC_SPIN_DAYS_POST,  m_spin_post);
-	DDX_Control(pDX, IDC_SPIN_DAYS_PRE,   m_spin_pre);
-	DDX_Control(pDX, IDC_BTN_LOAD,        m_btn_load);
-	DDX_Control(pDX, IDC_BTN_SAVE,        m_btn_save);
-	DDX_Control(pDX, IDC_BTN_DOWNLOAD,    m_btn_download);
-	DDX_Control(pDX, IDC_BTN_NEW_SHOW,    m_btn_new_show);
+	DDX_Control(pDX, IDC_SPIN_DAYS_POST, m_spin_post);
+	DDX_Control(pDX, IDC_SPIN_DAYS_PRE, m_spin_pre);
+	DDX_Control(pDX, IDC_BTN_LOAD, m_btn_load);
+	DDX_Control(pDX, IDC_BTN_SAVE, m_btn_save);
+	DDX_Control(pDX, IDC_BTN_DOWNLOAD, m_btn_download);
+	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
-	DDX_Check(pDX,   IDC_CHK_MISSED_ONLY, m_missed_only);
+	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_chk_missed_only);
 }
 
 
@@ -63,28 +63,28 @@ void CepcheckDlg::DoDataExchange(CDataExchange* pDX)
 #pragma warning( push )
 #pragma warning( disable : 26454 )
 
-BEGIN_MESSAGE_MAP(CepcheckDlg, CDialog)
-	ON_NOTIFY( TCN_SELCHANGE, IDC_TAB1,				&CepcheckDlg::OnTcnSelchangeTab1)
-	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_PRE,	&CepcheckDlg::OnDeltaPosSpinDays)
-	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_POST,	&CepcheckDlg::OnDeltaPosSpinDays)
-	ON_BN_CLICKED( IDC_BTN_LOAD,					&CepcheckDlg::OnBtn_Load)
-	ON_BN_CLICKED( IDC_BTN_SAVE,					&CepcheckDlg::OnBtn_Save)
-	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CepcheckDlg::OnBtn_Download)
-	ON_BN_CLICKED( IDC_BTN_ABORT_DOWNLOAD,			&CepcheckDlg::OnBtn_AbortDownload)
-	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CepcheckDlg::OnBtn_DeleteShow)
-	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CepcheckDlg::OnBtn_NewShow)
-	ON_BN_CLICKED( IDC_BTN_BREAK,					&CepcheckDlg::OnBtn_Break)
-	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CepcheckDlg::OnBtn_Explorer)
-	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CepcheckDlg::OnBtn_ResetDays)
-	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,             &CepcheckDlg::OnBtn_ChkMissedOnly)
-	ON_BN_CLICKED( IDC_CHK_DEBUG_LOG,               &CepcheckDlg::OnBtn_ShowLog)
-	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CepcheckDlg::OnDownloadComplete)
-	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CepcheckDlg::OnDownloadPing)
-	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CepcheckDlg::OnZoomEpisodes)
-	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CepcheckDlg::OnLaunchUrl)
-	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CepcheckDlg::OnShowContextMenu)
-	ON_MESSAGE( WM_TVP_SIGNAL_APP_EVENT,			&CepcheckDlg::OnSignalAppEvent)
-	ON_MESSAGE( WM_TVP_THREAD_WAIT_FAIL,			&CepcheckDlg::OnThreadWaitFail)
+BEGIN_MESSAGE_MAP(CDmain, CDialog)
+	ON_NOTIFY( TCN_SELCHANGE, IDC_TAB1,				&CDmain::OnTcnSelchangeTab1)
+	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_PRE,	&CDmain::OnDeltaPosSpinDays)
+	ON_NOTIFY( UDN_DELTAPOS,  IDC_SPIN_DAYS_POST,	&CDmain::OnDeltaPosSpinDays)
+	ON_BN_CLICKED( IDC_BTN_LOAD,					&CDmain::OnBtn_Load)
+	ON_BN_CLICKED( IDC_BTN_SAVE,					&CDmain::OnBtn_Save)
+	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CDmain::OnBtn_Download)
+	ON_BN_CLICKED( IDC_BTN_ABORT_DOWNLOAD,			&CDmain::OnBtn_AbortDownload)
+	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CDmain::OnBtn_DeleteShow)
+	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CDmain::OnBtn_NewShow)
+	ON_BN_CLICKED( IDC_BTN_BREAK,					&CDmain::OnBtn_Break)
+	ON_BN_CLICKED( IDC_BTN_EXPLORER,				&CDmain::OnBtn_Explorer)
+	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CDmain::OnBtn_ResetDays)
+	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CDmain::OnBtn_ChkMissedOnly)
+	ON_BN_CLICKED( IDC_CHK_SHOW_LOG,				&CDmain::OnBtn_ChkShowLog)
+	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CDmain::OnDownloadComplete)
+	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CDmain::OnDownloadPing)
+	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CDmain::OnZoomEpisodes)
+	ON_MESSAGE( WM_TVP_LAUNCH_URL,					&CDmain::OnLaunchUrl)
+	ON_MESSAGE( WM_TVP_SHOW_CONTEXT_MENU,			&CDmain::OnShowContextMenu)
+	ON_MESSAGE( WM_TVP_SIGNAL_APP_EVENT,			&CDmain::OnSignalAppEvent)
+	ON_MESSAGE( WM_TVP_THREAD_WAIT_FAIL,			&CDmain::OnThreadWaitFail)
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CREATE()
 	ON_WM_TIMER()
@@ -96,7 +96,7 @@ END_MESSAGE_MAP()
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CepcheckDlg::OnQueryDragIcon()
+HCURSOR CDmain::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
@@ -107,7 +107,7 @@ HCURSOR CepcheckDlg::OnQueryDragIcon()
  * Initialise all dialogs,
  *
  */
-BOOL CepcheckDlg::OnInitDialog()
+BOOL CDmain::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
@@ -225,7 +225,6 @@ BOOL CepcheckDlg::OnInitDialog()
 
 	m_dlm.SetMsgWin(m_hWnd);
 
-
 	// return TRUE  unless you set the focus to a control
 	return FALSE;
 }
@@ -236,16 +235,16 @@ BOOL CepcheckDlg::OnInitDialog()
 /**
  * Stop the <RETURN> key from closing the application
  */
-void CepcheckDlg::OnOK()
+void CDmain::OnOK()
 {
-	CONSOLE_PRINT(eLogFlags::INFO, L"CepcheckDlg::OnOK() discarded");
+	CONSOLE_PRINT(eLogFlags::INFO, L"CDmain::OnOK() discarded");
 	// Don't call base class CDialog::OnOK();
 }
 
 /**
  * Stop the <CANCEL> key from closing the application if we're downloading
  */
-void CepcheckDlg::OnCancel()
+void CDmain::OnCancel()
 {
 	if (m_dlm.DownloadInProgress())
 	{
@@ -253,16 +252,14 @@ void CepcheckDlg::OnCancel()
 		return;
 	}
 
-	// Stop all the slotthreads & wait for them to exit
-	m_dlm.TerminateSlotThreads();
-
 	CDialog::OnCancel();
 }
+
 
 /**
  * As soon as the main dialog window is created, notity the model.
  */
-int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CDmain::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -279,7 +276,7 @@ int CepcheckDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
  * Windows message handler for when a tab is clicked
  *
  */
-void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
+void CDmain::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
 {
 	int selectedTab = m_tabctrl.GetCurSel();
 
@@ -301,7 +298,7 @@ void CepcheckDlg::OnTcnSelchangeTab1(NMHDR* /* pNMHDR */, LRESULT* pResult)
  * Load the database from disk
  *
  */
-void CepcheckDlg::OnBtn_Load()
+void CDmain::OnBtn_Load()
 {
 	m_data.LoadFile();
 
@@ -322,7 +319,7 @@ void CepcheckDlg::OnBtn_Load()
  * Save the database to disk
  *
  */
-void CepcheckDlg::OnBtn_Save()
+void CDmain::OnBtn_Save()
 {
 	if (!m_data.SaveFile())
 		AfxMessageBox(L"Error saving data file!", MB_ICONERROR | MB_OK | MB_APPLMODAL );
@@ -340,10 +337,10 @@ void CepcheckDlg::OnBtn_Save()
  * 'Missed only' checkbox clicked in the top level dialog.
  * Notify the model of the new state & rebuild the schedule accordingly
  */
-void CepcheckDlg::OnBtn_ChkMissedOnly()
+void CDmain::OnBtn_ChkMissedOnly()
 {
 	UpdateData();
-	m_data.ShowMissedOnly(m_missed_only);
+	m_data.ShowMissedOnly(m_chk_missed_only);
 
 	UpdateScheduleList();
 }
@@ -355,9 +352,12 @@ void CepcheckDlg::OnBtn_ChkMissedOnly()
  * Open up file explorer in the data file location
  *
  */
-void CepcheckDlg::OnBtn_Explorer()
+void CDmain::OnBtn_Explorer()
 {
-	m_data.OpenDataFileFolder();
+	wchar_t args[MAX_PATH + 1];
+
+	swprintf(args, MAX_PATH, L"/select, \"%s\"", m_data.Filename());
+	ShellExecute(NULL, L"open", L"explorer.exe", args, NULL, SW_SHOWDEFAULT);
 }
 
 
@@ -367,7 +367,7 @@ void CepcheckDlg::OnBtn_Explorer()
  * Break into the debugger
  *
  */
-void CepcheckDlg::OnBtn_Break()
+void CDmain::OnBtn_Break()
 {
 	AfxDebugBreak();
 }
@@ -376,19 +376,20 @@ void CepcheckDlg::OnBtn_Break()
 
 
 /**
- * Show/Hide the logging messages window
+ * Show/Hide the logging messages window.Don't use a member var,
+ * keep the state here as a static.
  *
  */
-void CepcheckDlg::OnBtn_ShowLog()
+void CDmain::OnBtn_ChkShowLog()
 {
 	static BOOL visible = false;
 
 	visible = !visible;
 
-	auto chkbox = (CButton*) GetDlgItem(IDC_CHK_DEBUG_LOG);
-	chkbox->SetCheck(visible);
+	auto chkbox = static_cast<CButton*>(GetDlgItem(IDC_CHK_SHOW_LOG));
+	chkbox->SetCheck(visible ? BST_CHECKED : BST_UNCHECKED);
 
-	m_dlgMessages.ShowWindow((visible) ? SW_SHOW : SW_HIDE);
+	m_dlgMessages.ShowWindow( visible ? SW_SHOW : SW_HIDE);
 }
 
 
@@ -398,7 +399,7 @@ void CepcheckDlg::OnBtn_ShowLog()
  * Reset the +/- days interval for the schedule list to their defaults.
  *
  */
-void CepcheckDlg::OnBtn_ResetDays()
+void CDmain::OnBtn_ResetDays()
 {
 	m_spin_pre_val  = DEFAULT_DAYS_PRE;
 	m_spin_post_val = DEFAULT_DAYS_POST;
@@ -418,7 +419,7 @@ void CepcheckDlg::OnBtn_ResetDays()
  * A show can only be deleted from the archive dialog.
  * 
  */
-void CepcheckDlg::OnBtn_DeleteShow()
+void CDmain::OnBtn_DeleteShow()
 {
 	// Can only delete when the Archived list is displayed, not the Schedule or Show list.
 	if (m_tabctrl.GetCurSel() != TAB_NUM_ARCHIVE)
@@ -455,7 +456,7 @@ void CepcheckDlg::OnBtn_DeleteShow()
  * Enter a URL for epguides.com & add a new show to the database
  *
  */
-void CepcheckDlg::OnBtn_NewShow()
+void CDmain::OnBtn_NewShow()
 {
 	// Popup the dialog box to enter the URL
 	CDnewShow	dbox(this);
@@ -517,7 +518,7 @@ void CepcheckDlg::OnBtn_NewShow()
  * Clear then repopulate the Shows ClistCtrl from the database
  *
  */
-void CepcheckDlg::UpdateShowList()
+void CDmain::UpdateShowList()
 {
 	sShowListEntry	sle;
 	eGetAction		action{ eGetAction::GET_FIRST };
@@ -556,7 +557,7 @@ void CepcheckDlg::UpdateShowList()
  * Clear then repopulate the Schedule list control from the database
  *
  */
-void CepcheckDlg::UpdateScheduleList()
+void CDmain::UpdateScheduleList()
 {
 	sScheduleListEntry		sle;
 	eGetAction				action{ eGetAction::GET_FIRST };
@@ -582,7 +583,7 @@ void CepcheckDlg::UpdateScheduleList()
  * Reload the 'Archived shows' list control from the database
  *
  */
-void CepcheckDlg::UpdateArchiveList()
+void CDmain::UpdateArchiveList()
 {
 	sShowListEntry	sle;
 	eGetAction		action { eGetAction::GET_FIRST };
@@ -608,7 +609,7 @@ void CepcheckDlg::UpdateArchiveList()
  * Update the text on the 'Shows' & 'Archive' tabs
  *
  */
-void CepcheckDlg::UpdateTabTotals(void)
+void CDmain::UpdateTabTotals(void)
 {
 	// Put # Shows in the Show tab text
 	CString str;
@@ -633,7 +634,7 @@ void CepcheckDlg::UpdateTabTotals(void)
  * Update the UI ping & error counter boxes
  * 
  */
-void CepcheckDlg::UpdateOnscreenCounters(void)
+void CDmain::UpdateOnscreenCounters(void)
 {
 	CString		str;
 
@@ -650,7 +651,7 @@ void CepcheckDlg::UpdateOnscreenCounters(void)
 /**
  * Check every minute if the day has changed. If so, update the schedule list.
  */
-void CepcheckDlg::OnTimer(UINT_PTR nTimerID)
+void CDmain::OnTimer(UINT_PTR nTimerID)
 {
 	static int day = 0;
 
@@ -687,7 +688,7 @@ void CepcheckDlg::OnTimer(UINT_PTR nTimerID)
  * Sends the +/- days count to the database and updates the on-screen values
  *
  */
-void CepcheckDlg::UpdateSchedulePeriod(void)
+void CDmain::UpdateSchedulePeriod(void)
 {
 	CString str;
 
@@ -709,7 +710,7 @@ void CepcheckDlg::UpdateSchedulePeriod(void)
  * A row on the Shows or Schedule tab was double-clicked. Popup a modal dialog listing all episodes for that Show.
  *
  */
-afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM hash, [[ maybe_unused ]] LPARAM lParam )
+afx_msg LRESULT CDmain::OnZoomEpisodes(WPARAM hash, [[ maybe_unused ]] LPARAM lParam )
 {
 	const show* pshow = m_data.FindShow(hash, eShowList::BOTH);
 
@@ -737,7 +738,7 @@ afx_msg LRESULT CepcheckDlg::OnZoomEpisodes(WPARAM hash, [[ maybe_unused ]] LPAR
  * lParam = popup menu selection ID
  *
  */
-afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
+afx_msg LRESULT CDmain::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
 {
 	size_t hash    = static_cast<size_t>(wParam);
 	auto selection = static_cast<unsigned>(lParam);
@@ -787,7 +788,7 @@ afx_msg LRESULT CepcheckDlg::OnLaunchUrl(WPARAM wParam, LPARAM lParam)
  * One of the child dialogs has asked for a context menu.
  * 
  */
-afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
+afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
 {
 	sPopupContext* pcontext = reinterpret_cast<sPopupContext*>(wParam);
 
@@ -798,7 +799,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]]
 	if (pshow == nullptr)
 	{
 		AfxMessageBox(L"Show not found for context menu.", MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL );
-		LogMsgWin(L"CepcheckDlg::OnShowContextMenu(): hash not found");
+		LogMsgWin(L"CDmain::OnShowContextMenu(): hash not found");
 		return 0;
 	}
 
@@ -984,7 +985,7 @@ afx_msg LRESULT CepcheckDlg::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]]
  * Handle a WM_SIGNAL_APP_EVENT message
  * 
  */
-afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
+afx_msg LRESULT CDmain::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARAM lParam )
 {
 	eAppevent event = static_cast<eAppevent>(wParam);
 
@@ -1096,8 +1097,8 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
 			else if (selectedTab == TAB_NUM_ARCHIVE)
 			{
 				m_btn_new_show.EnableWindow(0);
-				m_btn_delete_show.EnableWindow();
-				m_btn_download.EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_delete_show.EnableWindow((numArchiveShows > 0) ? 1 : (0 | KEEP_BUTTONS_ENABLED));
+				m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			}
 			break;
 
@@ -1116,7 +1117,7 @@ afx_msg LRESULT CepcheckDlg::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] 
  * A Spin control is about to change. Return non-zero to prevent the change.
  *
  */
-void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
+void CDmain::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	const LPNMUPDOWN	pNMUpDown = reinterpret_cast<const LPNMUPDOWN>(pNMHDR);
 	UINT				ctrlId = pNMUpDown->hdr.idFrom;
@@ -1147,7 +1148,7 @@ void CepcheckDlg::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 /**
  * Sent by the CDMessages dialog when the 'Cancel Download' button is pressed
  */
-void CepcheckDlg::OnBtn_AbortDownload()
+void CDmain::OnBtn_AbortDownload()
 {
 	LogMsgWin(L"Aborting Download!");
 
@@ -1168,7 +1169,7 @@ void CepcheckDlg::OnBtn_AbortDownload()
  *          false   Error, or nothing to download
  *
  */
-void CepcheckDlg::OnBtn_Download()
+void CDmain::OnBtn_Download()
 {
 	// No shows to download?
 	if (m_data.NumActiveShows() == 0) {
@@ -1209,7 +1210,7 @@ void CepcheckDlg::OnBtn_Download()
  * Download a show's information from the URL and create a new database entry.
  *
  */
-bool CepcheckDlg::RefreshShow(size_t hash)
+bool CDmain::RefreshShow(size_t hash)
 {
 	// Already downloading?
 	if (m_dlm.DownloadInProgress()) {
@@ -1243,16 +1244,15 @@ bool CepcheckDlg::RefreshShow(size_t hash)
 * aborted, send WM_DOWNLOAD_COMPLETE to the main dialog window.
 *
 */
-void CepcheckDlg::CheckDownloadComplete()
+void CDmain::CheckDownloadComplete()
 {
 	if (m_abort_download)
 	{
 		// More slots still active? Wait for them to complete & ping
 		if (m_dlm.DownloadInProgress())
 			return;
-		else {
+		else
 			PostMessage(WM_TVP_DOWNLOAD_COMPLETE);
-		}
 	}
 
 	// We're not mid-abort. Just check the ping count
@@ -1272,7 +1272,7 @@ void CepcheckDlg::CheckDownloadComplete()
  * Existing episode flags must be copied over as that's not in the reveived data
  *
  */
-afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] LPARAM lParam)
+afx_msg LRESULT CDmain::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] LPARAM lParam)
 {
 	// Bump ping counter and update the UI
 	m_ping_count++;
@@ -1321,7 +1321,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadPing(WPARAM slotnum, [[ maybe_unused ]] L
  * Handler for WM_DOWNLOAD_COMPLETE message
  *
  */
-afx_msg LRESULT CepcheckDlg::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
+afx_msg LRESULT CDmain::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
 												[[maybe_unused]] LPARAM lParam)
 {
 	LogMsgWin(L"Download complete");
@@ -1345,6 +1345,8 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
 		AfxMessageBox(L"Download complete.", MB_ICONINFORMATION | MB_APPLMODAL | MB_OK);
 	}
 
+	m_dlgSchedule.SetFocus();
+
 	// Update the model & the UI
 	m_data.BuildEpisodeList();
 	UpdateShowList();
@@ -1361,7 +1363,7 @@ afx_msg LRESULT CepcheckDlg::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
  * We can requeue or cancel that slot's download.
  * 
  */
-afx_msg LRESULT CepcheckDlg::OnThreadWaitFail(WPARAM slotnum, LPARAM wait_result)
+afx_msg LRESULT CDmain::OnThreadWaitFail(WPARAM slotnum, LPARAM wait_result)
 {
 	LogMsgWin("Wait failed slot %u, error %08X. Requeuing \"%s\".", slotnum, wait_result, m_dlm.GetSlotShow(slotnum).epguides_url.c_str());
 

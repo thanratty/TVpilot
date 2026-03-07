@@ -31,7 +31,7 @@
 #define IDC_NEW_URL                     1022
 #define IDC_SPIN_DAYS_POST              1030
 #define IDC_SPIN_DAYS_PRE               1031
-#define IDC_CHK_DEBUG_LOG               1032
+#define IDC_CHK_SHOW_LOG               1032
 #define IDC_CHK_MISSED_ONLY             1033
 #define IDC_STATIC_DAYS_PRE             1034
 #define IDC_STATIC_DAYS_POST            1035

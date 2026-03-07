@@ -19,8 +19,9 @@ using namespace boost;
 /**
  * Highlight colors for the schedule listcontrol
  */
-#define		COLOR_GOT		rgbLime
-#define		COLOR_NOT_GOT	rgbRed
+#define		COLOR_GOT		rgbLimeGreen
+#define		COLOR_NOT_GOT	rgbCrimson
+#define		COLOR_DEFAULT	rgbDarkSlateGray
 
 
 
@@ -327,7 +328,7 @@ void CDSchedule::OnCustomdrawSchedList(NMHDR* pNMHDR, LRESULT* pResult)
 			else if (efl & episodeflags::EP_FL_NOT_GOT)
 				pNMCD->clrText = COLOR_NOT_GOT;
 			else
-				pNMCD->clrText = rgbBlack;
+				pNMCD->clrText = COLOR_DEFAULT;
 			break;
 	}
 }

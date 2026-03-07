@@ -17,14 +17,15 @@
 
 Cslot::Cslot()
 {
-    // NB The logging thread has not started at this point
-
-    CString str;
+    /**
+     *  NB The console logging thread has not started at this point.
+     */
 
     // Increment & copy the singleton variable to identify this slot instance (starts at -1)
     m_SlotNumber = InterlockedIncrement(&gSlotCount);
     m_SlotName.Format(L"slot-%02u", m_SlotNumber);
 
+    CString str;
     str.Format(L"evRequest-%-d", m_SlotNumber);
     m_hEvRequest = CREATE_EVENT(NULL, FALSE, FALSE, str);         // AUTO reset, initial state unsignalled
 
@@ -34,6 +35,11 @@ Cslot::Cslot()
 
 Cslot::~Cslot()
 {
+    /**
+     *  NB The console logging thread has been killed by this point.
+     */
+
+    TerminateThread();
     CloseHandle(m_hEvRequest);
     m_hEvRequest = INVALID_HANDLE_VALUE;
 }
@@ -42,7 +48,6 @@ Cslot::~Cslot()
 void Cslot::StartThread()
 {
     m_pWinThread = AfxBeginThread(thrSlotThread, this, THREAD_PRIORITY_NORMAL, 0, CREATE_SUSPENDED);
-    ASSERT(m_pWinThread);
     m_pWinThread->m_bAutoDelete = false;
 
 #if (NAMED_OBJECTS==1)
@@ -69,7 +74,7 @@ void Cslot::TerminateThread()
                 m_slotstate = eSlotState::SS_THREAD_EXITED;
         else {
             CString errmsg;
-            errmsg.Format(L"Slot thread %u didn't terminate within timeout. Result %08X, Error %08X", m_SlotNumber, result, GetLastError());
+            errmsg.Format(L"Slot thread %u terminate timeout. Result %08X, Error %08X", m_SlotNumber, result, GetLastError());
             LogMsgWin(errmsg);
             CONSOLE_PRINT(eLogFlags::SLOT_THREAD, errmsg);
         }
@@ -119,16 +124,16 @@ void Cslot::SetExitFlag() {
     m_exit_thread = true;
 }
 
-bool Cslot::GetExitFlag() const {
+bool Cslot::GetExitFlag(void) const {
     return m_exit_thread;
-}
-
-bool Cslot::IsBusy() const {
-    return !IsFree();
 }
 
 bool Cslot::IsFree() const {
     return m_slotstate == eSlotState::SS_FREE;
+}
+
+bool Cslot::IsBusy() const {
+    return !IsFree();
 }
 
 void Cslot::SetSlotState(eSlotState state) {
@@ -139,7 +144,7 @@ eSlotState Cslot::GetSlotState() const {
     return m_slotstate;
 }
 
-const show& Cslot::GetShow() const {
+show& Cslot::GetShow() {
     return m_show;
 }
 
@@ -159,13 +164,6 @@ HANDLE Cslot::GetRequestHandle() const {
     return m_hEvRequest;
 }
 
-void Cslot::SignalRequest() const  {
-    if (SetEvent(m_hEvRequest) == 0) {
-        CONSOLE_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed. Error %08X", GetLastError());
-    }
-
-}
-
 void Cslot::SetMsgWin(HWND hMsgWin) {
     m_hMsgWin = hMsgWin;
 }
@@ -174,6 +172,11 @@ HWND Cslot::GetMsgWin(void) const {
     return m_hMsgWin;
 }
 
+void Cslot::SignalRequest() const  {
+    if (SetEvent(m_hEvRequest) == 0) {
+        CONSOLE_PRINT(eLogFlags::FATAL, "Cslot::SignalRequest() SetEvent failed. Error %08X", GetLastError());
+    }
+}
 
 
 
@@ -184,6 +187,15 @@ HWND Cslot::GetMsgWin(void) const {
 
 
 
+Cslots::Cslots()
+{
+    CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Cslots() constructor\n");
+}
+
+Cslots::~Cslots()
+{
+    CONSOLE_PRINT(eLogFlags::SLOT_USE, L"Cslots() destructor\n");
+}
 
 void Cslots::SetMsgWin(HWND hWin)
 {
@@ -199,7 +211,7 @@ bool Cslots::IsBusy(unsigned slotnum) const {
     return m_slots[slotnum].IsBusy();
 }
 
-const show& Cslots::GetSlotShow(unsigned slotnum) const {
+show& Cslots::GetSlotShow(unsigned slotnum) {
     return m_slots[slotnum].GetShow();
 }
 
@@ -227,6 +239,11 @@ void Cslots::ReleaseSlot(unsigned slotnum) {
     m_slots[slotnum].Reset();
 }
 
+void Cslots::ReleaseAllSlots(void) {
+    for(auto& slot : m_slots)
+        slot.Reset();
+}
+
 int Cslots::FirstFreeSlot() const
 {
     auto iter = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& s) { return s.IsFree(); });
@@ -239,13 +256,3 @@ int Cslots::FirstBusySlot() const
     return (iter == m_slots.end()) ? -1 : (iter - m_slots.begin());
 }
 
-void Cslots::TerminateSlotThreads()
-{
-    std::for_each(m_slots.begin(), m_slots.end(), [](Cslot& slot){ slot.TerminateThread();});
-}
-
-bool Cslots::AllSlotThreadsTerminated() const
-{
-    auto it = std::find_if(m_slots.begin(), m_slots.end(), [](const Cslot& slot) { return slot.GetSlotState() != eSlotState::SS_THREAD_EXITED; });
-    return (it == m_slots.end());
-}
