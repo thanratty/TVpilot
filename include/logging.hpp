@@ -72,6 +72,10 @@ void        CONSOLE_WAIT_FOR_CR(void);
 #define     CONSOLE_PRINT(x,...)    do {} while(0)
 #define     CONSOLE_EXIT()          do {} while(0)
 
+eLogFlags   GetLogFlags();
+void        SetLogFlags(eLogFlags newflags);
+
+
 #endif
 
 
@@ -89,8 +93,4 @@ void LogMsgWin(const wchar_t* format, ...);
 void LogMsgWin(const char* format, ...);
 void LogMsgWin(const std::string& str);
 void LogMsgWin(const CString& msg);
-
-
-eLogFlags GetLogFlags();
-void      SetLogFlags(eLogFlags newflags);
 

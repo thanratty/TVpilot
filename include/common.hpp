@@ -19,15 +19,21 @@
 
 
 
-// Handy colours
+// Handy colours. Use standard HTML RGB color names
 //
-#define		rgbRed			RGB(255,0,0)
-#define		rgbGreen		RGB(0,255,0)
-#define		rgbLime			RGB(0,128,0)
-#define		rgbBlack		RGB(0,0,0)
-#define		rgbTeal			RGB(0,128,128)
-#define		rgbMagenta		RGB(255,0,255)
-#define		rgbPurple		RGB(128,0,128)
+#define		rgbRed			    RGB(255,0,0)
+#define		rgbCrimson          RGB(220,20,60)
+#define		rgbLime 		    RGB(0,255,0)
+#define		rgbGreen		    RGB(0,128,0)
+#define     rgbDarkGreen        RGB(0,100,0)
+#define		rgbLime			    RGB(0,255,0)
+#define		rgbLimeGreen	    RGB(50,205,50)
+#define		rgbBlack		    RGB(0,0,0)
+#define		rgbTeal			    RGB(0,128,128)
+#define		rgbMagenta		    RGB(255,0,255)
+#define		rgbPurple		    RGB(128,0,128)
+#define     rgbGray             RGB(128,128,128)
+#define     rgbDarkSlateGray    RGB(47, 79, 79)
 
 
 

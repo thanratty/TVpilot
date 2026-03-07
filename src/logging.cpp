@@ -1,3 +1,13 @@
+
+/***
+ * 
+ * LogMsgWin() functions are in both RELEASE & DEBUG builds.
+ * CONSOLE_ functions are only available if ENABLE_CONSOLE_LOGGING
+ * is set in config.h
+ *
+ ***/
+
+
 #pragma warning( disable : 26812 )
 #include "pch.h"
 
@@ -24,14 +34,13 @@ constexpr unsigned LOG_BUFFER_LEN = 256;
 
 
 /**
- * The control in the message Dialog window for debug/log text.
+ * The control in the message Dialog window for log text.
  */
 STATIC CEdit* pMsgWindow = nullptr;
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
-
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 
 // Global const, referenced in the CDLogFlags dialog
 //
@@ -67,21 +76,18 @@ STATIC CSemaphore*					semQueue{ nullptr };		// Semaphore to control access to t
 STATIC bool		bConsoleReady{ false };
 STATIC bool		bExitThreadFlag{ false };						// Set non-zero to exit the logging thread on the next event
 
-
-STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO  | 
-									 eLogFlags::TEST  | 
+STATIC eLogFlags	LogEnableFlags = eLogFlags::INFO |
+									 eLogFlags::TEST |
 									 eLogFlags::FATAL |
 									 eLogFlags::CONSOLE_ECHO;
-
-#endif	// (ENABLE_CONSOLE_LOGGING==1)
-
+#endif
 
 
 
 
 
 
-#if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1) 
 
 eLogFlags GetLogFlags()
 {
@@ -93,14 +99,14 @@ void SetLogFlags(eLogFlags newflags)
 	LogEnableFlags = newflags;
 }
 
-#endif	// (ENABLE_CONSOLE_LOGGING==1)
+#endif
 
 
 
 
 #if (ENABLE_CONSOLE_LOGGING==1) && defined(_DEBUG)
 
-STATIC bool MsgQueueIsEmpty()
+STATIC bool ConMsgQueueIsEmpty()
 {
 	bool bIsEmpty;
 
@@ -113,7 +119,7 @@ STATIC bool MsgQueueIsEmpty()
 }
 
 
-STATIC void PushToMsgQueue(const wchar_t* str)
+STATIC void ConPushToMsgQueue(const wchar_t* str)
 {
 	CSingleLock lock(semQueue);
 	lock.Lock();
@@ -122,7 +128,7 @@ STATIC void PushToMsgQueue(const wchar_t* str)
 }
 
 
-STATIC const wchar_t*  PopFromMsgQueue()
+STATIC const wchar_t* ConPopFromMsgQueue()
 {
 	const wchar_t* val = nullptr;
 	
@@ -313,7 +319,7 @@ void CONSOLE_PRINT(eLogFlags type, const wchar_t* format, ...)
 		size_t len = wcslen(newstr);
 		if (len > 0)
 		{
-			PushToMsgQueue(newstr);
+			ConPushToMsgQueue(newstr);
 			SetEvent(hConsoleEvent);
 		}
 	}

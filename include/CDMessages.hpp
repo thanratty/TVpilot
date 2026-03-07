@@ -23,9 +23,11 @@ protected:
 	afx_msg LRESULT OnMsg_AbortDisable(WPARAM wParam=0, LPARAM lParam=0);
 
 	DECLARE_MESSAGE_MAP()
+
 public:
-	CEdit   m_messages;
-	CButton m_btn_abort;
+	CEdit		 m_messages;
+	CButton		 m_btn_abort;
+	CButton		 m_btn_logging;
 
 	afx_msg void OnBtn_Clear();
 	afx_msg void OnBtn_AbortDownload();
@@ -33,5 +35,5 @@ public:
 
 	virtual void OnOK();
 	virtual void OnCancel();
-	CButton m_btn_logging;
+	virtual BOOL OnInitDialog();
 };

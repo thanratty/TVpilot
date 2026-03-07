@@ -12,10 +12,14 @@
 #include "CDLogFlags.hpp"
 
 
+// Wrap the whole file!
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1) 
+
 
 
 // I tried to make this & the declaration const but the compiler didn't like anything I tried!
 extern std::array<sLogFlagDef, NUM_LOG_FLAGS>  log_flags;
+
 
 // Dialog control ID of the check boxes we create
 constexpr UINT32 BTN_BASE_ID = 100;
@@ -75,9 +79,10 @@ BOOL CDLogFlags::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 	// Only change a local copy until 'OK' is pressed.
 	m_temp_flags = GetLogFlags();
-
+#endif
 
 	//
 	// Add the four buttons to a layout manager so they're repositioned when the dialog is resized
@@ -160,7 +165,10 @@ void CDLogFlags::OnCancel()
 
 void CDLogFlags::OnOK()
 {
+
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
 	SetLogFlags(m_temp_flags);
+#endif
 
 	CDialog::OnOK();
 }
@@ -223,3 +231,6 @@ afx_msg void CDLogFlags::OnSize(UINT nType, int cx, int cy)
 
 	ResizeDynamicLayout();
 }
+
+#endif
+
