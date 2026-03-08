@@ -45,7 +45,7 @@ BOOL CDInputBox::OnInitDialog()
 	SetWindowText(m_title);
 
 	CEdit* ed = (CEdit*) GetDlgItem(IDC_EDT_INPUT);
-	ed->SetSel(static_cast<DWORD>(-1));
+	ed->SetSel(-1,-1);
 	ed->SetFocus();
 
 	return FALSE;  // return TRUE unless you set the focus to a control

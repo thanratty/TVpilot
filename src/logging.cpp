@@ -380,8 +380,7 @@ void LogMsgWin(const CString& msg)
 
 	if (pMsgWindow && pMsgWindow->m_hWnd)
 	{
-		int length = pMsgWindow->GetWindowTextLength();
-		pMsgWindow->SetSel(length, length);
+		pMsgWindow->SetSel(-1,-1);
 		pMsgWindow->ReplaceSel(str);
 	}
 }
