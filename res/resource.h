@@ -21,7 +21,6 @@
 #define IDC_BTN_DELETE_SHOW             1006
 #define IDC_BTN_NEW_SHOW                1007
 #define IDC_BTN_BREAK                   1008
-#define IDC_BTN_ABORT_DOWNLOAD          1009
 #define IDC_BTN_RESET_DAYS              1010
 #define IDC_BTN_EXPLORER                1011
 #define IDC_BTN_CLEAR                   1012
@@ -31,7 +30,7 @@
 #define IDC_NEW_URL                     1022
 #define IDC_SPIN_DAYS_POST              1030
 #define IDC_SPIN_DAYS_PRE               1031
-#define IDC_CHK_SHOW_LOG               1032
+#define IDC_CHK_SHOW_LOG                1032
 #define IDC_CHK_MISSED_ONLY             1033
 #define IDC_STATIC_DAYS_PRE             1034
 #define IDC_STATIC_DAYS_POST            1035

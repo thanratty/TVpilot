@@ -256,7 +256,8 @@ void CDShows::OnDblClkShowList(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CDShows::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 {
-	static sPopupContext		context;
+	// Needs to be static so the ptr passed in the PostMessage remains valid
+	static sPopupContext context;
 
 	// Save screen co-ords
 	context.click_point = point;

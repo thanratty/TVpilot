@@ -21,6 +21,14 @@ static constexpr int TAB_NUM_ARCHIVE  = 2;
 
 
 
+enum class eButtonMode : UINT32
+{
+	BM_DOWNLOAD,
+	BM_ABORT
+};
+
+
+
 
 // CDmain dialog
 class CDmain : public CDialog
@@ -69,7 +77,6 @@ public:
 	afx_msg void    OnBtn_ChkShowLog();
 	afx_msg void	OnBtn_ResetDays();
 	afx_msg void	OnBtn_Explorer();
-	afx_msg void    OnBtn_AbortDownload();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void	OnTimer(UINT_PTR nIDEvent);
@@ -81,7 +88,7 @@ private:
 			 */
 			CButton			m_btn_load;
 			CButton			m_btn_save;
-			CButton			m_btn_download;
+			CMFCButton		m_btn_download;	// tstst
 			CButton			m_btn_new_show;
 			CButton			m_btn_delete_show;
 			CSpinButtonCtrl m_spin_post;
@@ -93,6 +100,13 @@ private:
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
 			BOOL			m_chk_missed_only{ FALSE };
+
+
+			/**
+			 * The Download/Abort button uses two fonts
+			 */
+			CFont*			m_pNormalFont{ nullptr };
+			CFont			m_AbortFont;
 
 
 			/**
@@ -127,4 +141,7 @@ private:
 
 			bool		RefreshShow(size_t hash);
 			void		CheckDownloadComplete();
+
+			void		SetButtonMode(eButtonMode mode);
+
 };

@@ -28,17 +28,13 @@ void CDmessages::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_MESSAGES,			 m_messages);
-	DDX_Control(pDX, IDC_BTN_ABORT_DOWNLOAD, m_btn_abort);
 	DDX_Control(pDX, IDC_BTN_LOGGING,		 m_btn_logging);
 }
 
 
 BEGIN_MESSAGE_MAP(CDmessages, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_CLEAR,			&CDmessages::OnBtn_Clear)
-	ON_BN_CLICKED(IDC_BTN_ABORT_DOWNLOAD,	&CDmessages::OnBtn_AbortDownload)
 	ON_BN_CLICKED(IDC_BTN_LOGGING,          &CDmessages::OnBtn_Logging)
-	ON_MESSAGE(WM_TVP_ABORT_BTN_ENABLE,		&CDmessages::OnMsg_AbortEnable)
-	ON_MESSAGE(WM_TVP_ABORT_BTN_DISABLE,	&CDmessages::OnMsg_AbortDisable)
 END_MESSAGE_MAP()
 
 
@@ -87,12 +83,6 @@ void CDmessages::OnCancel()
 }
 
 
-void CDmessages::OnBtn_AbortDownload()
-{
-	GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(IDC_BTN_ABORT_DOWNLOAD, BN_CLICKED));
-}
-
-
 void CDmessages::OnBtn_Logging()
 {
 #if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1)
@@ -101,16 +91,4 @@ void CDmessages::OnBtn_Logging()
 #endif
 }
 
-
-LRESULT CDmessages::OnMsg_AbortEnable(WPARAM, LPARAM )
-{
-	m_btn_abort.EnableWindow();
-	return 0;
-}
-
-LRESULT CDmessages::OnMsg_AbortDisable(WPARAM, LPARAM )
-{
-	m_btn_abort.EnableWindow(FALSE);
-	return 0;
-}
 

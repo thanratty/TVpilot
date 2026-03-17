@@ -70,7 +70,6 @@ BEGIN_MESSAGE_MAP(CDmain, CDialog)
 	ON_BN_CLICKED( IDC_BTN_LOAD,					&CDmain::OnBtn_Load)
 	ON_BN_CLICKED( IDC_BTN_SAVE,					&CDmain::OnBtn_Save)
 	ON_BN_CLICKED( IDC_BTN_DOWNLOAD,				&CDmain::OnBtn_Download)
-	ON_BN_CLICKED( IDC_BTN_ABORT_DOWNLOAD,			&CDmain::OnBtn_AbortDownload)
 	ON_BN_CLICKED( IDC_BTN_DELETE_SHOW,				&CDmain::OnBtn_DeleteShow)
 	ON_BN_CLICKED( IDC_BTN_NEW_SHOW,				&CDmain::OnBtn_NewShow)
 	ON_BN_CLICKED( IDC_BTN_BREAK,					&CDmain::OnBtn_Break)
@@ -94,6 +93,12 @@ END_MESSAGE_MAP()
 
 
 
+
+
+
+
+
+
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CDmain::OnQueryDragIcon()
@@ -114,12 +119,11 @@ BOOL CDmain::OnInitDialog()
 	// Add a suffix to the dialog title bar if this is a debug build
 
 #ifdef _DEBUG
-	CString str;
-	GetWindowText(str);
-	str += L" [DEBUG]";
-	SetWindowText(str);
+	CString title;
+	GetWindowText(title);
+	title += L" [DEBUG]";
+	SetWindowText(title);
 #endif
-
 
 	// Center the text in the two counters
 	GetDlgItem(IDC_PING_COUNT)->ModifyStyle(SS_LEFT, SS_CENTER);
@@ -147,14 +151,14 @@ BOOL CDmain::OnInitDialog()
 	m_dlgSchedule.Create(IDD_SCHEDULE, this);
 	m_dlgArchive.Create(IDD_ARCHIVE, this);
 
-	// Use the tab control here as the master size. Size the show & schedule dialogs to fit it.
+	// Use the tab control here as the master size. Size the child dialogs to fit it.
 	CRect  DisplayArea;
-	m_tabctrl.GetWindowRect(DisplayArea);
-	m_tabctrl.GetParent()->ScreenToClient(DisplayArea);
-	m_tabctrl.AdjustRect(FALSE, DisplayArea);
-	m_dlgShows.MoveWindow(DisplayArea);
-	m_dlgSchedule.MoveWindow(DisplayArea);
-	m_dlgArchive.MoveWindow(DisplayArea);
+	m_tabctrl.GetWindowRect(&DisplayArea);
+	m_tabctrl.GetParent()->ScreenToClient(&DisplayArea);
+	m_tabctrl.AdjustRect(FALSE, &DisplayArea);
+	m_dlgShows.MoveWindow(&DisplayArea);
+	m_dlgSchedule.MoveWindow(&DisplayArea);
+	m_dlgArchive.MoveWindow(&DisplayArea);
 
 
 	// Create the dialog box for debug messages
@@ -166,15 +170,17 @@ BOOL CDmain::OnInitDialog()
 	LogMsgWin(info.str().c_str());
 	LogMsgWin(L"Data file : %s", m_data.Filename());
 
-	// If this is a debug build, show the 'Break' & 'Logging' UI buttons config buttons.
+	//
+	// If this is a debug build, show the 'Break' & 'Logging' UI buttons.
+	//
 
 #if defined(_DEBUG)
 
 	GetDlgItem(IDC_BTN_BREAK)->EnableWindow();
 	GetDlgItem(IDC_BTN_BREAK)->ShowWindow(SW_SHOW);
 
-	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->EnableWindow();
-	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->ShowWindow(SW_SHOW);
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->EnableWindow( (ENABLE_CONSOLE_LOGGING==1) ? TRUE : FALSE);
+	m_dlgMessages.GetDlgItem(IDC_BTN_LOGGING)->ShowWindow( (ENABLE_CONSOLE_LOGGING==1) ? SW_SHOW : SW_HIDE);
 
 #else
 
@@ -223,10 +229,21 @@ BOOL CDmain::OnInitDialog()
 	if (m_data.IsNewDataFile())
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_FILE_CREATED));
 
+	// Where the Download Manager sends its messages
 	m_dlm.SetMsgWin(m_hWnd);
 
-	// return TRUE  unless you set the focus to a control
-	return FALSE;
+	// Save a normal button font for the Download/Abort button and make the 'abort' CFont.
+	m_pNormalFont = m_btn_load.GetFont();
+	LOGFONT lf{ 0 };
+	m_pNormalFont->GetLogFont(&lf);
+	lf.lfWeight = FW_BOLD;
+	m_AbortFont.CreateFontIndirect(&lf);
+
+	m_btn_download.EnableWindowsTheming(FALSE);
+	SetButtonMode(eButtonMode::BM_DOWNLOAD);
+
+	// return TRUE unless you set the focus to a control
+	return TRUE;
 }
 
 
@@ -1008,17 +1025,16 @@ afx_msg LRESULT CDmain::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARA
 			break;
 
 		case eAppevent::AE_DOWNLOAD_STARTED:
-			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_ENABLE);
+			SetButtonMode(eButtonMode::BM_ABORT);
 			//
 			m_btn_load.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
-			m_btn_download.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			m_btn_new_show.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			m_btn_delete_show.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
 			break;
 
 		case eAppevent::AE_DOWNLOAD_OK:
-			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			SetButtonMode(eButtonMode::BM_DOWNLOAD);
 			//
 			m_btn_load.EnableWindow();
 			m_btn_save.EnableWindow();
@@ -1028,7 +1044,7 @@ afx_msg LRESULT CDmain::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARA
 			break;
 
 		case eAppevent::AE_DOWNLOAD_ABORTED:
-			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			SetButtonMode(eButtonMode::BM_DOWNLOAD);
 			//
 			m_btn_load.EnableWindow();
 			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
@@ -1036,7 +1052,7 @@ afx_msg LRESULT CDmain::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARA
 			break;
 
 		case eAppevent::AE_DOWNLOAD_FAILED:
-			m_dlgMessages.PostMessage(WM_TVP_ABORT_BTN_DISABLE);
+			SetButtonMode(eButtonMode::BM_DOWNLOAD);
 			//
 			m_btn_load.EnableWindow();
 			m_btn_save.EnableWindow(0 | KEEP_BUTTONS_ENABLED);
@@ -1146,40 +1162,38 @@ void CDmain::OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult)
 
 
 /**
- * Sent by the CDMessages dialog when the 'Cancel Download' button is pressed
- */
-void CDmain::OnBtn_AbortDownload()
-{
-	LogMsgWin(L"Aborting Download!");
-
-	// Gets reset by the WM_DOWNLOAD_COMPLETE handler
-	m_abort_download = true;
-	m_dlm.AbortDownload();
-
-	// End of the 'abort download' is checked for in the ping handler
-}
-
-
-
-
-/**
  * Download from the internet. Update all shows / episodes.
  *
  * Return:  true    Download started
  *          false   Error, or nothing to download
+ * 
+ * Note:	This button doubles as the 'Abort' button too.
  *
  */
 void CDmain::OnBtn_Download()
 {
-	// No shows to download?
-	if (m_data.NumActiveShows() == 0) {
-		AfxMessageBox(L"No shows in database!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+	// Already downloading? This is an abort click.
+	if (m_dlm.DownloadInProgress())
+	{
+		// Already aborting?
+		if (m_abort_download)
+			return;
+
+		LogMsgWin(L"Aborting Download!");
+
+		// Gets reset by the WM_DOWNLOAD_COMPLETE handler
+		m_abort_download = true;
+		m_btn_download.SetWindowText(L"Aborting");
+		m_dlm.AbortDownload();
+
+		// End of the 'abort download' state is checked for in the ping handler
 		return;
 	}
 
-	// Already downloading?
-	if (m_dlm.DownloadInProgress()) {
-		AfxMessageBox(L"Download already in progress!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
+
+	// No shows to download?
+	if (m_data.NumActiveShows() == 0) {
+		AfxMessageBox(L"No shows in database!", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK);
 		return;
 	}
 
@@ -1326,6 +1340,9 @@ afx_msg LRESULT CDmain::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
 {
 	LogMsgWin(L"Download complete");
 
+	m_btn_download.SetTextColor(rgbBlack);
+	m_btn_download.SetWindowText(L"Download");
+
 	if (m_abort_download)
 	{
 		PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_DOWNLOAD_ABORTED));
@@ -1353,6 +1370,29 @@ afx_msg LRESULT CDmain::OnDownloadComplete([[maybe_unused]] WPARAM slotnum,
 	UpdateScheduleList();
 
 	return 0;
+}
+
+
+
+
+/**
+ * Set the button font to display either "Download" or "ABORT"
+ *
+ */
+void CDmain::SetButtonMode(eButtonMode mode)
+{
+	if (mode == eButtonMode::BM_DOWNLOAD)
+	{
+		m_btn_download.SetFont(m_pNormalFont);
+		m_btn_download.SetTextColor(rgbBlack);
+		m_btn_download.SetWindowText(L"Download");
+	}
+	else
+	{
+		m_btn_download.SetFont(&m_AbortFont);
+		m_btn_download.SetTextColor(rgbRed);
+		m_btn_download.SetWindowText(L"ABORT");
+	}
 }
 
 
