@@ -16,13 +16,6 @@ using namespace boost;
 
 
 
-/**
- * Highlight colors for the schedule listcontrol
- */
-#define		COLOR_GOT		rgbLimeGreen
-#define		COLOR_NOT_GOT	rgbCrimson
-#define		COLOR_DEFAULT	rgbDarkSlateGray
-
 
 
  /**
@@ -99,7 +92,7 @@ void CDSchedule::DoDataExchange(CDataExchange* pDX)
 #pragma warning( disable : 26454 )
 
 BEGIN_MESSAGE_MAP(CDSchedule, CDialog)
-	ON_MESSAGE(WM_TVP_SCHED_EP_FLAGS_CHANGED,		&CDSchedule::OnSchedEpFlagsChanged)
+	ON_MESSAGE(WM_TVP_SCHED_EP_FLAGS_CHANGED,	&CDSchedule::OnSchedEpFlagsChanged)
 	ON_NOTIFY(LVN_COLUMNCLICK, IDC_SCHED_LIST,  &CDSchedule::OnColumnClick)
 	ON_NOTIFY(NM_DBLCLK,	   IDC_SCHED_LIST,  &CDSchedule::OnDblclkSchedList)
 	ON_NOTIFY(NM_CUSTOMDRAW,   IDC_SCHED_LIST,  &CDSchedule::OnCustomdrawSchedList)

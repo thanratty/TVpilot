@@ -19,7 +19,7 @@ using namespace boost;
 STATIC constexpr int COL_EPISODES_TITLE		= 0;
 STATIC constexpr int COL_EPISODES_NUMBER	= 1;
 STATIC constexpr int COL_EPISODES_DATE		= 2;
-STATIC constexpr int COL_EPISODES_DATE_SORT	= 3;
+STATIC constexpr int COL_EPISODES_DATE_SORT = 3;
 //
 STATIC constexpr int COL_EPISODES_NUM_COLS  = 4;
 
@@ -78,7 +78,8 @@ void CDShowZoom::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDShowZoom, CDialogEx)
 	ON_WM_CONTEXTMENU()
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST, &CDShowZoom::OnColumnClick)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_EPISODES_LIST,   &CDShowZoom::OnColumnClick)
+	ON_NOTIFY(NM_CUSTOMDRAW,   IDC_EPISODES_LIST,   &CDShowZoom::OnCustomdrawList)
 END_MESSAGE_MAP()
 
 #pragma warning( pop )
@@ -153,6 +154,7 @@ BOOL CDShowZoom::OnInitDialog()
 		m_eplist.SetItemText(index, COL_EPISODES_NUMBER,    ui_episode_number);
 		m_eplist.SetItemText(index, COL_EPISODES_DATE,      ui_airdate_string);
 		m_eplist.SetItemText(index, COL_EPISODES_DATE_SORT, ui_airdate_sort);
+		m_eplist.SetItemData(index, ep.ep_flags);
 	}
 
 
@@ -250,3 +252,41 @@ void CDShowZoom::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 			break;
 	}
 }
+
+
+
+
+void CDShowZoom::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	NMLVCUSTOMDRAW* pNMCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
+
+	// If we don't handle the dwDrawStage do the default action
+	*pResult = CDRF_DODEFAULT;
+
+	switch (pNMCD->nmcd.dwDrawStage)
+	{
+		case CDDS_PREPAINT:
+			*pResult = CDRF_NOTIFYITEMDRAW;
+			break;
+
+		case CDDS_ITEMPREPAINT:
+			*pResult = CDRF_NOTIFYSUBITEMDRAW;
+			break;
+
+		case (CDDS_ITEMPREPAINT | CDDS_SUBITEM):
+			int index = pNMCD->nmcd.dwItemSpec;
+
+			auto flags       = m_eplist.GetItemData(index);
+			episodeflags efl = static_cast<episodeflags>(flags);
+
+			// Set the colour that matches the episode's flags
+			if (efl & episodeflags::EP_FL_GOT)
+				pNMCD->clrText = COLOR_GOT;
+			else if (efl & episodeflags::EP_FL_NOT_GOT)
+				pNMCD->clrText = COLOR_NOT_GOT;
+			else
+				pNMCD->clrText = COLOR_DEFAULT;
+			break;
+	}
+}
+

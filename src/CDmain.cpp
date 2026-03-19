@@ -866,6 +866,7 @@ afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPAR
 	else
 	{
 		LogMsgWin(L"Unrecognised context for right mouse button.");
+		return 0;
 	}
 
 
@@ -887,7 +888,7 @@ afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPAR
 		case ID_MNU_IMDB_GO:
 		case ID_MNU_THETVDB_GO:
 		case ID_MNU_THETVDB_SEARCH:
-			PostMessageW(WM_TVP_LAUNCH_URL, hash, selection);
+			PostMessage(WM_TVP_LAUNCH_URL, hash, selection);
 			break;
 
 		case ID_MNU_EPGUIDES_EDIT:
@@ -913,7 +914,7 @@ afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPAR
 				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_ARCHIVE_CHANGED));
 			}
 			else
-				AfxMessageBox(L"Error. Active show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
+				AfxMessageBox(L"Error. Active show not found! Reload database.", MB_ICONERROR | MB_OK | MB_APPLMODAL);
 			break;
 		
 		case ID_MNU_UNARCHIVE:
@@ -925,7 +926,7 @@ afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPAR
 				PostMessage(WM_TVP_SIGNAL_APP_EVENT, static_cast<WPARAM>(eAppevent::AE_ARCHIVE_CHANGED));
 			}
 			else
-				AfxMessageBox(L"Error. Archive show not found! Reload database?", MB_ICONERROR | MB_OK | MB_APPLMODAL);
+				AfxMessageBox(L"Error. Archive show not found! Reload database.", MB_ICONERROR | MB_OK | MB_APPLMODAL);
 			break;
 
 
@@ -959,16 +960,16 @@ afx_msg LRESULT CDmain::OnShowContextMenu(WPARAM wParam, [[ maybe_unused ]] LPAR
 			break;
 		case ID_MNU_COPY_SHOW_TITLE_NUM:
 			{
-			CString show  = m_dlgSchedule.GetEpisodeShow(pcontext->list_index);
-			CString epnum = m_dlgSchedule.GetEpisodeNumber(pcontext->list_index);
+				CString show  = m_dlgSchedule.GetEpisodeShow(pcontext->list_index);
+				CString epnum = m_dlgSchedule.GetEpisodeNumber(pcontext->list_index);
 
-			int iPos = 0;
-			CString series  = (CString("00") + epnum.Tokenize(L"-", iPos)).Right(2);
-			CString episode = (CString("00") + epnum.Tokenize(L"-", iPos)).Right(2);
+				int iPos = 0;
+				CString series  = (CString("00") + epnum.Tokenize(L"-", iPos)).Right(2);
+				CString episode = (CString("00") + epnum.Tokenize(L"-", iPos)).Right(2);
 
-			CString str;
-			str.Format(L"%s s%se%s", (LPCTSTR) show, (LPCTSTR) series, (LPCTSTR)episode);
-			CopyToClipboard(str);
+				CString str;
+				str.Format(L"%s s%se%s", (LPCTSTR)show, (LPCTSTR)series, (LPCTSTR)episode);
+				CopyToClipboard(str);
 			}
 			break;
 
@@ -1013,9 +1014,9 @@ afx_msg LRESULT CDmain::OnSignalAppEvent(WPARAM wParam, [[ maybe_unused ]] LPARA
 	CONSOLE_PRINT(eLogFlags::APP_EVENT, L"eAppevent %u\n", event);
 
 	// Have a few useful values handy
-	unsigned numActiveShows  = m_data.NumShows(eShowList::ACTIVE);
-	unsigned numArchiveShows = m_data.NumShows(eShowList::ARCHIVE);
-	int selectedTab = m_tabctrl.GetCurSel();
+	auto numActiveShows  = m_data.NumShows(eShowList::ACTIVE);
+	auto numArchiveShows = m_data.NumShows(eShowList::ARCHIVE);
+	auto selectedTab = m_tabctrl.GetCurSel();
 
 	switch (event)
 	{

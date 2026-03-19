@@ -88,7 +88,7 @@ private:
 			 */
 			CButton			m_btn_load;
 			CButton			m_btn_save;
-			CMFCButton		m_btn_download;	// tstst
+			CMFCButton		m_btn_download;
 			CButton			m_btn_new_show;
 			CButton			m_btn_delete_show;
 			CSpinButtonCtrl m_spin_post;

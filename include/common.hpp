@@ -37,6 +37,15 @@
 
 
 
+/**
+ * Highlight colors for the list controls
+ */
+#define		COLOR_GOT		    rgbLimeGreen
+#define		COLOR_NOT_GOT	    rgbCrimson
+#define		COLOR_DEFAULT	    rgbDarkSlateGray
+
+
+
 // Define our own private Windows Messages, all prefixed with WM_TVP_
 //
 constexpr int WM_TVP_DOWNLOAD_COMPLETE	 = (WM_USER + 7000);
