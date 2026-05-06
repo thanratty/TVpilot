@@ -32,10 +32,11 @@
 #define IDC_SPIN_DAYS_PRE               1031
 #define IDC_CHK_SHOW_LOG                1032
 #define IDC_CHK_MISSED_ONLY             1033
-#define IDC_STATIC_DAYS_PRE             1034
-#define IDC_STATIC_DAYS_POST            1035
-#define IDC_ERR_COUNT                   1036
-#define IDC_PING_COUNT                  1037
+#define IDC_CHK_EPISODE1                1034
+#define IDC_STATIC_DAYS_PRE             1035
+#define IDC_STATIC_DAYS_POST            1036
+#define IDC_ERR_COUNT                   1037
+#define IDC_PING_COUNT                  1038
 #define IDC_LIST_ARCHIVE                1050
 #define IDC_SCHED_LIST                  1051
 #define IDC_SHOW_LIST                   1052
@@ -69,7 +70,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        164
 #define _APS_NEXT_COMMAND_VALUE         32800
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           108
 #endif
 #endif

@@ -54,6 +54,7 @@ void CDmain::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
 	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_chk_missed_only);
+	DDX_Check(pDX, IDC_CHK_EPISODE1, m_chk_episode1);
 }
 
 
@@ -77,6 +78,7 @@ BEGIN_MESSAGE_MAP(CDmain, CDialog)
 	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CDmain::OnBtn_ResetDays)
 	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CDmain::OnBtn_ChkMissedOnly)
 	ON_BN_CLICKED( IDC_CHK_SHOW_LOG,				&CDmain::OnBtn_ChkShowLog)
+	ON_BN_CLICKED( IDC_CHK_EPISODE1,                &CDmain::OnBtn_ChkEpisode1)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CDmain::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CDmain::OnDownloadPing)
 	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CDmain::OnZoomEpisodes)
@@ -357,7 +359,38 @@ void CDmain::OnBtn_Save()
 void CDmain::OnBtn_ChkMissedOnly()
 {
 	UpdateData();
+
+	// Either/Or 'missed only' and 'episode 1'
+	if (m_chk_missed_only) {
+		m_chk_episode1 = false;
+		UpdateData(FALSE);
+	}
+
 	m_data.ShowMissedOnly(m_chk_missed_only);
+	m_data.ShowEpisode1Only(m_chk_episode1);
+
+	UpdateScheduleList();
+}
+
+
+
+
+/**
+ * Only show the 1st episodes of any upcoming seasons.
+ * Notify the model of the new state & rebuild the schedule accordingly
+ */
+void CDmain::OnBtn_ChkEpisode1()
+{
+	UpdateData();
+
+	// Either/Or 'missed only' and 'episode 1'
+	if (m_chk_episode1) {
+		m_chk_missed_only = false;
+		UpdateData(FALSE);
+	}
+
+	m_data.ShowMissedOnly(m_chk_missed_only);
+	m_data.ShowEpisode1Only(m_chk_episode1);
 
 	UpdateScheduleList();
 }

@@ -124,6 +124,10 @@ inline  void ShowMissedOnly(bool missed_only) {
         m_missed_edpisodes_only = missed_only;
 }
 
+inline  void ShowEpisode1Only(bool episode1_only) {
+        m_episode1_only = episode1_only;
+}
+
 inline  bool IsNewDataFile() const {
         return m_datafile.IsNewFile();
 }
@@ -157,5 +161,6 @@ private:
 
         boost::gregorian::date      m_start_date, m_end_date, m_today;
         BOOL                        m_missed_edpisodes_only { FALSE };
+        BOOL                        m_episode1_only { FALSE };
         bool                        m_abort_download { false };
 };

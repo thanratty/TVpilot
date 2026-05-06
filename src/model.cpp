@@ -324,6 +324,18 @@ CopyGuideEntryToScheduleListEntry(const sGuideEntry* ge, sScheduleListEntry* sle
 
 
 
+/**
+ * Given an episode number string of the form ss-ee, return true
+ * if the episode number is 1. ie The first in a new season.
+ */
+STATIC bool IsEpisodeOne(const std::string& ep)
+{
+    auto epnum = std::stoi(ep.substr(ep.find('-')+1));
+    return (epnum == 1);
+}
+
+
+
 
 /**
  * Populate the sGuideListEntry structure with FIRST or NEXT episode within the filter range
@@ -338,21 +350,28 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
     if (m_guide.size() == 0)
         return false;
 
+    // Reset index if GET_FIRST
     if (action == eGetAction::GET_FIRST)
     {
         // If we're using date filters, set them up here. sGuideEntry has an operator<() & is used as a functor.
-        if (!m_missed_edpisodes_only)
-        {
+        if (m_missed_edpisodes_only) {
+            index = 0;
+        }
+        else {
             ge.airdate = m_start_date;
             auto start_iter = std::lower_bound(m_guide.begin(), m_guide.end(), ge);
             index = start_iter - m_guide.begin();
 
-            ge.airdate = m_end_date;
-            auto end_iter = std::upper_bound(m_guide.begin(), m_guide.end(), ge);
-            index_end = end_iter - m_guide.begin();
+            // For showing episode 1 only, set no end date, scan from m_start_date to the end of the dataset.
+            if (m_episode1_only) {
+                index_end = m_guide.size();
+            }
+            else {
+                ge.airdate = m_end_date;
+                auto end_iter = std::upper_bound(m_guide.begin(), m_guide.end(), ge);
+                index_end = end_iter - m_guide.begin();
+            }
         }
-        else
-            index = 0;
     }
 
     // At the end already?
@@ -393,6 +412,27 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
            )
             return false;
     }
+
+
+
+
+    // Only return episode 1 ie New season start
+
+    if (m_episode1_only)
+    {
+        while (true)
+        {
+            if (IsEpisodeOne(m_guide[index].episode_number)) {
+                CopyGuideEntryToScheduleListEntry(&m_guide[index], sle);
+                index++;
+                return true;
+            }
+            index++;
+            if (index >= index_end)
+                return false;
+        }
+    }
+
 
     CopyGuideEntryToScheduleListEntry(&m_guide[ index ], sle);
 
