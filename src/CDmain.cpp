@@ -35,7 +35,7 @@ STATIC UINT_PTR	TIMER_ID_ONE_MINUTE = 60;
 // CDmain dialog constructor
 //
 CDmain::CDmain(CWnd* pParent /*=nullptr*/) :
-	CDialog(IDD_EPCHECK, pParent)
+	CDialog(IDD_MAIN, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -54,7 +54,7 @@ void CDmain::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_NEW_SHOW, m_btn_new_show);
 	DDX_Control(pDX, IDC_BTN_DELETE_SHOW, m_btn_delete_show);
 	DDX_Check(pDX, IDC_CHK_MISSED_ONLY, m_chk_missed_only);
-	DDX_Check(pDX, IDC_CHK_EPISODE1, m_chk_episode1);
+	DDX_Check(pDX, IDC_CHK_EPISODE_ONE, m_chk_episode_one);
 }
 
 
@@ -78,7 +78,7 @@ BEGIN_MESSAGE_MAP(CDmain, CDialog)
 	ON_BN_CLICKED( IDC_BTN_RESET_DAYS,				&CDmain::OnBtn_ResetDays)
 	ON_BN_CLICKED( IDC_CHK_MISSED_ONLY,				&CDmain::OnBtn_ChkMissedOnly)
 	ON_BN_CLICKED( IDC_CHK_SHOW_LOG,				&CDmain::OnBtn_ChkShowLog)
-	ON_BN_CLICKED( IDC_CHK_EPISODE1,                &CDmain::OnBtn_ChkEpisode1)
+	ON_BN_CLICKED( IDC_CHK_EPISODE_ONE,             &CDmain::OnBtn_ChkEpisodeOne)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_COMPLETE,			&CDmain::OnDownloadComplete)
 	ON_MESSAGE( WM_TVP_DOWNLOAD_PING,				&CDmain::OnDownloadPing)
 	ON_MESSAGE( WM_TVP_ZOOM_EPISODES,				&CDmain::OnZoomEpisodes)
@@ -362,12 +362,12 @@ void CDmain::OnBtn_ChkMissedOnly()
 
 	// Either/Or 'missed only' and 'episode 1'
 	if (m_chk_missed_only) {
-		m_chk_episode1 = false;
+		m_chk_episode_one = false;
 		UpdateData(FALSE);
 	}
 
 	m_data.ShowMissedOnly(m_chk_missed_only);
-	m_data.ShowEpisode1Only(m_chk_episode1);
+	m_data.ShowEpisodeOneOnly(m_chk_episode_one);
 
 	UpdateScheduleList();
 }
@@ -379,18 +379,18 @@ void CDmain::OnBtn_ChkMissedOnly()
  * Only show the 1st episodes of any upcoming seasons.
  * Notify the model of the new state & rebuild the schedule accordingly
  */
-void CDmain::OnBtn_ChkEpisode1()
+void CDmain::OnBtn_ChkEpisodeOne()
 {
 	UpdateData();
 
 	// Either/Or 'missed only' and 'episode 1'
-	if (m_chk_episode1) {
+	if (m_chk_episode_one) {
 		m_chk_missed_only = false;
 		UpdateData(FALSE);
 	}
 
 	m_data.ShowMissedOnly(m_chk_missed_only);
-	m_data.ShowEpisode1Only(m_chk_episode1);
+	m_data.ShowEpisodeOneOnly(m_chk_episode_one);
 
 	UpdateScheduleList();
 }

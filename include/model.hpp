@@ -120,12 +120,12 @@ public:
         }
 
 
-inline  void ShowMissedOnly(bool missed_only) {
-        m_missed_edpisodes_only = missed_only;
+inline  void ShowMissedOnly(bool state) {
+        m_missed_edpisodes_only = state;
 }
 
-inline  void ShowEpisode1Only(bool episode1_only) {
-        m_episode1_only = episode1_only;
+inline  void ShowEpisodeOneOnly(bool state) {
+        m_episode_one_only = state;
 }
 
 inline  bool IsNewDataFile() const {
@@ -161,6 +161,6 @@ private:
 
         boost::gregorian::date      m_start_date, m_end_date, m_today;
         BOOL                        m_missed_edpisodes_only { FALSE };
-        BOOL                        m_episode1_only { FALSE };
+        BOOL                        m_episode_one_only { FALSE };
         bool                        m_abort_download { false };
 };

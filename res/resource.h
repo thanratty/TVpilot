@@ -4,7 +4,7 @@
 //
 #define VS_VERSION_INFO                 1
 #define IDD_ARCHIVE                     105
-#define IDD_EPCHECK                     130
+#define IDD_MAIN                     130
 #define IDD_SHOWS                       132
 #define IDD_SCHEDULE                    134
 #define IDD_NEW_SHOW                    135
@@ -32,7 +32,7 @@
 #define IDC_SPIN_DAYS_PRE               1031
 #define IDC_CHK_SHOW_LOG                1032
 #define IDC_CHK_MISSED_ONLY             1033
-#define IDC_CHK_EPISODE1                1034
+#define IDC_CHK_EPISODE_ONE             1034
 #define IDC_STATIC_DAYS_PRE             1035
 #define IDC_STATIC_DAYS_POST            1036
 #define IDC_ERR_COUNT                   1037

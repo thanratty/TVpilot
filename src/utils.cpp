@@ -118,7 +118,7 @@ void ShowListStringsToLocal(sShowListEntry* sle)
 
 void ScheduleListStringsToLocal(sScheduleListEntry* gle)
 {
-	const CString aDOW[7] = { L"Sun ", L"Mon ", L"Tue ", L"Wed ", L"Thr ", L"Fri ", L"Sat " };
+	static const std::array<const wchar_t*, 7> aDOW = { L"Sun ", L"Mon ", L"Tue ", L"Wed ", L"Thr ", L"Fri ", L"Sat " };
 
 	CString s_show_title = (LPWSTR) CA2W(gle->show_title.c_str(), CP_UTF8);
 	gle->ui_show_title = s_show_title;

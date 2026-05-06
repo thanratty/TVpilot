@@ -363,7 +363,7 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
             index = start_iter - m_guide.begin();
 
             // For showing episode 1 only, set no end date, scan from m_start_date to the end of the dataset.
-            if (m_episode1_only) {
+            if (m_episode_one_only) {
                 index_end = m_guide.size();
             }
             else {
@@ -418,7 +418,7 @@ bool model::GetFilteredEpisode(eGetAction action, sScheduleListEntry* sle)
 
     // Only return episode 1 ie New season start
 
-    if (m_episode1_only)
+    if (m_episode_one_only)
     {
         while (true)
         {

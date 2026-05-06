@@ -39,7 +39,7 @@ public:
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_EPCHECK };
+	enum { IDD = IDD_MAIN };
 #endif
 
 protected:
@@ -75,7 +75,7 @@ public:
 	afx_msg void	OnBtn_Break();
 	afx_msg void    OnBtn_ChkMissedOnly();
 	afx_msg void    OnBtn_ChkShowLog();
-	afx_msg void	OnBtn_ChkEpisode1();
+	afx_msg void	OnBtn_ChkEpisodeOne();
 	afx_msg void	OnBtn_ResetDays();
 	afx_msg void	OnBtn_Explorer();
 	afx_msg void	OnDeltaPosSpinDays(NMHDR* pNMHDR, LRESULT* pResult);
@@ -101,7 +101,7 @@ private:
 			CDArchive		m_dlgArchive;
 			CDmessages		m_dlgMessages;
 			BOOL			m_chk_missed_only{ FALSE };
-			BOOL			m_chk_episode1{ FALSE };
+			BOOL			m_chk_episode_one{ FALSE };
 
 
 
