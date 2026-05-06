@@ -108,8 +108,9 @@ bool cCurlJob::downloadShow()
             break;
         }
 
-        CONSOLE_PRINT(eLogFlags::CURL, L"Curl fail, error %d : HTTp response %d\n", m_curl_result, m_http_response);
-
+        CONSOLE_PRINT(eLogFlags::CURL, L"Curl fail, error %d : HTTP response %u : URL : %s\n", m_curl_result,
+                                                                                               m_http_response,
+                                                                                               CA2W(this->m_url.c_str()));
         // Delay before retrying if any retries left
         if (attempt_number++ < CURL_MAX_TRIES) {
             Sleep(CURL_RETRY_DELAY);

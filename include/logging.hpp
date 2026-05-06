@@ -94,3 +94,12 @@ void LogMsgWin(const char* format, ...);
 void LogMsgWin(const std::string& str);
 void LogMsgWin(const CString& msg);
 
+
+
+#if defined(_DEBUG) && (ENABLE_CONSOLE_LOGGING==1) 
+
+eLogFlags GetLogFlags();
+void      SetLogFlags(eLogFlags newflags);
+
+#endif
+
